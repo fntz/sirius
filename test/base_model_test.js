@@ -55,5 +55,20 @@ suite("BaseModel", function() {
     assert(Object.keys(m.errors).length == 0);
   });
 
+  test("#to_json", function() {
+    var m = new MyModel();
+
+    m.set("id", 10);
+    m.set("description", "text");
+
+    var j0 = m.to_json();
+    var result = JSON.stringify({"id": 10, "title": "default title", "description": "text"});
+    assert(j0 == result);
+
+    var j1 = m.to_json(true);
+    var result = JSON.stringify({"my-model": JSON.parse(result)});
+    assert(j1 == result);
+  });
+
 
 });
