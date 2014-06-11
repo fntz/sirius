@@ -46,3 +46,12 @@ class InclusionValidator extends Validator
     else
       @msg = "Value #{value} should be in range #{range}"
       false
+
+class FormatValidator extends Validator
+  validate: (value, attributes) ->
+    format = attributes['with'] || throw new Error("format attribute required")
+    if format.test(value)
+      true
+    else
+      @msg = "Value #{value} not for current format"
+      false
