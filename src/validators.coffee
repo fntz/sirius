@@ -55,3 +55,33 @@ class FormatValidator extends Validator
     else
       @msg = "Value #{value} not for current format"
       false
+
+class NumericalityValidator extends Validator
+  validate: (value, attributes = {}) ->
+    if attributes['only_integers']
+      if /^\d+$/.test(value)
+        true
+      else
+        @msg = "Only allows integer numbers"
+        false
+
+    else
+      if /^\d+(?:\.\d{1,})?$/.test(value)
+        true
+      else
+        @msg = "Only allows numbers"
+        false
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
