@@ -97,7 +97,15 @@ suite("BaseModel", function() {
     assert(m.get("description") == "text");
   });
 
-  
+  test("#from_html", function() {
+    SiriusApplication.adapter = new JQueryAdapter();
+    var m = MyModel.from_html("#my-model-form");
+
+    assert(m.get("id") == 1);
+    assert(m.get("title") == "new title");
+    assert(m.get("description") == "text...");
+  });
+
 
 
 });
