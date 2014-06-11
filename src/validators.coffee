@@ -28,4 +28,12 @@ class LengthValidator extends Validator
         false
 
 
-        
+class ExclusionValidator extends Validator
+  validate: (value, attributes) ->
+    range = attributes['within'] || []
+    if range.indexOf(value) == -1
+      true
+    else
+      @msg = "Value #{value} reserved"
+      false
+      
