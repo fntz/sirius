@@ -73,7 +73,13 @@ class NumericalityValidator extends Validator
         false
 
 
-        
+class PresenceValidator extends Validator
+  validate: (value, attributes = true) ->
+    if value
+      true
+    else
+      @msg = "Value required"
+      false
 
 
 
