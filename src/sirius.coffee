@@ -62,6 +62,61 @@ class RoutePart
 
 
 SiriusApplication =
+  RouteSystem:
+    create: (routes) ->
+      current = prev = window.location.hash
+
+      is_f = (f) ->
+        Object.prototype.toString.call(f) == '[object Function]'
+
+      #[Controller, "method"] => Controller[method]
+      a2f = (a) ->
+        throw "#{a} must be array or function" if Object.prototype.toString.call(a) isnt '[object Array]'
+        throw "#{a} must contain two elements: Controller and method" if a.length != 2
+        [controller, action] = a
+        throw "Controller must be a Object" if typeof controller isnt 'object'
+        throw "Action must be a String" if Object.prototype.toString.call(action) isnt '[object String]'
+        f = controller[action]
+        throw "Action must be a Function" if Object.prototype.toString.call(f) isnt '[object Function]'
+        f
+
+      for url, action of routes when url.indexOf("#") != 0 && url.toString() != "404"
+        do (url, action) =>
+          z = url.match(/^([a-zA-Z]+)\s+(.*)/)
+          event_name = z[1]
+          selector = z[2]
+
+          action = if is_f(action) then action else a2f(action)
+          SiriusApplication.adapter.bind(selector, event_name, action)
+
+      # for cache change obj[k, v] to array [[k,v]]
+      array_of_routes = for url, action of routes when url.toString() != "404"
+        do (url, action) ->
+          url    = new RoutePart(url)
+          action = if is_f(action) then action else a2f(action)
+          [url, action]
+
+      empty = () ->
+
+      window.onhashchange = (e) =>
+        prev = current
+        current = window.location.hash
+        result = false
+        #call first matched function
+        for part in array_of_routes
+          do(part) =>
+            f = part[0]
+            r = f.match(current)
+            if r && !result
+              result = true
+              part[1].apply(null, f.args)
+              return
+
+
+        #when no results, then call 404 or empty function
+        if !result
+          (if routes['404'] then a2f(routes['404']) else empty)(current)
+
   log: false
   adapter: null
   running: false
