@@ -116,4 +116,21 @@ class BaseModel
       SiriusApplication.adapter.element(tag, value, attrs)
     result
 
+  @from_json: (json = {}) ->
+    m = new @
+    json = JSON.parse(json)
+    for attr in m.attrs()
+      do(attr) ->
+        if typeof(attr) is "object"
+          [key, ...] = Object.keys(attr)
+          m.set(key, json[key] || attr[key])
+        else
+          m.set(attr, json[attr])
+    m
+
+  @from_html: () ->
+    form_name = @.form_name || @.name.replace(/([A-Z])/g, '-$1').replace(/^-/,"").toLowerCase()
+
+    @.from_json(SiriusApplication.adapter.form_to_json("form[name='#{form_name}'"))
+
 
