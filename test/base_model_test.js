@@ -70,5 +70,22 @@ suite("BaseModel", function() {
     assert(j1 == result);
   });
 
+  test("#to_html", function() {
+    SiriusApplication.adapter = new JQueryAdapter();
+    var m = new MyModel({"id": 10, "title": "my title", "description": "text..."});
+    var r = m.to_html();
+    assert($(r[0]).prop('tagName') == "B");
+    assert($(r[0]).text() == "10");
+    assert($(r[0]).attr('class') == 'my-model-id');
+
+    assert($(r[1]).prop('tagName') == "SPAN");
+    assert($(r[1]).text() == "my title");
+    assert($(r[1]).attr('class') == "my-model-title");
+
+    assert($(r[2]).prop('tagName') == "DIV");
+    assert($(r[2]).text() == "text...");
+    assert($(r[2]).attr('class') == "description");
+  });
+
 
 });
