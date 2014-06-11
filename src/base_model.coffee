@@ -85,7 +85,17 @@ class BaseModel
     else
       JSON.stringify(z)
 
-      
+
+  to_html: () ->
+    to = @constructor.to
+    self = @
+    result = for key, attrs of to
+      value = self.get(key)
+      tag = attrs["tag"] || "div"
+      delete attrs["tag"]
+      Y.adapter.element(tag, value, attrs)
+
+    result
 
 
 
