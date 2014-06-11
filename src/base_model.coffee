@@ -46,7 +46,16 @@ class BaseModel
           self.set(attr, obj[attr])
 
 
+  set: (attr, value) ->
+    throw new Error("Attribute '#{attr}' not found for current model") if @attributes.indexOf(attr) == -1
 
+    # TODO validate value
+    @["_#{attr}"] = value
+
+  get: (attr) ->
+    throw new Error("Attribute '#{attr}' not found for current model") if @attributes.indexOf(attr) == -1
+
+    @["_#{attr}"]
 
 
 
