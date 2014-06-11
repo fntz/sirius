@@ -24,6 +24,36 @@ suite("BaseModel", function() {
     assert(om.get('title') == "default title");
   });
 
-  
+  test("validate", function() {
+    var m = new ModelwithValidators();
+    m.validate();
+
+    assert(m.valid() == false);
+    assert(Object.keys(m.errors).length == 2);
+
+    assert(m.errors['id'].length == 3);
+    m.set("id", "abc");
+    m.validate();
+    assert(m.errors['id'].length == 2);
+    m.set("id", 100);
+    m.validate();
+    assert(m.errors['id'].length == 1);
+    m.set("id", 3);
+    m.validate();
+
+    assert(Object.keys(m.errors).length == 1);
+
+    assert(m.errors['title'].length == 2);
+    m.set("title", "title123");
+    m.validate();
+    assert(m.errors['title'].length == 2);
+    m.set("title", "title");
+    m.validate();
+    assert(m.errors['title'].length == 1);
+    m.set("title", "New");
+    m.validate();
+    assert(Object.keys(m.errors).length == 0);
+  });
+
 
 });
