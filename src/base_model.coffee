@@ -113,7 +113,7 @@ class BaseModel
       value = self.get(key)
       tag = attrs["tag"] || "div"
       delete attrs["tag"]
-      Y.adapter.element(tag, value, attrs)
+      SiriusApplication.adapter.element(tag, value, attrs)
     result
 
 
