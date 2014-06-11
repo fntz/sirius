@@ -57,6 +57,18 @@ class BaseModel
 
     @["_#{attr}"]
 
+  valid: () ->
+    @_isValid
+
+  validate: () ->
+
+  save: (exception = false) ->
+    @validate()
+    name = @constructor.name
+    throw new Error("#{name} model not valid!") if exception && !@_isValid
+    return false if @_isValid
+    true
+
 
 
 
