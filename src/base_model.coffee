@@ -69,6 +69,24 @@ class BaseModel
     return false if @_isValid
     true
 
+  to_json: (root = false) ->
+    self = @
+    z = {}
+
+    for attr in @attributes
+      do(attr) ->
+        z["#{attr}"] = self.get("#{attr}")
+
+    if root
+      o = {}
+      name = @constructor.name.replace(/([A-Z])/g, '-$1').replace(/^-/,"").toLowerCase()
+      o[name] = z
+      JSON.stringify(o)
+    else
+      JSON.stringify(z)
+
+      
+
 
 
 
