@@ -31,4 +31,59 @@ suite("Routing", function() {
     assert(r.args.length == 0);
     assert(!r.match("#/post/title"));
   });
+
+  test("Routes&Controllers", function() {
+    var a = assert;
+    window.location.hash = "";
+    var Controller = {
+      error: function(current) {
+        a(current == "#/dsa");
+      }
+    };
+
+    var r = {
+      "#/" : function() {
+        a(arguments.length == 0);
+      },
+      "#/post/[0-9]+" : function(id) {
+        a(arguments.length == 1);
+        a(id == "12");
+      },
+      "#/post/:title" : function(title){
+        a(title == "abc");
+      },
+      "#/post/x/*" : function(){
+        a(arguments.length == 3);
+      },
+      "#/static" : function(){
+        a(arguments.length == 0);
+      },
+      404: [Controller, 'error']
+    };
+    SiriusApplication.adapter = new JQueryAdapter();
+
+    SiriusApplication.RouteSystem.create(r);
+
+    setTimeout(function() {
+      window.location.hash = "#/";
+    }, 0);
+    setTimeout(function() {
+      window.location.hash = "#/post/12";
+    }, 400);
+    setTimeout(function() {
+      window.location.hash = "#/post/abc";
+    }, 800);
+    setTimeout(function() {
+      window.location.hash = "#/post/x/a/b/c";
+    }, 1200);
+    setTimeout(function() {
+      window.location.hash = "#/static";
+    }, 1600);
+    setTimeout(function() {
+      window.location.hash = "#/dsa";
+    }, 2000);
+    setTimeout(function() {
+      window.location.hash = "";
+    }, 2400);
+  });
 });
