@@ -64,19 +64,19 @@ class BaseModel
       current_value = @get(key)
       for validator, v of value
         klass = switch validator
-        when "length"       then new LengthValidator()
-        when "exclusion"    then new ExclusionValidator()
-        when "inclusion"    then new InclusionValidator()
-        when "format"       then new FormatValidator()
-        when "numericality" then new NumericalityValidator()
-        when "presence"     then new PresenceValidator()
+          when "length"       then new LengthValidator()
+          when "exclusion"    then new ExclusionValidator()
+          when "inclusion"    then new InclusionValidator()
+          when "format"       then new FormatValidator()
+          when "numericality" then new NumericalityValidator()
+          when "presence"     then new PresenceValidator()
 
         r = klass.validate(current_value, v)
         if !r
           e = if typeof(v) is "object"
-            v["error"] || klass.error_message()
-          else
-            klass.error_message()
+                v["error"] || klass.error_message()
+              else
+                klass.error_message()
 
           (@errors["#{key}"] ?= []).push("#{e}")
 
