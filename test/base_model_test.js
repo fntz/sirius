@@ -87,5 +87,17 @@ suite("BaseModel", function() {
     assert($(r[2]).attr('class') == "description");
   });
 
+  test("#from_json", function() {
+    var j = JSON.stringify({"id": 10, "description": "text"});
+
+    var m = MyModel.from_json(j);
+
+    assert(m.get("id") == 10);
+    assert(m.get("title") == "default title");
+    assert(m.get("description") == "text");
+  });
+
+  
+
 
 });
