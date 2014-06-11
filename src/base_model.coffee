@@ -6,9 +6,6 @@
 ###
 
 class BaseModel
-###
-
-###
   attrs: () ->
     @constructor.attrs
 
@@ -61,6 +58,29 @@ class BaseModel
     @_isValid
 
   validate: () ->
+    @errors = {}
+    vv = @validators()
+    for key, value of vv
+      current_value = @get(key)
+      for validator, v of value
+        klass = switch validator
+        when "length"       then new LengthValidator()
+        when "exclusion"    then new ExclusionValidator()
+        when "inclusion"    then new InclusionValidator()
+        when "format"       then new FormatValidator()
+        when "numericality" then new NumericalityValidator()
+        when "presence"     then new PresenceValidator()
+
+        r = klass.validate(current_value, v)
+        if !r
+          e = if typeof(v) is "object"
+            v["error"] || klass.error_message()
+          else
+            klass.error_message()
+
+          (@errors["#{key}"] ?= []).push("#{e}")
+
+    @_isValid = Object.keys(@errors).length == 0 ? true : false
 
   save: (exception = false) ->
     @validate()
@@ -94,9 +114,6 @@ class BaseModel
       tag = attrs["tag"] || "div"
       delete attrs["tag"]
       Y.adapter.element(tag, value, attrs)
-
     result
-
-
 
 
