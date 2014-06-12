@@ -23,22 +23,27 @@
     @attrs: ["name"]
     has_one: Person
 
-has_many should generate next methods:
-   add_model
-   and set a for _model [] as value
+has_one, has_many must take arrays with models
 
+belongs_to must take a array with objects as { :model => modelName[String] } with optional
+  argument a foreign key :
 
-has_one it's the same as attr but with
-   add_model under hood
-   set('model', model)
+  belongs_to { model => "person", :back => "name" }
+  generate next methods:
+    model_back ~> person_name
+
+  if a belongs_to not present must be a throw exception
+
 
 
 ###
 
 class BaseModel
+
   attrs: () ->
     @constructor.attrs || []
 
+  #normalize model name: UserModel => user_model
   normal_name: () ->
     @constructor.name.replace(/([A-Z])/g, '_$1').replace(/^_/,"").toLowerCase()
 
@@ -48,9 +53,13 @@ class BaseModel
   has_one: () ->
     @constructor.has_one || []
 
+  belongs_to: () ->
+    @constructor.belongs_to || [] #array with object
+
   validators: () ->
     @constructor.validate
 
+  #
   normalize_attrs: () ->
     for a in @constructor.attrs
       do(a) ->
@@ -77,45 +86,79 @@ class BaseModel
 
     for klass in @has_many()
       do(klass) ->
+        #FIXME : maybe normalize class name
         self["_#{klass}"] = []
         self.attributes.push("#{klass}")
-        self["add_#{klass}"] = (z) ->
+        self["add_#{klass}"] = (z) =>
           name = z.constructor.name
-          me = self.normal_name()
+          me   = self.normal_name()
+          m_name = self.constructor.name
+
           expected = klass.charAt(0).toUpperCase() + klass.slice(1)
           throw "Expected #{expected}, but given: #{name}" if name isnt expected
-          #feedback
-          if z.attributes.indexOf(me) > -1
-            if z.has_one().indexOf(me) > -1
-              m = z.get("#{me}")
-              z.set("#{me}", self) if !m
-            else if z.has_many().indexOf(me) > -1
-              z.get("#{me}").push(self)
-
-
           self.get("#{klass}").push(z)
+
+          #feedback
+          b_model = (for i in z.belongs_to()
+            do(i) ->
+              i if i['model'] == me
+          )[0]
+
+          if !b_model
+            throw "Model #{name} must contain '@belongs_to: [{model: #{me}, back: #{me}_id]'"
+
+          if !(back = b_model['back'])
+            throw "Define 'back' property for @belongs_to"
+
+          if self.attributes.indexOf(back) == -1
+            throw "Foreign key: '#{back}' not contain in a '#{m_name}' model"
+
+          key = "#{me}_#{back}"
+          if z.attributes.indexOf(key) == -1
+            throw "Define #{key} in @attrs for '#{expected}' model"
+
+          z.set("#{key}", self.get(back))
+          #TODO: logs
+
 
     for klass in @has_one()
       do(klass) ->
         self["_#{klass}"] = null
         self.attributes.push("#{klass}")
-        self["add_#{klass}"] = (z) ->
+        self["add_#{klass}"] = (z) =>
           name = z.constructor.name
-          me = self.normal_name()
+          me   = self.normal_name()
+          m_name = self.constructor.name
+
           expected = klass.charAt(0).toUpperCase() + klass.slice(1)
           throw "Expected #{expected}, but given: #{name}" if name isnt expected
 
-          t = self.get("#{klass}")
-          throw "Model #{klass} exist" if t
-
-          if z.attributes.indexOf(me) > -1
-            if z.has_one().indexOf(me) > -1
-              m = z.get("#{me}")
-              z.set("#{me}", self) if !m
-            else if z.has_many().indexOf(me) > -1
-              z.get("#{me}").push(self)
+          if self.get("#{klass}")
+            throw "Model #{expected} already exist for #{m_name}"
 
           self.set("#{klass}", z)
+
+          #feedback
+          b_model = (for i in z.belongs_to()
+            do(i) ->
+              i if i['model'] == me
+          )[0]
+
+          if !b_model
+            throw "Model #{name} must contain '@belongs_to: [{model: #{me}, back: #{me}_id]'"
+
+          if !(back = b_model['back'])
+            throw "Define 'back' property for @belongs_to"
+
+          if self.attributes.indexOf(back) == -1
+            throw "Foreign key: '#{back}' not contain in a '#{m_name}' model"
+
+          key = "#{me}_#{back}"
+          if z.attributes.indexOf(key) == -1
+            throw "Define #{key} in @attrs for '#{expected}' model"
+
+          z.set("#{key}", self.get(back))
+          #TODO: logs
 
 
     if Object.keys(obj).length != 0
@@ -176,7 +219,13 @@ class BaseModel
 
     for attr in @attributes
       do(attr) ->
-        z["#{attr}"] = self.get("#{attr}")
+        value = self.get("#{attr}")
+        z["#{attr}"] = if self.has_many().indexOf(attr) > -1
+          for v in value then JSON.parse(v.to_json())
+        else if self.has_one().indexOf(attr) > -1
+          JSON.parse(value.to_json())
+        else
+          value
 
     if root
       o = {}
@@ -189,13 +238,13 @@ class BaseModel
 
   to_html: () ->
     to = @constructor.to
-    self = @
-    result = for key, attrs of to
-      value = self.get(key)
+    for key, attrs of to
+      value = @get(key)
       tag = attrs["tag"] || "div"
-      delete attrs["tag"]
-      SiriusApplication.adapter.element(tag, value, attrs)
-    result
+      clone = {}
+      for key, v of attrs when key isnt "tag" then clone[key] = v
+
+      SiriusApplication.adapter.element(tag, value, clone)
 
   @from_json: (json = {}) ->
     m = new @
@@ -216,3 +265,8 @@ class BaseModel
     @.from_json(SiriusApplication.adapter.form_to_json("form[name='#{form_name}'"))
 
 
+#if Object.prototype.toString.call(value) is '[object Array]'
+#  if value.length != 0
+#
+#  else
+#    z["#{attr}"] = []
