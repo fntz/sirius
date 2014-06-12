@@ -1,5 +1,5 @@
 
-
+# Base Validator class
 class Validator
   constructor: () ->
     @msg = null
@@ -7,6 +7,10 @@ class Validator
   error_message: () ->
     @msg
 
+# validate length for attribute
+# @example
+#   name: length: {min : 3, max: 10}
+#   title: length : {length: 10 }
 class LengthValidator extends Validator
   validate: (value, attributes) ->
     max = attributes['max'] || Number.POSITIVE_INFINITY
@@ -27,7 +31,10 @@ class LengthValidator extends Validator
         @msg = "Required length in range [#{min}..#{max}], given: #{actual_length}"
         false
 
-
+#
+# validate that value in not a `within` range
+# @example
+#   name: exclusion: {within: ["A", "B, "C"]}
 class ExclusionValidator extends Validator
   validate: (value, attributes) ->
     range = attributes['within'] || []
@@ -37,7 +44,10 @@ class ExclusionValidator extends Validator
       @msg = "Value #{value} reserved"
       false
 
-
+#
+# check that value must exist in range
+# @example
+#   name: inclusion: {within: ["A", "B, "C"]}
 class InclusionValidator extends Validator
   validate: (value, attributes) ->
     range = attributes['within'] || []
@@ -46,7 +56,10 @@ class InclusionValidator extends Validator
     else
       @msg = "Value #{value} should be in range #{range}"
       false
-
+#
+# check that value given format
+#   name: format: {with: /\w+/}
+#
 class FormatValidator extends Validator
   validate: (value, attributes) ->
     format = attributes['with'] || throw new Error("format attribute required")
@@ -56,6 +69,11 @@ class FormatValidator extends Validator
       @msg = "Value #{value} not for current format"
       false
 
+#
+# check if value is a number or integer number
+# @example
+#  value : numericality : {only_integers: true}
+#  value : numericality : {}
 class NumericalityValidator extends Validator
   validate: (value, attributes = {}) ->
     if attributes['only_integers']
@@ -72,7 +90,10 @@ class NumericalityValidator extends Validator
         @msg = "Only allows numbers"
         false
 
-
+#
+# check if value exist
+# @example:
+#  value : presence: true
 class PresenceValidator extends Validator
   validate: (value, attributes = true) ->
     if value
