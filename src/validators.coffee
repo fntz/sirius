@@ -7,11 +7,15 @@ class Validator
   error_message: () ->
     @msg
 
+
 # validate length for attribute
 # @example
 #   name: length: {min : 3, max: 10}
 #   title: length : {length: 10 }
 class LengthValidator extends Validator
+  #@param [Any] value - current value
+  #@param [Object] attributes object with [mix, max, length] keys
+  #@return [Boolean]
   validate: (value, attributes) ->
     max = attributes['max'] || Number.POSITIVE_INFINITY
     min = attributes['min'] || Number.NEGATIVE_INFINITY
@@ -36,6 +40,9 @@ class LengthValidator extends Validator
 # @example
 #   name: exclusion: {within: ["A", "B, "C"]}
 class ExclusionValidator extends Validator
+  #@param [Any] value
+  #@param [Object] attributes - object with [within] key and range
+  #@return [Boolean]
   validate: (value, attributes) ->
     range = attributes['within'] || []
     if range.indexOf(value) == -1
@@ -49,6 +56,9 @@ class ExclusionValidator extends Validator
 # @example
 #   name: inclusion: {within: ["A", "B, "C"]}
 class InclusionValidator extends Validator
+  #@param [Any] value
+  #@param [Object] attributes - object with [within] key and range
+  #@return [Boolean]
   validate: (value, attributes) ->
     range = attributes['within'] || []
     if range.indexOf(value) > -1
@@ -61,6 +71,9 @@ class InclusionValidator extends Validator
 #   name: format: {with: /\w+/}
 #
 class FormatValidator extends Validator
+  #@param [Any] value
+  #@param [Object] attributes - object with [with] key and regexp
+  #@return [Boolean]
   validate: (value, attributes) ->
     format = attributes['with'] || throw new Error("format attribute required")
     if format.test(value)
@@ -75,6 +88,9 @@ class FormatValidator extends Validator
 #  value : numericality : {only_integers: true}
 #  value : numericality : {}
 class NumericalityValidator extends Validator
+  #@param [Any] value
+  #@param [Object] attributes - object with [only_integers?] key
+  #@return [Boolean]
   validate: (value, attributes = {}) ->
     if attributes['only_integers']
       if /^\d+$/.test(value)
@@ -95,6 +111,9 @@ class NumericalityValidator extends Validator
 # @example:
 #  value : presence: true
 class PresenceValidator extends Validator
+  #@param [Any] value
+  #@param [Boolean] attributes
+  #@return [Boolean]
   validate: (value, attributes = true) ->
     if value
       true
