@@ -1,4 +1,7 @@
 
+###
+  RoutePart is a parser for string route representation
+###
 class RoutePart
   constructor: (route) ->
     @end   = yes
@@ -60,15 +63,45 @@ class RoutePart
     @args = args
     true
 
+###
+  Main Object.
 
+  @example:
+    MyController =
+      my_action: (id) ->
+        #...
+
+      when_click: (event) ->
+        #...
+
+    routes =
+      '#/action/:id'  : [MyController, "my_action"]
+      'click #button" : [MyController, "my_action"]
+      404: (current_url) ->
+        alert("#{current_url} not found!")
+
+    adapter = new JQueryAdapter();
+
+    SiriusApplication.run({adapter: adapter, route: routes})
+###
 SiriusApplication =
+  ###
+    Bind for routes appropriate events and callbacks
+  ###
   RouteSystem:
+    #
+    #@param [Object] is a routes object where keys is a route and value is a array where
+    # first element is a controller name, and second element is a action
+    # or it's a function
+    # @todo: custom events
     create: (routes) ->
       current = prev = window.location.hash
 
       is_f = (f) ->
         Object.prototype.toString.call(f) == '[object Function]'
 
+
+      #TODO: add filters: before\after\wrap
       #[Controller, "method"] => Controller[method]
       a2f = (a) ->
         throw "#{a} must be array or function" if Object.prototype.toString.call(a) isnt '[object Array]'
@@ -80,8 +113,15 @@ SiriusApplication =
         throw "Action must be a Function" if Object.prototype.toString.call(f) isnt '[object Function]'
         f
 
+      is_custom_event = (str) ->
+        str.indexOf(":") != -1
+
+      #TODO: custom event support
       for url, action of routes when url.indexOf("#") != 0 && url.toString() != "404"
         do (url, action) =>
+          if is_custom_event(url)
+            throw "Not supported event type for #{url}"
+
           z = url.match(/^([a-zA-Z]+)\s+(.*)/)
           event_name = z[1]
           selector = z[2]
@@ -117,9 +157,13 @@ SiriusApplication =
         if !result
           (if routes['404'] then a2f(routes['404']) else empty)(current)
 
+  #@note not implemented
   log: false
+  #adapter for application @see adapter documentation
   adapter: null
+  #boolean
   running: false
+  #route object
   route: {}
   run: (options = {}) ->
     @running = true
