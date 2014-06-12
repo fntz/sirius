@@ -1,45 +1,34 @@
 
 ###
+  A base class for all models in application.
+  @example
+     class Person extends BaseModel
+       @attrs: ["id", "name"]
 
-  class Person extends BaseModel
-    @attrs: ["id", "name"]
+       @has_many: [Group]
 
-    @has_many: [Group]
+       @form_name: "person-model"
 
-    @form_name: "person-model"
+       @validate:
+        id:
+          presence: true
+          numericality: only_integers: true
+        name:
+          presence: true
+          format: with: /^[A-Z].+/
 
-    @validate:
-      id:
-        presence: true
-        numericality: only_integers: true
-      name:
-        presence: true
-        format: with: /^[A-Z].+/
+        to_string: () ->
+          "name: #{name}; id: #{id}, group count: #{@get('group').length}"
 
-    group_names: () ->
-      for g in @get('group') then g.get("name")
+     class Group extends BaseModel
+       @attrs: ["title", "person_id"]
 
-  class Group extends BaseModel
-    @attrs: ["name"]
-    has_one: Person
-
-has_one, has_many must take arrays with models
-
-belongs_to must take a array with objects as { :model => modelName[String] } with optional
-  argument a foreign key :
-
-  belongs_to { model => "person", :back => "name" }
-  generate next methods:
-    model_back ~> person_name
-
-  if a belongs_to not present must be a throw exception
-
-
+       @belongs_to: [{model: "person", back: "id"}]
 
 ###
-
 class BaseModel
 
+  #@nodoc
   attrs: () ->
     @constructor.attrs || []
 
@@ -47,19 +36,25 @@ class BaseModel
   normal_name: () ->
     @constructor.name.replace(/([A-Z])/g, '_$1').replace(/^_/,"").toLowerCase()
 
+  #@nodoc
   has_many: () ->
     @constructor.has_many || []
 
+  #@nodoc
   has_one: () ->
     @constructor.has_one || []
 
+  #@nodoc
   belongs_to: () ->
     @constructor.belongs_to || [] #array with object
 
   validators: () ->
     @constructor.validate
 
-  #
+  ###
+    Because models contain attributes as object, this method extract only keys
+    attrs : [{"id" : 1}] => after normalization ["id"]
+  ###
   normalize_attrs: () ->
     for a in @constructor.attrs
       do(a) ->
@@ -68,10 +63,26 @@ class BaseModel
         else
           a
 
+  ###
+    Take a object with attributes for creation;
+    @note: by now not supported relations!
+    @example
+      class MyModel extends BaseModel
+        @attrs: ["id"]
+
+      my_model = new MyModel({id: 1})
+
+    This methods, generate properties for object from `@attrs` array.
+    Each property starts with `_`.
+    Also it's generated properties for `@has_many` and `@has_one` attributes.
+
+  ###
   constructor: (obj = {}) ->
     self = @
 
     @_isValid = false
+
+    # object, which contain all errors, which registers after validation
     @errors = {}
     @attributes = @normalize_attrs()
 
@@ -120,7 +131,7 @@ class BaseModel
           z.set("#{key}", self.get(back))
           #TODO: logs
 
-
+    #TODO: refactor this
     for klass in @has_one()
       do(klass) ->
         self["_#{klass}"] = null
@@ -166,21 +177,26 @@ class BaseModel
         do(attr) ->
           self.set(attr, obj[attr])
 
-
+  # base setter
+  # @throw Error, when attributes not defined for current model
   set: (attr, value) ->
     throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model") if @attributes.indexOf(attr) == -1
 
     # TODO validate value
     @["_#{attr}"] = value
 
+  # base getter
+  # @throw Error, when attributes not defined for current model
   get: (attr) ->
     throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model") if @attributes.indexOf(attr) == -1
 
     @["_#{attr}"]
 
+  # @return [Boolean] check if current model instance is valid
   valid: () ->
     @_isValid
 
+  # @nodoc
   validate: () ->
     @errors = {}
     vv = @validators()
@@ -206,6 +222,10 @@ class BaseModel
 
     @_isValid = Object.keys(@errors).length == 0 ? true : false
 
+  # @note must be overrided in descendants
+  # @param exception [Boolean] throw exception, when true and instance not valid,
+  # otherwise return false if not valid
+  # @throw Error, when exception in true
   save: (exception = false) ->
     @validate()
     name = @constructor.name
@@ -213,6 +233,10 @@ class BaseModel
     return false if @_isValid
     true
 
+  # Convert model instance in a json
+  # @param root [Boolean] when true generated json as { model_name : { attrs } }
+  # otherwise as { attrs }
+  #
   to_json: (root = false) ->
     self = @
     z = {}
@@ -235,7 +259,8 @@ class BaseModel
     else
       JSON.stringify(z)
 
-
+  # convert model into array of element instances
+  # @note not support a relations
   to_html: () ->
     to = @constructor.to
     for key, attrs of to
@@ -246,6 +271,9 @@ class BaseModel
 
       SiriusApplication.adapter.element(tag, value, clone)
 
+  # Create a new model instance from json structure.
+  # @note not support a relations
+  #
   @from_json: (json = {}) ->
     m = new @
     json = JSON.parse(json)
@@ -258,15 +286,11 @@ class BaseModel
           m.set(attr, json[attr])
     m
 
+  # Generate a new model instance from form
+  # @note not support a relations
   @from_html: () ->
     #FIXME
     form_name = @.form_name || @.name.replace(/([A-Z])/g, '_$1').replace(/^_/,"").toLowerCase()
 
     @.from_json(SiriusApplication.adapter.form_to_json("form[name='#{form_name}'"))
 
-
-#if Object.prototype.toString.call(value) is '[object Array]'
-#  if value.length != 0
-#
-#  else
-#    z["#{attr}"] = []
