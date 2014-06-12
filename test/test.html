@@ -12,12 +12,24 @@
 <script src="../vendor/chai.js" type="text/javascript"></script>
 <script type="text/javascript">mocha.setup('tdd')</script>
 <script type="text/javascript">assert = chai.assert;</script>
+<script src="../lib/jquery_adapter.js" type="text/javascript"></script>
 <script src="../lib/sirius.js" type="text/javascript"></script>
-<script src="fixture.js" type="text/javascript"></script>
+<script src="fixtures.js" type="text/javascript"></script>
 <script src="base_model_test.js" type="text/javascript"></script>
+<script src="validators_test.js" type="text/javascript"></script>
+<script src="routes_test.js" type="text/javascript"></script>
+
 <script type="text/javascript">
   mocha.checkLeaks();
   mocha.run();
 </script>
+
+
+<form name="my_model" id="my-model-form">
+  <input type="hidden" name="id" class="my-id" value="1" />
+  <input type="text" name="title" class="title" value="new title" />
+  <textarea name="description">text...</textarea>
+</form>
+
 </body>
 </html>

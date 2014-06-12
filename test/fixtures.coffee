@@ -18,3 +18,17 @@ class ModelwithValidators extends BaseModel
       format: with: /^[A-Z].+/
       length: min: 3, max: 7
       exclusion: ["title"]
+
+
+class Person extends BaseModel
+  @attrs: ["id"]
+  @has_many : ["group"]
+  @has_one : ["name"]
+
+class Group extends BaseModel
+  @attrs: ["name", "person_id"]
+  @belongs_to: [{model: "person", back: "id"}]
+
+class Name extends BaseModel
+  @attrs: ["name", "person_id"]
+  @belongs_to: [{model: "person", back: "id"}]
