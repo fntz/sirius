@@ -58,9 +58,14 @@ suite("Routing", function() {
       "#/static" : function(){
         a(arguments.length == 0);
       },
-      404: [Controller, 'error']
+      404: [Controller, 'error'],
+
+      "event:custom" : function(e, p0) {
+        a(p0 == 0);
+      }
     };
-    SiriusApplication.adapter = new JQueryAdapter();
+    var j = new JQueryAdapter();
+    SiriusApplication.adapter = j;
 
     SiriusApplication.RouteSystem.create(r);
 
@@ -85,5 +90,8 @@ suite("Routing", function() {
     setTimeout(function() {
       window.location.hash = "";
     }, 2400);
+
+    j.fire(document, "event:custom", [0])
   });
+  
 });
