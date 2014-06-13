@@ -282,18 +282,36 @@ class BaseModel
 
     result.join("")
   # Create a new model instance from json structure.
-  # @note not support a relations
-  #
-  @from_json: (json = {}) ->
+  # @param json [JSON]
+  # @param models [Object] a object with model classes
+  # @example:
+  #   # Person has many Group
+  #   Person.from_json({... group: {...}}, {group: Group})
+  @from_json: (json, models = {}) ->
     m = new @
     json = JSON.parse(json)
-    for attr in m.attrs()
-      do(attr) ->
-        if typeof(attr) is "object"
-          [key, ...] = Object.keys(attr)
-          m.set(key, json[key] || attr[key])
+    attrs = [].concat(m.attrs(), m.has_many(), m.has_one())
+
+    for attr in attrs
+      if typeof(attr) is "object"
+        [key, ...] = Object.keys(attr)
+        m.set(key, json[key] || attr[key])
+      else
+        value = if m.has_many().indexOf(attr) > -1
+          model = models[attr]
+          if model
+            for z in json[attr] then model.from_json(JSON.stringify(z), models)
+          else
+            json[attr]
+        else if m.has_one().indexOf(attr) > -1
+          model = models[attr]
+          if model
+            model.from_json(JSON.stringify(json[attr]), models)
+          else
+            json[attr]
         else
-          m.set(attr, json[attr])
+          json[attr]
+        m.set(attr, value)
     m
 
   # Generate a new model instance from form
