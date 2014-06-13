@@ -126,9 +126,6 @@ suite("BaseModel", function() {
     });
 
     test("#to_json&html", function() {
-      SiriusApplication.adapter = new JQueryAdapter();
-
-      var c = function(m){console.log(m);}
       var z = {"id":1,"group":[{"name":"group-0","person_id":1},{"name":"group-1","person_id":1}],"name":{"name":"abc","person_id":1}};
 
       var j = JSON.parse(p0.to_json());
@@ -143,7 +140,25 @@ suite("BaseModel", function() {
 
       assert(p0.to_html() == n);
     });
-    test("#from_json, from_html");
+    test("#from_json, from_html", function() {
+      var c = function(m){console.log(m);}
+      var j = JSON.stringify({"id":1,"group":[{"name":"group-0","person_id":1},{"name":"group-1","person_id":1}],"name":{"name":"abc","person_id":1}})
+
+      var z = Person.from_json(j, {group: Group, name: Name});
+
+      assert(p0.get("id") == z.get("id"));
+      assert(p0.get("name").get("name") == z.get("name").get("name"));
+      assert(p0.get("group")[0].get("person_id") == z.get("group")[0].get("person_id"));
+      assert(z.get("group").length == 2);
+
+      var z0 = Person.from_json(j);
+
+      assert(p0.get("id") == z0.get("id"));
+      assert(z0.get("name")["name"] == p0.get("name").get("name"));
+      assert(p0.get("group")[0].get("person_id") == z0.get("group")[0]["person_id"]);
+      assert(z0.get("group").length == 2);
+
+    });
   });
 
 
