@@ -156,7 +156,7 @@ SiriusApplication =
           SiriusApplication.adapter.fire(document, "application:404", current, prev)
           (if routes['404'] then a2f(routes['404']) else empty)(current)
 
-      fn()
+      (fn || empty)()
 
   log: false
   #adapter for application @see adapter documentation

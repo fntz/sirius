@@ -11,6 +11,9 @@ class ModelwithValidators extends BaseModel
       presence: true,
       numericality: only_integers: true
       inclusion: within: [1..10]
+      validate_with:  (value) ->
+        #@msg = ....
+        true
 
     title:
       presence: true

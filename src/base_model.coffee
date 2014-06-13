@@ -181,7 +181,6 @@ class BaseModel
   set: (attr, value) ->
     throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model") if @attributes.indexOf(attr) == -1
 
-    # TODO validate value
     @["_#{attr}"] = value
 
   # base getter

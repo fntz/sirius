@@ -93,5 +93,5 @@ suite("Routing", function() {
 
     j.fire(document, "event:custom", [0])
   });
-  
+
 });
