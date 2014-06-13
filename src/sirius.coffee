@@ -116,17 +116,12 @@ SiriusApplication =
       is_custom_event = (str) ->
         str.indexOf(":") != -1
 
-      #TODO: custom event support
       for url, action of routes when url.indexOf("#") != 0 && url.toString() != "404"
         do (url, action) =>
-          if is_custom_event(url)
-            throw "Not supported event type for #{url}"
-
-          z = url.match(/^([a-zA-Z]+)\s+(.*)/)
-          event_name = z[1]
-          selector = z[2]
-
           action = if is_f(action) then action else a2f(action)
+          z = url.match(/^([a-zA-Z:]+)(\s+)?(.*)?/)
+          event_name = z[1]
+          selector   = z[3] || document #when it a custom event: 'custom:event' for example
           SiriusApplication.adapter.bind(selector, event_name, action)
 
       # for cache change obj[k, v] to array [[k,v]]

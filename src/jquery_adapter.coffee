@@ -24,3 +24,6 @@ class JQueryAdapter extends Adapter
         else
           o[name] = value || ''
     JSON.stringify(o)
+
+  fire: (element, event, params...) ->
+    jQuery(element).trigger(event, params)
