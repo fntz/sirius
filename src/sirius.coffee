@@ -93,8 +93,10 @@ SiriusApplication =
     #@param [Object] is a routes object where keys is a route and value is a array where
     # first element is a controller name, and second element is a action
     # or it's a function
-    # @todo: custom events
-    create: (routes) ->
+    # @event application:hashchange [current_url, prev_url]
+    # @event application:404 when url not found
+    # @event application:run after running
+    create: (routes, fn) ->
       current = prev = window.location.hash
 
       is_f = (f) ->
@@ -112,9 +114,6 @@ SiriusApplication =
         f = controller[action]
         throw "Action must be a Function" if Object.prototype.toString.call(f) isnt '[object Function]'
         f
-
-      is_custom_event = (str) ->
-        str.indexOf(":") != -1
 
       for url, action of routes when url.indexOf("#") != 0 && url.toString() != "404"
         do (url, action) =>
@@ -137,6 +136,10 @@ SiriusApplication =
         prev = current
         current = window.location.hash
         result = false
+
+        SiriusApplication.logger("Url change to: #{current}")
+        SiriusApplication.adapter.fire(document, "application:hashchange", current, prev)
+
         #call first matched function
         for part in array_of_routes
           do(part) =>
@@ -150,9 +153,11 @@ SiriusApplication =
 
         #when no results, then call 404 or empty function
         if !result
+          SiriusApplication.adapter.fire(document, "application:404", current, prev)
           (if routes['404'] then a2f(routes['404']) else empty)(current)
 
-  #@note not implemented
+      fn()
+
   log: false
   #adapter for application @see adapter documentation
   adapter: null
@@ -160,12 +165,26 @@ SiriusApplication =
   running: false
   #route object
   route: {}
+  #base logger when not support will be call a alert function
+  logger: (msg) ->
+    return if !@log
+    if window.console
+      console.log msg
+    else
+      alert "Not supported `console`"
   run: (options = {}) ->
     @running = true
     @log     = options["log"]     || @log
     @adapter = options["adapter"] || throw new Error("Specify adapter")
     @route   = options["route"]   || @route
+    @logger  = options["logger"]  || @logger
 
+    @logger("Logger enabled? #{@log}")
+    n = @adapter.constructor.name
+    @logger("Adapter: #{n}")
     # start
-    SiriusApplication.RouteSystem.create(@route);
+    SiriusApplication.RouteSystem.create(@route, () =>
+      @adapter.fire(document, "application:run", new Date());
+    );
+
 
