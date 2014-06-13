@@ -203,12 +203,17 @@ class BaseModel
       current_value = @get(key)
       for validator, v of value
         klass = switch validator
-          when "length"       then new LengthValidator()
-          when "exclusion"    then new ExclusionValidator()
-          when "inclusion"    then new InclusionValidator()
-          when "format"       then new FormatValidator()
-          when "numericality" then new NumericalityValidator()
-          when "presence"     then new PresenceValidator()
+          when "length"        then new LengthValidator()
+          when "exclusion"     then new ExclusionValidator()
+          when "inclusion"     then new InclusionValidator()
+          when "format"        then new FormatValidator()
+          when "numericality"  then new NumericalityValidator()
+          when "presence"      then new PresenceValidator()
+          when "validate_with"
+            z = new Validator()
+            z.validate = v
+            z.msg = null
+            z
 
         r = klass.validate(current_value, v)
         if !r
