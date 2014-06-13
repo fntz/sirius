@@ -260,14 +260,18 @@ class BaseModel
 
   # convert model into array of element instances
   # @note not support a relations
+  # @return string with html
   to_html: () ->
-    to = @constructor.to
-    result = for key, attrs of to
+    to = @constructor.to || {}
+
+    result = for key in @attributes
       value = @get(key)
-      tag = attrs["tag"] || "div"
-      attr = for key, v of attrs when key isnt "tag" then "#{key} = '#{v}'"
-      "<#{tag} #{attr.join(' ')}>#{value}<#{tag}>"
-    
+      obj   = to[key]    || {}
+      tag   = obj["tag"] || "div"
+      attr  = for k, v of obj when k isnt "tag" then "#{k} = '#{v}'"
+      attr = if attr.length == 0 then "" else " #{attr.join(' ')}"
+      "<#{tag}#{attr}>#{value}</#{tag}>"
+
     result.join("")
   # Create a new model instance from json structure.
   # @note not support a relations
