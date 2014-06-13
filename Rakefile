@@ -36,23 +36,20 @@ task :install do
   end
 end
 
-task :test do
+task :test => [:build] do
+  %x(coffee -b -c test/fixtures.coffee)
+end
 
+task :build do
   files = Dir["src/*.coffee"]
   without_adapter = files.find_all{|f| !f.include?("adapter") }
 
   output0 = without_adapter.join(" ")
   output_jquery = "src/adapter.coffee src/jquery_adapter.coffee"
   output_prototype = "src/adapter.coffee src/prototype_js_adapter.coffee"
-  %x(coffee -b -c test/fixtures.coffee)
   %x(coffee -b -j sirius.js -o lib/ -c #{output0})
   %x(coffee -b -j jquery_adapter.js -o lib/ -c #{output_jquery})
   %x(coffee -b -j prototypejs_adapter.js -o lib/ -c #{output_prototype})
-
-end
-
-task :build do
-  %x(coffee -b -j sirius.js -o lib/ -c src/)
 end
 
 task :doc do
