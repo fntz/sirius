@@ -128,7 +128,7 @@ suite("BaseModel", function() {
     test("#to_json&html", function() {
       SiriusApplication.adapter = new JQueryAdapter();
 
-      //var c = function(m){console.log(m);}
+      var c = function(m){console.log(m);}
       var z = {"id":1,"group":[{"name":"group-0","person_id":1},{"name":"group-1","person_id":1}],"name":{"name":"abc","person_id":1}};
 
       var j = JSON.parse(p0.to_json());
@@ -139,8 +139,9 @@ suite("BaseModel", function() {
       assert(j["group"].length == 2);
       assert(z["group"][0]["name"] == j["group"][0]["name"]);
 
+      var n = "<div>1</div><p class = 'group'><span>group-0</span><div>1</div>,<span>group-1</span><div>1</div></p><div><div>abc</div><div>1</div></div>";
 
-      //$("body").append(h)
+      assert(p0.to_html() == n);
     });
     test("#from_json, from_html");
   });

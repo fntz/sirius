@@ -3,7 +3,6 @@ class MyModel extends BaseModel
   @to:
     id          : tag: "b", class: 'my-model-id'
     title       : tag: "span", class: "my-model-title"
-    description : class: "description"
 
 class ModelwithValidators extends BaseModel
   @attrs: ["id", {title: "t"}, "description"]
@@ -24,10 +23,14 @@ class Person extends BaseModel
   @attrs: ["id"]
   @has_many : ["group"]
   @has_one : ["name"]
+  @to:
+    group: tag: "p", class: "group"
 
 class Group extends BaseModel
   @attrs: ["name", "person_id"]
   @belongs_to: [{model: "person", back: "id"}]
+  @to:
+    name: tag: "span"
 
 class Name extends BaseModel
   @attrs: ["name", "person_id"]
