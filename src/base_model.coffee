@@ -129,7 +129,7 @@ class BaseModel
             throw "Define #{key} in @attrs for '#{expected}' model"
 
           z.set("#{key}", self.get(back))
-          #TODO: logs
+
 
     #TODO: refactor this
     for klass in @has_one()
@@ -169,7 +169,6 @@ class BaseModel
             throw "Define #{key} in @attrs for '#{expected}' model"
 
           z.set("#{key}", self.get(back))
-          #TODO: logs
 
 
     if Object.keys(obj).length != 0
@@ -263,14 +262,13 @@ class BaseModel
   # @note not support a relations
   to_html: () ->
     to = @constructor.to
-    for key, attrs of to
+    result = for key, attrs of to
       value = @get(key)
       tag = attrs["tag"] || "div"
-      clone = {}
-      for key, v of attrs when key isnt "tag" then clone[key] = v
-
-      SiriusApplication.adapter.element(tag, value, clone)
-
+      attr = for key, v of attrs when key isnt "tag" then "#{key} = '#{v}'"
+      "<#{tag} #{attr.join(' ')}>#{value}<#{tag}>"
+    
+    result.join("")
   # Create a new model instance from json structure.
   # @note not support a relations
   #
