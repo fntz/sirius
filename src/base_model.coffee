@@ -270,6 +270,14 @@ class BaseModel
       tag   = obj["tag"] || "div"
       attr  = for k, v of obj when k isnt "tag" then "#{k} = '#{v}'"
       attr = if attr.length == 0 then "" else " #{attr.join(' ')}"
+
+      value = if @has_many().indexOf(key) > -1
+        for v in value then v.to_html()
+      else if @has_one().indexOf(key) > -1
+        value.to_html()
+      else
+        value
+
       "<#{tag}#{attr}>#{value}</#{tag}>"
 
     result.join("")
