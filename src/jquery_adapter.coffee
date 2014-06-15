@@ -1,6 +1,6 @@
 class JQueryAdapter extends Adapter
   bind: (selector, event, fn) ->
-    @find(selector).bind(event, fn)
+    jQuery(document).on(event, selector, fn)
 
   find: (selector) ->
     jQuery(selector)
