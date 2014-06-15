@@ -320,9 +320,9 @@ class BaseModel
 
   # Generate a new model instance from form
   # @note not support a relations
-  @from_html: () ->
+  @from_html: (selector) ->
     #FIXME
-    form_name = @.form_name || @.name.replace(/([A-Z])/g, '_$1').replace(/^_/,"").toLowerCase()
+    form_name = selector || @.form_name || @.name.replace(/([A-Z])/g, '_$1').replace(/^_/,"").toLowerCase()
 
-    @.from_json(SiriusApplication.adapter.form_to_json("form[name='#{form_name}'"))
+    @.from_json(SiriusApplication.adapter.form_to_json(form_name))
 
