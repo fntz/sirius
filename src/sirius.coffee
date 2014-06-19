@@ -12,6 +12,9 @@ class SiriusUtils
 
   @camelize: (str) ->
     str.charAt(0).toUpperCase() + str.slice(1)
+
+  @underscore: (str) ->
+    str.replace(/([A-Z])/g, '_$1').replace(/^_/,"").toLowerCase()
 ###
   RoutePart is a parser for string route representation
 ###
@@ -147,7 +150,7 @@ class ControlFlow
       if @data
         @data = if SiriusUtils.is_array(@data) then @data else [@data]
         data = SiriusApplication.adapter.get_property(e, @data)
-        @action.apply(null, [].concat([], [e], data)) 
+        @action.apply(null, [].concat([], [e], data))
       else
         @action.apply(null, [e])
     else

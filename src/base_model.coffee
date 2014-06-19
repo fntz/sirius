@@ -34,7 +34,7 @@ class BaseModel
 
   #normalize model name: UserModel => user_model
   normal_name: () ->
-    @constructor.name.replace(/([A-Z])/g, '_$1').replace(/^_/,"").toLowerCase()
+    SiriusUtils.underscore(@constructor.name)
 
   #@nodoc
   has_many: () ->
@@ -322,7 +322,7 @@ class BaseModel
   # @note not support a relations
   @from_html: (selector) ->
     #FIXME
-    form_name = selector || @.form_name || @.name.replace(/([A-Z])/g, '_$1').replace(/^_/,"").toLowerCase()
-    
+    form_name = selector || @.form_name || SiriusUtils.underscore(@.name)
+
     @.from_json(SiriusApplication.adapter.form_to_json(form_name))
 
