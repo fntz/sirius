@@ -10,3 +10,9 @@ class PrototypeAdapter extends Adapter
 
   form_to_json: (selector) ->
     JSON.stringify($$(selector).first().serialize(true))
+
+  fire: (element, event, params...) ->
+    $(element).fire(event, params)
+
+  get_property: (event, properties...) -> #FIXME
+    for p in properties then Event.element(event).readAttribute(p);
