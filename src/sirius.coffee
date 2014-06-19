@@ -1,4 +1,17 @@
 
+
+class SiriusUtils
+  @is_function: (a) ->
+    Object.prototype.toString.call(a) is '[object Function]'
+
+  @is_string: (a) ->
+    Object.prototype.toString.call(a) is '[object String]'
+
+  @is_array: (a) ->
+    Object.prototype.toString.call(a) is '[object Array]'
+
+  @camelize: (str) ->
+    str.charAt(0).toUpperCase() + str.slice(1)
 ###
   RoutePart is a parser for string route representation
 ###
@@ -63,6 +76,87 @@ class RoutePart
     @args = args
     true
 
+
+
+class ControlFlow
+  # obj is a object with controller\action\before\after\data properties
+  # required:
+  #   controller must be a Object
+  #   action is a string
+  # before\after might be given as string or find in controller as before_action and after_action methods
+  # before\after might be a function
+  # data is a string for element (id\class\data-*\...) event routes, otherwise it's a null
+  # if it's a function, then before\after\data is a null or empty function ? TODO
+  constructor: (params) ->
+    @controller = params['controller'] || throw "Params must contain a Controller"
+
+
+    act = params['action']
+
+    @action = if SiriusUtils.is_string(act)
+                @controller[act]
+              else if SiriusUtils.is_function(act)
+                act
+              else
+                throw err("Action")
+
+    if !SiriusUtils.is_function(@action) && !SiriusUtils.is_string(@action)
+      throw "Action must be string or function"
+
+    ###
+      extract from `params` before or after function
+      when it's a function then return function
+      when it's a string it's find by `string` in controller
+        when given not a function raise error
+        otherwise return this method from controller
+      if it's not a function or string throw error
+      otherwise find in controller by *_given_action if found a function return it
+        else raise error
+      by end it's return empty function
+    ###
+    extract = (property) =>
+      p = params[property]
+      k = @controller["#{property}_#{act}"]
+      err = (a) ->
+        "#{a} action must be string or function"
+      if SiriusUtils.is_string(p)
+        t = @controller[p]
+        throw err(SiriusUtils.camelize(property)) if !SiriusUtils.is_function(t)
+        t
+      else if SiriusUtils.is_function(p)
+        p
+      else if p
+        throw err(SiriusUtils.camelize(property))
+      else if k
+        throw err(SiriusUtils.camelize(property)) if !SiriusUtils.is_function(k)
+        k
+      else
+        ->
+
+    @before = extract('before')
+    @after  = extract('after')
+
+    @data = params['data'] || null
+
+  # e is a event need extract event target
+
+  handle_event: (e, args...) ->
+    @before.call(null)
+
+    #when e defined it's a Event, otherwise it's call from url_routes
+    if e
+      if @data
+        @action.apply(null, [e])#FIXME add data
+      else
+        @action.apply(null, [e])
+    else
+      @action.apply(null, args)
+
+    @after.call(null)
+
+
+
+#TODO make it as function
 ###
   Main Object.
 
@@ -96,41 +190,26 @@ SiriusApplication =
     # @event application:hashchange [current_url, prev_url]
     # @event application:404 when url not found
     # @event application:run after running
-    create: (routes, fn) ->
+    create: (routes, fn = ->) ->
       current = prev = window.location.hash
 
       is_f = (f) ->
         Object.prototype.toString.call(f) == '[object Function]'
 
-
-      #TODO: add filters: before\after\wrap
-      #[Controller, "method"] => Controller[method]
-      a2f = (a) ->
-        throw "#{a} must be array or function" if Object.prototype.toString.call(a) isnt '[object Array]'
-        throw "#{a} must contain two elements: Controller and method" if a.length != 2
-        [controller, action] = a
-        throw "Controller must be a Object" if typeof controller isnt 'object'
-        throw "Action must be a String" if Object.prototype.toString.call(action) isnt '[object String]'
-        f = controller[action]
-        throw "Action must be a Function" if Object.prototype.toString.call(f) isnt '[object Function]'
-        f
-
       for url, action of routes when url.indexOf("#") != 0 && url.toString() != "404"
         do (url, action) =>
-          action = if is_f(action) then action else a2f(action)
+          action = if is_f(action) then action else new ControlFlow(action) #FIXME
           z = url.match(/^([a-zA-Z:]+)(\s+)?(.*)?/)
           event_name = z[1]
           selector   = z[3] || document #when it a custom event: 'custom:event' for example
-          SiriusApplication.adapter.bind(selector, event_name, action)
+          SiriusApplication.adapter.bind(selector, event_name, action.handle_event || action)
 
       # for cache change obj[k, v] to array [[k,v]]
       array_of_routes = for url, action of routes when url.toString() != "404"
         do (url, action) ->
           url    = new RoutePart(url)
-          action = if is_f(action) then action else a2f(action)
+          action = if is_f(action) then action else new ControlFlow(action) #FIXME
           [url, action]
-
-      empty = () ->
 
       window.onhashchange = (e) =>
         prev = current
@@ -147,16 +226,23 @@ SiriusApplication =
             r = f.match(current)
             if r && !result
               result = true
-              part[1].apply(null, f.args)
+              f = part[1]
+              if f.handle_event
+                f.handle_event(null, f.args)
+              else
+                f.apply(null, f.args)
               return
-
 
         #when no results, then call 404 or empty function
         if !result
           SiriusApplication.adapter.fire(document, "application:404", current, prev)
-          (if routes['404'] then a2f(routes['404']) else empty)(current)
+          #FIXME
+          r404 = routes['404']
+          if r404
+            z = new ControlFlow(r404)
+            z.handle_event(null, current)
 
-      (fn || empty)()
+      fn()
 
   log: false
   #adapter for application @see adapter documentation
