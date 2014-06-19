@@ -38,6 +38,13 @@ suite("Routing", function() {
     var Controller = {
       error: function(current) {
         a(current == "#/dsa");
+      },
+      action: function(e, id, klass) {
+        a(id == "my-div");
+        a(klass == "abc");
+      },
+      title: function(title) {
+        a(title == "abc");
       }
     };
 
@@ -49,20 +56,19 @@ suite("Routing", function() {
         a(arguments.length == 1);
         a(id == "12");
       },
-      "#/post/:title" : function(title){
-        a(title == "abc");
-      },
+      "#/post/:title" : {controller: Controller, action: "title"},
       "#/post/x/*" : function(){
         a(arguments.length == 3);
       },
       "#/static" : function(){
         a(arguments.length == 0);
       },
-      404: [Controller, 'error'],
+      404: {controller: Controller, action: "error"},
 
       "event:custom" : function(e, p0) {
         a(p0 == 0);
-      }
+      },
+      "click #my-div" : {controller: Controller, action: "action", data: ["id", "class"]}
     };
     var j = new JQueryAdapter();
     SiriusApplication.adapter = j;
@@ -91,7 +97,9 @@ suite("Routing", function() {
       window.location.hash = "";
     }, 2400);
 
-    j.fire(document, "event:custom", [0])
+    j.fire(document, "event:custom", [0]);
+
+    $("#my-div").trigger("click");
   });
 
 });
