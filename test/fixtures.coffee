@@ -38,3 +38,39 @@ class Group extends BaseModel
 class Name extends BaseModel
   @attrs: ["name", "person_id"]
   @belongs_to: [{model: "person", back: "id"}]
+
+
+#### controllers #######
+
+Controller0 =
+  before_action: () ->
+    "before"
+  after_action: () ->
+    "after"
+  action: () ->
+    "action"
+
+  action0: () ->
+    "action0"
+
+  before_action1: () ->
+    "before1"
+
+  action1 : () ->
+    "action1"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
