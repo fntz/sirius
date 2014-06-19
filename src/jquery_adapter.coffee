@@ -27,3 +27,6 @@ class JQueryAdapter extends Adapter
 
   fire: (element, event, params...) ->
     jQuery(element).trigger(event, params)
+
+  get_property(event, properties...) ->
+    for p in properties then $(event.target).prop(p)

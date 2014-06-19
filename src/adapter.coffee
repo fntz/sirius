@@ -22,10 +22,17 @@ class Adapter
   # @param [String] selector - form selector
   form_to_json: (selector) ->
   #
-  #call custom event with data
+  # Call custom event with data
   # @param element [String] selector
   # @param event [String] - event name
   # @param params [Array] - array with date for event
   fire: (element, event, params...) ->
+
+  #
+  # Return properties for target element
+  # @param event [EventObject]
+  # @param properies [Array<String>]
+  get_property(event, properties...) ->
+
 
 
