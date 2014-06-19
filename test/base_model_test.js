@@ -89,8 +89,8 @@ suite("BaseModel", function() {
 
   test("#from_html", function() {
     SiriusApplication.adapter = new JQueryAdapter();
-    var m = MyModel.from_html("#my_model_form");
-
+    var m = MyModel.from_html("#my-model-form");
+    console.log(m.get("id"))
     assert(m.get("id") == 1);
     assert(m.get("title") == "new title");
     assert(m.get("description") == "text...");
