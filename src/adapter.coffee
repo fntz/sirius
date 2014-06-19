@@ -32,7 +32,7 @@ class Adapter
   # Return properties for target element
   # @param event [EventObject]
   # @param properies [Array<String>]
-  get_property(event, properties...) ->
+  get_property: (event, properties...) ->
 
 
 
