@@ -43,7 +43,11 @@ suite("ControlFlow", function() {
       action: "action1",
       before: 1
     };
+
     assert.throw(function(){ new ControlFlow(params); });
+
+    var el = $("<a id='my-element'>");
+
     assert.throw(function(){ new ControlFlow({}); });
     assert.throw(function(){ new ControlFlow({controller: Controller0, action: "some-action"}); });
   });
