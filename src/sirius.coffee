@@ -88,13 +88,13 @@ class ControlFlow
   # data is a string for element (id\class\data-*\...) event routes, otherwise it's a null
   # if it's a function, then before\after\data is a null or empty function ? TODO
   constructor: (params) ->
-    @controller = params['controller'] || throw "Params must contain a Controller"
+    controller = params['controller'] || throw "Params must contain a Controller"
 
 
     act = params['action']
 
     @action = if SiriusUtils.is_string(act)
-                @controller[act]
+                controller[act]
               else if SiriusUtils.is_function(act)
                 act
               else
@@ -116,11 +116,11 @@ class ControlFlow
     ###
     extract = (property) =>
       p = params[property]
-      k = @controller["#{property}_#{act}"]
+      k = controller["#{property}_#{act}"]
       err = (a) ->
         "#{a} action must be string or function"
       if SiriusUtils.is_string(p)
-        t = @controller[p]
+        t = controller[p]
         throw err(SiriusUtils.camelize(property)) if !SiriusUtils.is_function(t)
         t
       else if SiriusUtils.is_function(p)
@@ -139,20 +139,21 @@ class ControlFlow
     @data = params['data'] || null
 
   # e is a event need extract event target
-
   handle_event: (e, args...) ->
-    @before.call(null)
+    @before()
 
     #when e defined it's a Event, otherwise it's call from url_routes
     if e
       if @data
-        @action.apply(null, [e])#FIXME add data
+        @data = if SiriusUtils.is_array(@data) then @data else [@data]
+        data = SiriusApplication.adapter.get_property(e, @data)
+        @action.apply(null, [].concat([], [e], data)) 
       else
         @action.apply(null, [e])
     else
       @action.apply(null, args)
 
-    @after.call(null)
+    @after(null)
 
 
 
@@ -193,22 +194,24 @@ SiriusApplication =
     create: (routes, fn = ->) ->
       current = prev = window.location.hash
 
-      is_f = (f) ->
-        Object.prototype.toString.call(f) == '[object Function]'
-
       for url, action of routes when url.indexOf("#") != 0 && url.toString() != "404"
         do (url, action) =>
-          action = if is_f(action) then action else new ControlFlow(action) #FIXME
+          handler = if SiriusUtils.is_function(action)
+                     action
+                   else
+                    (e) ->
+                      (new ControlFlow(action)).handle_event(e)
+
           z = url.match(/^([a-zA-Z:]+)(\s+)?(.*)?/)
           event_name = z[1]
           selector   = z[3] || document #when it a custom event: 'custom:event' for example
-          SiriusApplication.adapter.bind(selector, event_name, action.handle_event || action)
+          SiriusApplication.adapter.bind(selector, event_name, handler)
 
       # for cache change obj[k, v] to array [[k,v]]
       array_of_routes = for url, action of routes when url.toString() != "404"
         do (url, action) ->
           url    = new RoutePart(url)
-          action = if is_f(action) then action else new ControlFlow(action) #FIXME
+          action = if SiriusUtils.is_function(action) then action else new ControlFlow(action)
           [url, action]
 
       window.onhashchange = (e) =>
@@ -226,11 +229,11 @@ SiriusApplication =
             r = f.match(current)
             if r && !result
               result = true
-              f = part[1]
-              if f.handle_event
-                f.handle_event(null, f.args)
+              z = part[1]
+              if z.handle_event
+                z.handle_event(null, f.args)
               else
-                f.apply(null, f.args)
+                z.apply(null, f.args)
               return
 
         #when no results, then call 404 or empty function
