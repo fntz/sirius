@@ -78,8 +78,6 @@ class BaseModel
 
   ###
   constructor: (obj = {}) ->
-    self = @
-
     @_isValid = false
 
     # object, which contain all errors, which registers after validation
@@ -87,94 +85,90 @@ class BaseModel
     @attributes = @normalize_attrs()
 
     for attr in @attrs()
-      do(attr) ->
-        if typeof(attr) is "object"
-          [key, ...] = Object.keys(attr)
-          throw new Error("Attributes should have a key and value") if !key
-          self["_#{key}"] = attr[key]
-        else
-          self["_#{attr}"] = null
+      if typeof(attr) is "object"
+        [key, ...] = Object.keys(attr)
+        throw new Error("Attributes should have a key and value") if !key
+        @["_#{key}"] = attr[key]
+      else
+        @["_#{attr}"] = null
 
     for klass in @has_many()
-      do(klass) ->
-        #FIXME : maybe normalize class name
-        self["_#{klass}"] = []
-        self.attributes.push("#{klass}")
-        self["add_#{klass}"] = (z) =>
-          name = z.constructor.name
-          me   = self.normal_name()
-          m_name = self.constructor.name
+      #FIXME : maybe normalize class name
+      @["_#{klass}"] = []
+      @attributes.push("#{klass}")
+      @["add_#{klass}"] = (z) =>
+        name = z.constructor.name
+        me   = @normal_name()
+        m_name = @constructor.name
 
-          expected = klass.charAt(0).toUpperCase() + klass.slice(1)
-          throw new Error("Expected #{expected}, but given: #{name}") if name isnt expected
-          self.get("#{klass}").push(z)
+        expected = SiriusApplication.camelize(klass)
+        throw new Error("Expected #{expected}, but given: #{name}") if name isnt expected
+        @get("#{klass}").push(z)
 
-          #feedback
-          b_model = (for i in z.belongs_to()
-            do(i) ->
-              i if i['model'] == me
-          )[0]
+        #feedback
+        b_model = (for i in z.belongs_to()
+          do(i) ->
+            i if i['model'] == me
+        )[0]
 
-          if !b_model
-            throw new Error("Model #{name} must contain '@belongs_to: [{model: #{me}, back: #{me}_id]'")
+        if !b_model
+          throw new Error("Model #{name} must contain '@belongs_to: [{model: #{me}, back: #{me}_id]'")
 
-          if !(back = b_model['back'])
-            throw new Error("Define 'back' property for @belongs_to")
+        if !(back = b_model['back'])
+          throw new Error("Define 'back' property for @belongs_to")
 
-          if self.attributes.indexOf(back) == -1
-            throw new Error("Foreign key: '#{back}' not contain in a '#{m_name}' model")
+        if @attributes.indexOf(back) == -1
+          throw new Error("Foreign key: '#{back}' not contain in a '#{m_name}' model")
 
-          key = "#{me}_#{back}"
-          if z.attributes.indexOf(key) == -1
-            throw new Error("Define #{key} in @attrs for '#{expected}' model")
+        key = "#{me}_#{back}"
+        if z.attributes.indexOf(key) == -1
+          throw new Error("Define #{key} in @attrs for '#{expected}' model")
 
-          z.set("#{key}", self.get(back))
+        z.set("#{key}", @get(back))
 
 
     #TODO: refactor this
     for klass in @has_one()
-      do(klass) ->
-        self["_#{klass}"] = null
-        self.attributes.push("#{klass}")
-        self["add_#{klass}"] = (z) =>
-          name = z.constructor.name
-          me   = self.normal_name()
-          m_name = self.constructor.name
+      @["_#{klass}"] = null
+      @attributes.push("#{klass}")
+      @["add_#{klass}"] = (z) =>
+        name = z.constructor.name
+        me   = @normal_name()
+        m_name = @constructor.name
 
-          expected = klass.charAt(0).toUpperCase() + klass.slice(1)
-          throw new Error("Expected #{expected}, but given: #{name}") if name isnt expected
+        expected = SiriusApplication.camelize(klass)
+        throw new Error("Expected #{expected}, but given: #{name}") if name isnt expected
 
-          if self.get("#{klass}")
-            throw new Error("Model #{expected} already exist for #{m_name}")
+        if @get("#{klass}")
+          throw new Error("Model #{expected} already exist for #{m_name}")
 
-          self.set("#{klass}", z)
+        @set("#{klass}", z)
 
-          #feedback
-          b_model = (for i in z.belongs_to()
-            do(i) ->
-              i if i['model'] == me
-          )[0]
+        #feedback
+        b_model = (for i in z.belongs_to()
+          do(i) ->
+            i if i['model'] == me
+        )[0]
 
-          if !b_model
-            throw new Error("Model #{name} must contain '@belongs_to: [{model: #{me}, back: #{me}_id]'")
+        if !b_model
+          throw new Error("Model #{name} must contain '@belongs_to: [{model: #{me}, back: #{me}_id]'")
 
-          if !(back = b_model['back'])
-            throw new Error("Define 'back' property for @belongs_to")
+        if !(back = b_model['back'])
+          throw new Error("Define 'back' property for @belongs_to")
 
-          if self.attributes.indexOf(back) == -1
-            throw new Error("Foreign key: '#{back}' not contain in a '#{m_name}' model")
+        if @attributes.indexOf(back) == -1
+          throw new Error("Foreign key: '#{back}' not contain in a '#{m_name}' model")
 
-          key = "#{me}_#{back}"
-          if z.attributes.indexOf(key) == -1
-            throw new Error("Define #{key} in @attrs for '#{expected}' model")
+        key = "#{me}_#{back}"
+        if z.attributes.indexOf(key) == -1
+          throw new Error("Define #{key} in @attrs for '#{expected}' model")
 
-          z.set("#{key}", self.get(back))
+        z.set("#{key}", @get(back))
 
 
     if Object.keys(obj).length != 0
       for attr in Object.keys(obj)
-        do(attr) ->
-          self.set(attr, obj[attr])
+        @set(attr, obj[attr])
 
   # base setter
   # @throw Error, when attributes not defined for current model
@@ -241,18 +235,16 @@ class BaseModel
   # otherwise as { attrs }
   #
   to_json: (root = false) ->
-    self = @
     z = {}
 
     for attr in @attributes
-      do(attr) ->
-        value = self.get("#{attr}")
-        z["#{attr}"] = if self.has_many().indexOf(attr) > -1
-          for v in value then JSON.parse(v.to_json())
-        else if self.has_one().indexOf(attr) > -1
-          JSON.parse(value.to_json())
-        else
-          value
+      value = @get("#{attr}")
+      z["#{attr}"] = if @has_many().indexOf(attr) > -1
+        for v in value then JSON.parse(v.to_json())
+      else if @has_one().indexOf(attr) > -1
+        JSON.parse(value.to_json())
+      else
+        value
 
     if root
       o = {}
