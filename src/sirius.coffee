@@ -91,7 +91,7 @@ class ControlFlow
   # data is a string for element (id\class\data-*\...) event routes, otherwise it's a null
   # if it's a function, then before\after\data is a null or empty function ? TODO
   constructor: (params) ->
-    controller = params['controller'] || throw "Params must contain a Controller"
+    controller = params['controller'] || throw new Error("Params must contain a Controller")
 
 
     act = params['action']
@@ -101,10 +101,10 @@ class ControlFlow
               else if SiriusUtils.is_function(act)
                 act
               else
-                throw err("Action")
+                throw new Error("Action must be string or function");
 
     if !SiriusUtils.is_function(@action) && !SiriusUtils.is_string(@action)
-      throw "Action must be string or function"
+      throw new Error("Action must be string or function")
 
     ###
       extract from `params` before or after function
@@ -121,7 +121,8 @@ class ControlFlow
       p = params[property]
       k = controller["#{property}_#{act}"]
       err = (a) ->
-        "#{a} action must be string or function"
+        new Error("#{a} action must be string or function")
+
       if SiriusUtils.is_string(p)
         t = controller[p]
         throw err(SiriusUtils.camelize(property)) if !SiriusUtils.is_function(t)

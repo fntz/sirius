@@ -106,7 +106,7 @@ class BaseModel
           m_name = self.constructor.name
 
           expected = klass.charAt(0).toUpperCase() + klass.slice(1)
-          throw "Expected #{expected}, but given: #{name}" if name isnt expected
+          throw new Error("Expected #{expected}, but given: #{name}") if name isnt expected
           self.get("#{klass}").push(z)
 
           #feedback
@@ -116,17 +116,17 @@ class BaseModel
           )[0]
 
           if !b_model
-            throw "Model #{name} must contain '@belongs_to: [{model: #{me}, back: #{me}_id]'"
+            throw new Error("Model #{name} must contain '@belongs_to: [{model: #{me}, back: #{me}_id]'")
 
           if !(back = b_model['back'])
-            throw "Define 'back' property for @belongs_to"
+            throw new Error("Define 'back' property for @belongs_to")
 
           if self.attributes.indexOf(back) == -1
-            throw "Foreign key: '#{back}' not contain in a '#{m_name}' model"
+            throw new Error("Foreign key: '#{back}' not contain in a '#{m_name}' model")
 
           key = "#{me}_#{back}"
           if z.attributes.indexOf(key) == -1
-            throw "Define #{key} in @attrs for '#{expected}' model"
+            throw new Error("Define #{key} in @attrs for '#{expected}' model")
 
           z.set("#{key}", self.get(back))
 
@@ -142,10 +142,10 @@ class BaseModel
           m_name = self.constructor.name
 
           expected = klass.charAt(0).toUpperCase() + klass.slice(1)
-          throw "Expected #{expected}, but given: #{name}" if name isnt expected
+          throw new Error("Expected #{expected}, but given: #{name}") if name isnt expected
 
           if self.get("#{klass}")
-            throw "Model #{expected} already exist for #{m_name}"
+            throw new Error("Model #{expected} already exist for #{m_name}")
 
           self.set("#{klass}", z)
 
@@ -156,17 +156,17 @@ class BaseModel
           )[0]
 
           if !b_model
-            throw "Model #{name} must contain '@belongs_to: [{model: #{me}, back: #{me}_id]'"
+            throw new Error("Model #{name} must contain '@belongs_to: [{model: #{me}, back: #{me}_id]'")
 
           if !(back = b_model['back'])
-            throw "Define 'back' property for @belongs_to"
+            throw new Error("Define 'back' property for @belongs_to")
 
           if self.attributes.indexOf(back) == -1
-            throw "Foreign key: '#{back}' not contain in a '#{m_name}' model"
+            throw new Error("Foreign key: '#{back}' not contain in a '#{m_name}' model")
 
           key = "#{me}_#{back}"
           if z.attributes.indexOf(key) == -1
-            throw "Define #{key} in @attrs for '#{expected}' model"
+            throw new Error("Define #{key} in @attrs for '#{expected}' model")
 
           z.set("#{key}", self.get(back))
 
