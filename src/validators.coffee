@@ -1,6 +1,6 @@
 
 # Base Validator class
-class Validator
+class Sirius.Validator
   constructor: () ->
     @msg = null
 
@@ -12,7 +12,7 @@ class Validator
 # @example
 #   name: length: {min : 3, max: 10}
 #   title: length : {length: 10 }
-class LengthValidator extends Validator
+class Sirius.LengthValidator extends Sirius.Validator
   #@param [Any] value - current value
   #@param [Object] attributes object with [mix, max, length] keys
   #@return [Boolean]
@@ -39,7 +39,7 @@ class LengthValidator extends Validator
 # validate that value in not a `within` range
 # @example
 #   name: exclusion: {within: ["A", "B, "C"]}
-class ExclusionValidator extends Validator
+class Sirius.ExclusionValidator extends Sirius.Validator
   #@param [Any] value
   #@param [Object] attributes - object with [within] key and range
   #@return [Boolean]
@@ -55,7 +55,7 @@ class ExclusionValidator extends Validator
 # check that value must exist in range
 # @example
 #   name: inclusion: {within: ["A", "B, "C"]}
-class InclusionValidator extends Validator
+class Sirius.InclusionValidator extends Sirius.Validator
   #@param [Any] value
   #@param [Object] attributes - object with [within] key and range
   #@return [Boolean]
@@ -70,7 +70,7 @@ class InclusionValidator extends Validator
 # check that value given format
 #   name: format: {with: /\w+/}
 #
-class FormatValidator extends Validator
+class Sirius.FormatValidator extends Sirius.Validator
   #@param [Any] value
   #@param [Object] attributes - object with [with] key and regexp
   #@return [Boolean]
@@ -87,7 +87,7 @@ class FormatValidator extends Validator
 # @example
 #  value : numericality : {only_integers: true}
 #  value : numericality : {}
-class NumericalityValidator extends Validator
+class Sirius.NumericalityValidator extends Sirius.Validator
   #@param [Any] value
   #@param [Object] attributes - object with [only_integers?] key
   #@return [Boolean]
@@ -110,7 +110,7 @@ class NumericalityValidator extends Validator
 # check if value exist
 # @example:
 #  value : presence: true
-class PresenceValidator extends Validator
+class Sirius.PresenceValidator extends Sirius.Validator
   #@param [Any] value
   #@param [Boolean] attributes
   #@return [Boolean]

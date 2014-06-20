@@ -1,10 +1,10 @@
-class MyModel extends BaseModel
+class MyModel extends Sirius.BaseModel
   @attrs: ["id", {title: "default title"}, "description"]
   @to:
     id          : tag: "b", class: 'my-model-id'
     title       : tag: "span", class: "my-model-title"
 
-class ModelwithValidators extends BaseModel
+class ModelwithValidators extends Sirius.BaseModel
   @attrs: ["id", {title: "t"}, "description"]
   @validate :
     id:
@@ -22,25 +22,25 @@ class ModelwithValidators extends BaseModel
       exclusion: ["title"]
 
 
-class Person extends BaseModel
+class Person extends Sirius.BaseModel
   @attrs: ["id"]
   @has_many : ["group"]
   @has_one : ["name"]
   @to:
     group: tag: "p", class: "group"
 
-class Group extends BaseModel
+class Group extends Sirius.BaseModel
   @attrs: ["name", "person_id"]
   @belongs_to: [{model: "person", back: "id"}]
   @to:
     name: tag: "span"
 
-class Name extends BaseModel
+class Name extends Sirius.BaseModel
   @attrs: ["name", "person_id"]
   @belongs_to: [{model: "person", back: "id"}]
 
 
-class UModel extends BaseModel
+class UModel extends Sirius.BaseModel
   @attrs: ["id"]
   @guid_for : "id"
 

@@ -28,7 +28,7 @@
        @belongs_to: [{model: "person", back: "id"}]
 
 ###
-class BaseModel
+class Sirius.BaseModel
 
   #@nodoc
   attrs: () ->
@@ -36,7 +36,7 @@ class BaseModel
 
   #normalize model name: UserModel => user_model
   normal_name: () ->
-    SiriusUtils.underscore(@constructor.name)
+    Sirius.Utils.underscore(@constructor.name)
 
   #@nodoc
   has_many: () ->
@@ -179,14 +179,14 @@ class BaseModel
       current_value = @get(key)
       for validator, v of value
         klass = switch validator
-          when "length"        then new LengthValidator()
-          when "exclusion"     then new ExclusionValidator()
-          when "inclusion"     then new InclusionValidator()
-          when "format"        then new FormatValidator()
-          when "numericality"  then new NumericalityValidator()
-          when "presence"      then new PresenceValidator()
+          when "length"        then new Sirius.LengthValidator()
+          when "exclusion"     then new Sirius.ExclusionValidator()
+          when "inclusion"     then new Sirius.InclusionValidator()
+          when "format"        then new Sirius.FormatValidator()
+          when "numericality"  then new Sirius.NumericalityValidator()
+          when "presence"      then new Sirius.PresenceValidator()
           when "validate_with"
-            z = new Validator()
+            z = new Sirius.Validator()
             z.validate = v
             z.msg = null
             z
@@ -297,7 +297,7 @@ class BaseModel
   # @note not support a relations
   @from_html: (selector) ->
     #FIXME
-    form_name = selector || @.form_name || SiriusUtils.underscore(@.name)
+    form_name = selector || @.form_name || Sirius.Utils.underscore(@.name)
 
-    @.from_json(SiriusApplication.adapter.form_to_json(form_name))
+    @.from_json(Sirius.Application.adapter.form_to_json(form_name))
 

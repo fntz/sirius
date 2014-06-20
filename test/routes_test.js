@@ -1,30 +1,30 @@
 suite("Routing", function() {
   test("RoutePart", function() {
     var r ;
-    r = new RoutePart("#");
+    r = new Sirius.RoutePart("#");
     assert(r.match("#/"));
     assert(!r.match("/abc"));
     assert(r.args.length == 0);
 
 
-    r = new RoutePart("#/*");
+    r = new Sirius.RoutePart("#/*");
     assert(!r.end == true);
     assert(r.match("#/title/id/date/param1/"));
     assert(r.args.length == 4);
 
-    r = new RoutePart("#/:title/:id")
+    r = new Sirius.RoutePart("#/:title/:id")
     assert(r.end);
     assert(r.match("#/post/1"));
     assert(r.args.length == 2)
     assert(!r.match("#/post/zik/1"));
     assert(r.args.length == 0);
 
-    r = new RoutePart("#/title");
+    r = new Sirius.RoutePart("#/title");
     assert(r.end);
     assert(r.match("#/title"));
     assert(!r.match("#/title1"));
 
-    r = new RoutePart("#/post/[0-9]+");
+    r = new Sirius.RoutePart("#/post/[0-9]+");
     assert(r.match("#/post/190"));
     assert(r.args.length == 1);
     assert(!r.match(("#/post/a90")));
@@ -71,9 +71,9 @@ suite("Routing", function() {
       "click #my-div" : {controller: Controller, action: "action", data: ["id", "class"]}
     };
     var j = new JQueryAdapter();
-    SiriusApplication.adapter = j;
+    Sirius.Application.adapter = j;
 
-    SiriusApplication.RouteSystem.create(r);
+    Sirius.RouteSystem.create(r);
 
     setTimeout(function() {
       window.location.hash = "#/";

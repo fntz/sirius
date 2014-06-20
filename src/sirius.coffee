@@ -1,6 +1,10 @@
+Sirius = {}
+
+Sirius.redirect = (url) ->
+  location.replace(url)
 
 
-class SiriusUtils
+class Sirius.Utils
   @is_function: (a) ->
     Object.prototype.toString.call(a) is '[object Function]'
 
@@ -16,12 +20,12 @@ class SiriusUtils
   @underscore: (str) ->
     str.replace(/([A-Z])/g, '_$1').replace(/^_/,"").toLowerCase()
 
-redirect = (url) ->
-  location.replace(url)
 ###
   RoutePart is a parser for string route representation
 ###
-class RoutePart
+
+
+class Sirius.RoutePart
   constructor: (route) ->
     @end   = yes
     @start = null #not used ...
@@ -84,7 +88,7 @@ class RoutePart
 
 
 
-class ControlFlow
+class Sirius.ControlFlow
   # obj is a object with controller\action\before\after\data properties
   # required:
   #   controller must be a Object
@@ -99,14 +103,14 @@ class ControlFlow
 
     act = params['action']
 
-    @action = if SiriusUtils.is_string(act)
+    @action = if Sirius.Utils.is_string(act)
                 controller[act]
-              else if SiriusUtils.is_function(act)
+              else if Sirius.Utils.is_function(act)
                 act
               else
                 throw new Error("Action must be string or function");
 
-    if !SiriusUtils.is_function(@action) && !SiriusUtils.is_string(@action)
+    if !Sirius.Utils.is_function(@action) && !Sirius.Utils.is_string(@action)
       throw new Error("Action must be string or function")
 
     ###
@@ -126,16 +130,16 @@ class ControlFlow
       err = (a) ->
         new Error("#{a} action must be string or function")
 
-      if SiriusUtils.is_string(p)
+      if Sirius.Utils.is_string(p)
         t = controller[p]
-        throw err(SiriusUtils.camelize(property)) if !SiriusUtils.is_function(t)
+        throw err(Sirius.Utils.camelize(property)) if !Sirius.Utils.is_function(t)
         t
-      else if SiriusUtils.is_function(p)
+      else if Sirius.Utils.is_function(p)
         p
       else if p
-        throw err(SiriusUtils.camelize(property))
+        throw err(Sirius.Utils.camelize(property))
       else if k
-        throw err(SiriusUtils.camelize(property)) if !SiriusUtils.is_function(k)
+        throw err(Sirius.Utils.camelize(property)) if !Sirius.Utils.is_function(k)
         k
       else
         if !is_guard
@@ -153,8 +157,8 @@ class ControlFlow
   handle_event: (e, args...) ->
     #when e defined it's a Event, otherwise it's call from url_routes
     if e
-      data   = if SiriusUtils.is_array(@data) then @data else if @data then [@data] else []
-      data   = SiriusApplication.adapter.get_property(e, data)
+      data   = if Sirius.Utils.is_array(@data) then @data else if @data then [@data] else []
+      data   = Sirius.Application.adapter.get_property(e, data)
       merge  = [].concat([], [e], data)
       if @guard
         if @guard.apply(null, merge)
@@ -199,76 +203,73 @@ class ControlFlow
 
     adapter = new JQueryAdapter();
 
-    SiriusApplication.run({adapter: adapter, route: routes})
+    Sirius.Application.run({adapter: adapter, route: routes})
 ###
-SiriusApplication =
-  ###
-    Bind for routes appropriate events and callbacks
-  ###
-  RouteSystem:
-    #
-    #@param [Object] is a routes object where keys is a route and value is a array where
-    # first element is a controller name, and second element is a action
-    # or it's a function
-    # @event application:hashchange [current_url, prev_url]
-    # @event application:404 when url not found
-    # @event application:run after running
-    create: (routes, fn = ->) ->
-      current = prev = window.location.hash
 
-      for url, action of routes when url.indexOf("#") != 0 && url.toString() != "404"
-        do (url, action) =>
-          handler = if SiriusUtils.is_function(action)
-                     action
-                   else
-                    (e) ->
-                      (new ControlFlow(action)).handle_event(e)
+Sirius.RouteSystem =
+#@param [Object] is a routes object where keys is a route and value is a array where
+# first element is a controller name, and second element is a action
+# or it's a function
+# @event application:hashchange [current_url, prev_url]
+# @event application:404 when url not found
+# @event application:run after running
+  create: (routes, fn = ->) ->
+    current = prev = window.location.hash
 
-          z = url.match(/^([a-zA-Z:]+)(\s+)?(.*)?/)
-          event_name = z[1]
-          selector   = z[3] || document #when it a custom event: 'custom:event' for example
-          SiriusApplication.adapter.bind(selector, event_name, handler)
+    for url, action of routes when url.indexOf("#") != 0 && url.toString() != "404"
+      do (url, action) =>
+        handler = if Sirius.Utils.is_function(action)
+          action
+        else
+          (e) ->
+            (new Sirius.ControlFlow(action)).handle_event(e)
 
-      # for cache change obj[k, v] to array [[k,v]]
-      array_of_routes = for url, action of routes when url.toString() != "404"
-        do (url, action) ->
-          url    = new RoutePart(url)
-          action = if SiriusUtils.is_function(action) then action else new ControlFlow(action)
-          [url, action]
+        z = url.match(/^([a-zA-Z:]+)(\s+)?(.*)?/)
+        event_name = z[1]
+        selector   = z[3] || document #when it a custom event: 'custom:event' for example
+        Sirius.Application.adapter.bind(selector, event_name, handler)
 
-      window.onhashchange = (e) =>
-        prev = current
-        current = window.location.hash
-        result = false
+    # for cache change obj[k, v] to array [[k,v]]
+    array_of_routes = for url, action of routes when url.toString() != "404"
+      do (url, action) ->
+        url    = new Sirius.RoutePart(url)
+        action = if Sirius.Utils.is_function(action) then action else new Sirius.ControlFlow(action)
+        [url, action]
 
-        SiriusApplication.logger("Url change to: #{current}")
-        SiriusApplication.adapter.fire(document, "application:hashchange", current, prev)
+    window.onhashchange = (e) =>
+      prev = current
+      current = window.location.hash
+      result = false
 
-        #call first matched function
-        for part in array_of_routes
-          do(part) =>
-            f = part[0]
-            r = f.match(current)
-            if r && !result
-              result = true
-              z = part[1]
-              if z.handle_event
-                z.handle_event(null, f.args)
-              else
-                z.apply(null, f.args)
-              return
+      Sirius.Application.logger("Url change to: #{current}")
+      Sirius.Application.adapter.fire(document, "application:hashchange", current, prev)
 
-        #when no results, then call 404 or empty function
-        if !result
-          SiriusApplication.adapter.fire(document, "application:404", current, prev)
-          #FIXME
-          r404 = routes['404']
-          if r404
-            z = new ControlFlow(r404)
-            z.handle_event(null, current)
+      #call first matched function
+      for part in array_of_routes
+        do(part) =>
+          f = part[0]
+          r = f.match(current)
+          if r && !result
+            result = true
+            z = part[1]
+            if z.handle_event
+              z.handle_event(null, f.args)
+            else
+              z.apply(null, f.args)
+            return
 
-      fn()
+      #when no results, then call 404 or empty function
+      if !result
+        Sirius.Application.adapter.fire(document, "application:404", current, prev)
+        #FIXME
+        r404 = routes['404']
+        if r404
+          z = new Sirius.ControlFlow(r404)
+          z.handle_event(null, current)
 
+    fn()
+
+Sirius.Application =
   log: false
   #adapter for application @see adapter documentation
   adapter: null
@@ -295,12 +296,12 @@ SiriusApplication =
     @logger("Adapter: #{n}")
 
     # start
-    SiriusApplication.RouteSystem.create(@route, () =>
+    Sirius.RouteSystem.create(@route, () =>
       @adapter.fire(document, "application:run", new Date());
     );
 
     if start
-      redirect(start)
+      Sirius.redirect(start)
 
 
 
