@@ -15,6 +15,9 @@ class SiriusUtils
 
   @underscore: (str) ->
     str.replace(/([A-Z])/g, '_$1').replace(/^_/,"").toLowerCase()
+
+redirect = (url) ->
+  location.replace(url)
 ###
   RoutePart is a parser for string route representation
 ###
@@ -271,13 +274,18 @@ SiriusApplication =
     @adapter = options["adapter"] || throw new Error("Specify adapter")
     @route   = options["route"]   || @route
     @logger  = options["logger"]  || @logger
-
+    start    = options["start_url"]
     @logger("Logger enabled? #{@log}")
     n = @adapter.constructor.name
     @logger("Adapter: #{n}")
+
     # start
     SiriusApplication.RouteSystem.create(@route, () =>
       @adapter.fire(document, "application:run", new Date());
     );
+
+    if start
+      redirect(start)
+
 
 
