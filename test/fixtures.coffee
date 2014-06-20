@@ -40,6 +40,10 @@ class Name extends BaseModel
   @belongs_to: [{model: "person", back: "id"}]
 
 
+class UModel extends BaseModel
+  @attrs: ["id"]
+  @guid_for : "id"
+
 #### controllers #######
 
 Controller0 =

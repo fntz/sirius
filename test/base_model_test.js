@@ -161,6 +161,12 @@ suite("BaseModel", function() {
     });
   });
 
+  test("#guid", function() {
+    var a = new UModel();
+    var b = new UModel();
+    assert(a.get("id") != b.get("id"));
+  });
+
 
 
 });
