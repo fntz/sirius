@@ -9,6 +9,8 @@
 
        @form_name: "person-model"
 
+       @guid_for: id
+
        @validate:
         id:
           presence: true
@@ -50,6 +52,9 @@ class BaseModel
 
   validators: () ->
     @constructor.validate
+
+  guid_for: () ->
+    @constructor.guid_for
 
   ###
     Because models contain attributes as object, this method extract only keys
@@ -106,6 +111,13 @@ class BaseModel
       for attr in Object.keys(obj)
         @set(attr, obj[attr])
 
+    if g = @guid_for()
+      @set(g, @_generate_guid())
+
+  # generate guid from: http://stackoverflow.com/a/105074/1581531
+  _generate_guid: () ->
+    s4 = () -> Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1)
+    "#{s4()}#{s4()}-#{s4()}-#{s4()}-#{s4()}-#{s4()}#{s4()}#{s4()}"
 
   _has_create: (klass, is_one = false) ->
     @["add_#{klass}"] = (z) =>
