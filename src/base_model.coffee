@@ -106,10 +106,7 @@ class BaseModel
         @get("#{klass}").push(z)
 
         #feedback
-        b_model = (for i in z.belongs_to()
-          do(i) ->
-            i if i['model'] == me
-        )[0]
+        b_model = (for i in z.belongs_to() when i['model'] == me then i)[0]
 
         if !b_model
           throw new Error("Model #{name} must contain '@belongs_to: [{model: #{me}, back: #{me}_id]'")
@@ -145,10 +142,7 @@ class BaseModel
         @set("#{klass}", z)
 
         #feedback
-        b_model = (for i in z.belongs_to()
-          do(i) ->
-            i if i['model'] == me
-        )[0]
+        b_model = (for i in z.belongs_to() when i['model'] == me then i)[0]
 
         if !b_model
           throw new Error("Model #{name} must contain '@belongs_to: [{model: #{me}, back: #{me}_id]'")
