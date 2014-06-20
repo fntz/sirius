@@ -120,7 +120,7 @@ class ControlFlow
         else raise error
       by end it's return empty function
     ###
-    extract = (property) =>
+    extract = (property, is_guard = false) =>
       p = params[property]
       k = controller["#{property}_#{act}"]
       err = (a) ->
@@ -138,29 +138,40 @@ class ControlFlow
         throw err(SiriusUtils.camelize(property)) if !SiriusUtils.is_function(k)
         k
       else
-        ->
+        if !is_guard
+          ->
+        else
+          null
 
     @before = extract('before')
     @after  = extract('after')
+    @guard  = extract('guard', true)
 
     @data = params['data'] || null
 
   # e is a event need extract event target
   handle_event: (e, args...) ->
-    @before()
-
     #when e defined it's a Event, otherwise it's call from url_routes
     if e
       if @data
-        @data = if SiriusUtils.is_array(@data) then @data else [@data]
-        data = SiriusApplication.adapter.get_property(e, @data)
-        @action.apply(null, [].concat([], [e], data))
+        data = if SiriusUtils.is_array(@data) then @data else [@data]
+        data = SiriusApplication.adapter.get_property(e, data)
+        merge = [].concat([], [e], data)
+        if @guard && @guard.apply(null, merge)
+          @before()
+          @action.apply(null, merge)
+          @after()
       else
-        @action.apply(null, [e])
+        if @guard && @guard.apply(null, args)
+          @before()
+          @action.apply(null, [e])
+          @after()
     else
-      @action.apply(null, args)
+      if @guard && @guard.apply(null, args)
+        @before()
+        @action.apply(null, args)
+        @after()
 
-    @after(null)
 
 
 
