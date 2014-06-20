@@ -157,17 +157,32 @@ class ControlFlow
         data = if SiriusUtils.is_array(@data) then @data else [@data]
         data = SiriusApplication.adapter.get_property(e, data)
         merge = [].concat([], [e], data)
-        if @guard && @guard.apply(null, merge)
+        if @guard
+          if @guard.apply(null, merge)
+            @before()
+            @action.apply(null, merge)
+            @after()
+        else
           @before()
           @action.apply(null, merge)
           @after()
       else
-        if @guard && @guard.apply(null, args)
+        if @guard
+          if @guard.apply(null, [e])
+            @before()
+            @action.apply(null, [e])
+            @after()
+        else
           @before()
           @action.apply(null, [e])
           @after()
     else
-      if @guard && @guard.apply(null, args)
+      if @guard
+        if @guard.apply(null, args)
+          @before()
+          @action.apply(null, args)
+          @after()
+      else
         @before()
         @action.apply(null, args)
         @after()
