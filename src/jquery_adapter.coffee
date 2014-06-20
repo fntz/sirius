@@ -2,12 +2,6 @@ class JQueryAdapter extends Adapter
   bind: (selector, event, fn) ->
     jQuery(document).on(event, selector, fn)
 
-  find: (selector) ->
-    jQuery(selector)
-
-  element: (element, value, options = {}) ->
-    jQuery("<#{element}>").attr(options).text(value)
-
   form_to_json: (selector) ->
     o = {}
     a = jQuery(selector).serializeArray()
