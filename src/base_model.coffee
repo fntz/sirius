@@ -93,76 +93,53 @@ class BaseModel
         @["_#{attr}"] = null
 
     for klass in @has_many()
-      #FIXME : maybe normalize class name
       @["_#{klass}"] = []
       @attributes.push("#{klass}")
-      @["add_#{klass}"] = (z) =>
-        name = z.constructor.name
-        me   = @normal_name()
-        m_name = @constructor.name
+      @_has_create(klass)
 
-        expected = SiriusApplication.camelize(klass)
-        throw new Error("Expected #{expected}, but given: #{name}") if name isnt expected
-        @get("#{klass}").push(z)
-
-        #feedback
-        b_model = (for i in z.belongs_to() when i['model'] == me then i)[0]
-
-        if !b_model
-          throw new Error("Model #{name} must contain '@belongs_to: [{model: #{me}, back: #{me}_id]'")
-
-        if !(back = b_model['back'])
-          throw new Error("Define 'back' property for @belongs_to")
-
-        if @attributes.indexOf(back) == -1
-          throw new Error("Foreign key: '#{back}' not contain in a '#{m_name}' model")
-
-        key = "#{me}_#{back}"
-        if z.attributes.indexOf(key) == -1
-          throw new Error("Define #{key} in @attrs for '#{expected}' model")
-
-        z.set("#{key}", @get(back))
-
-
-    #TODO: refactor this
     for klass in @has_one()
       @["_#{klass}"] = null
       @attributes.push("#{klass}")
-      @["add_#{klass}"] = (z) =>
-        name = z.constructor.name
-        me   = @normal_name()
-        m_name = @constructor.name
-
-        expected = SiriusApplication.camelize(klass)
-        throw new Error("Expected #{expected}, but given: #{name}") if name isnt expected
-
-        if @get("#{klass}")
-          throw new Error("Model #{expected} already exist for #{m_name}")
-
-        @set("#{klass}", z)
-
-        #feedback
-        b_model = (for i in z.belongs_to() when i['model'] == me then i)[0]
-
-        if !b_model
-          throw new Error("Model #{name} must contain '@belongs_to: [{model: #{me}, back: #{me}_id]'")
-
-        if !(back = b_model['back'])
-          throw new Error("Define 'back' property for @belongs_to")
-
-        if @attributes.indexOf(back) == -1
-          throw new Error("Foreign key: '#{back}' not contain in a '#{m_name}' model")
-
-        key = "#{me}_#{back}"
-        if z.attributes.indexOf(key) == -1
-          throw new Error("Define #{key} in @attrs for '#{expected}' model")
-
-        z.set("#{key}", @get(back))
-
+      @_has_create(klass, true)
 
     if Object.keys(obj).length != 0
       for attr in Object.keys(obj)
         @set(attr, obj[attr])
+
+
+  _has_create: (klass, is_one = false) ->
+    @["add_#{klass}"] = (z) =>
+      name = z.constructor.name
+      me   = @normal_name()
+      m_name = @constructor.name
+
+      expected = klass.charAt(0).toUpperCase() + klass.slice(1)
+      throw new Error("Expected #{expected}, but given: #{name}") if name isnt expected
+
+      if is_one
+        if @get("#{klass}")
+          throw new Error("Model #{expected} already exist for #{m_name}")
+        @set("#{klass}", z)
+      else
+        @get("#{klass}").push(z)
+
+      #feedback
+      b_model = (for i in z.belongs_to() when i['model'] == me then i)[0]
+
+      if !b_model
+        throw new Error("Model #{name} must contain '@belongs_to: [{model: #{me}, back: #{me}_id]'")
+
+      if !(back = b_model['back'])
+        throw new Error("Define 'back' property for @belongs_to")
+
+      if @attributes.indexOf(back) == -1
+        throw new Error("Foreign key: '#{back}' not contain in a '#{m_name}' model")
+
+      key = "#{me}_#{back}"
+      if z.attributes.indexOf(key) == -1
+        throw new Error("Define #{key} in @attrs for '#{expected}' model")
+
+      z.set("#{key}", @get(back))
 
   # base setter
   # @throw Error, when attributes not defined for current model
