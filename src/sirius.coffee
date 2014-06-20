@@ -153,29 +153,18 @@ class ControlFlow
   handle_event: (e, args...) ->
     #when e defined it's a Event, otherwise it's call from url_routes
     if e
-      if @data
-        data = if SiriusUtils.is_array(@data) then @data else [@data]
-        data = SiriusApplication.adapter.get_property(e, data)
-        merge = [].concat([], [e], data)
-        if @guard
-          if @guard.apply(null, merge)
-            @before()
-            @action.apply(null, merge)
-            @after()
-        else
+      data   = if SiriusUtils.is_array(@data) then @data else if @data then [@data] else []
+      data   = SiriusApplication.adapter.get_property(e, data)
+      merge  = [].concat([], [e], data)
+      if @guard
+        if @guard.apply(null, merge)
           @before()
           @action.apply(null, merge)
-          @after()
+          @after
       else
-        if @guard
-          if @guard.apply(null, [e])
-            @before()
-            @action.apply(null, [e])
-            @after()
-        else
-          @before()
-          @action.apply(null, [e])
-          @after()
+        @before()
+        @action.apply(null, merge)
+        @after
     else
       if @guard
         if @guard.apply(null, args)
