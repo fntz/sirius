@@ -46,7 +46,27 @@ suite("ControlFlow", function() {
 
     assert.throw(function(){ new ControlFlow(params); });
 
-    var el = $("<a id='my-element'>");
+    var global = 1, given = null;
+    params = {
+      controller: Controller0,
+      action: "action1",
+      before: function() {
+        global = 10;
+      },
+      guard: function(g) {
+        given = g;
+        return false;
+      }
+    };
+
+    cf = new ControlFlow(params);
+    assert(cf.guard);
+    assert(!cf.guard());
+
+    cf.handle_event(null, "abc");
+
+    assert(global == 1);
+    assert(given == "abc");
 
     assert.throw(function(){ new ControlFlow({}); });
     assert.throw(function(){ new ControlFlow({controller: Controller0, action: "some-action"}); });
