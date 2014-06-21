@@ -192,7 +192,6 @@ class Sirius.BaseModel
           a
 
   #
-  # @method #constructor(obj = {}) base constructor
   # @param obj [Object] - object with keys (define with `@attrs`) and values for it.
   #
   # @example
@@ -282,7 +281,6 @@ class Sirius.BaseModel
 
   #
   # Base setter
-  # @method #set(attr, value) - set a `value` for `attr`
   # @param attr [String] - attribute
   # @param value [Any]   - value
   # @throw Error, when attributes not defined for current model
@@ -294,7 +292,6 @@ class Sirius.BaseModel
 
   #
   # Base getter
-  # @method #get(attr) - get a `value` for `attr`
   # @param attr [String] - return current `value` for attribute
   # @throw Error, when attributes not defined for current model
   # @return [Any]
@@ -341,7 +338,6 @@ class Sirius.BaseModel
     @_isValid = Object.keys(@errors).length == 0 ? true : false
 
   # @note must be redefine in descendants
-  # @method #save(exception = false)
   # @param exception [Boolean] throw exception, when true and instance not valid,
   # otherwise return false if not valid
   # @throw Error, when `exception` in true
@@ -355,7 +351,6 @@ class Sirius.BaseModel
 
   #
   # Convert model instance in json
-  # @method #to_json(root = false)
   # @param root [Boolean] when true generated json as { model_name : { attrs } }
   # otherwise as { attrs }
   # @return [JSON]
@@ -403,7 +398,6 @@ class Sirius.BaseModel
 
   #
   # Convert model into array of element instances
-  # @method #to_html()
   # @return [String]
   #
   # @example
@@ -442,7 +436,6 @@ class Sirius.BaseModel
     result.join("")
 
   # Create a new model instance from json structure.
-  # @method(json, models = {})
   # @param json [JSON] - json object
   # @param models [Object] - object with model classes, see examples
   # @return [T < Sirius.BaseModel]
@@ -490,7 +483,6 @@ class Sirius.BaseModel
 
   #
   # Generate a new model instance from form
-  # @method #from_html(selector)
   # @param selector [String] - element selector, for find element, where model may be present in html
   # @return [T < Sirius.BaseModel]
   #

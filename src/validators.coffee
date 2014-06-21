@@ -10,7 +10,6 @@ class Sirius.Validator
 
   #
   # Return error when value not valid
-  # @method #error_message()
   # @return [String] - messages
   error_message: () ->
     @msg
@@ -24,7 +23,6 @@ class Sirius.Validator
 #   attr4 : length: {length: 10}
 class Sirius.LengthValidator extends Sirius.Validator
   #
-  # @overload #validate(value, attributes)
   # @param [Any] value - current value
   # @param [Object] attributes - options for validator [min, max, length]
   #
@@ -61,8 +59,6 @@ class Sirius.LengthValidator extends Sirius.Validator
 #   letter: exclusion: {within: ["A", "B, "C"]}
 class Sirius.ExclusionValidator extends Sirius.Validator
   #
-  # @overload #validate(value, attributes)
-  #
   # @param [Any] value for validation
   # @param [Object] attributes - object with range, range define with `within`
   # @return [Boolean]
@@ -79,7 +75,6 @@ class Sirius.ExclusionValidator extends Sirius.Validator
 # @example
 #   letter: inclusion: {within: ["A", "B, "C"]}
 class Sirius.InclusionValidator extends Sirius.Validator
-  # @overload #validate: (value, attributes)
   #
   # @param [Any] value - value for validation
   # @param [Object] attributes - object with range, range define with `within`
@@ -98,8 +93,6 @@ class Sirius.InclusionValidator extends Sirius.Validator
 #   name: format: {with: /\w+/}
 class Sirius.FormatValidator extends Sirius.Validator
   #
-  # @overload #validate(value, attributes)
-  #
   # @param [Any] value - value for validation
   # @param [Object] attributes - object with format, format define with `format` key.
   # @return [Boolean]
@@ -117,8 +110,6 @@ class Sirius.FormatValidator extends Sirius.Validator
 #   value : numericality : {only_integers: true}
 #   value : numericality : {}
 class Sirius.NumericalityValidator extends Sirius.Validator
-  #
-  # @overload #validate(value, attributes)
   #
   # @param [Any] value - value for validation
   # @param [Object] attributes - object which might contain, `only_integers` key
@@ -143,8 +134,6 @@ class Sirius.NumericalityValidator extends Sirius.Validator
 # @example
 #   value : presence: true
 class Sirius.PresenceValidator extends Sirius.Validator
-  #
-  # @overload #validate(value, attributes)
   #
   # @param [Any] value - value for valiation
   # @param [Boolean] attributes

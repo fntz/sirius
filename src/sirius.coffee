@@ -1,10 +1,14 @@
 #
+# @author fntzr <fantazuor@gmal.com>
+# @version 0.1
+# @mixin
 # A main module, which included methods and classes for work with application.
-Sirius = {}
+Sirius =
+  VERSION: "0.1"
 
 #
 # Redirect to given url.
-# @method #redirect(url)
+# @method .Sirius.redurect(url)
 # @example
 #   var Controller = {
 #     action : function(params) {
@@ -22,21 +26,18 @@ Sirius.redirect = (url) ->
 #
 class Sirius.Utils
   #
-  # @method #is_function(a)
   # @param [Any] a - check, that `a` is a Function
   # @return [Boolean] - true, when is Function, otherwise return false
   #
   @is_function: (a) ->
     Object.prototype.toString.call(a) is '[object Function]'
   #
-  # @method #is_string(a)
   # @param [Any] a - check, that `a` is a String
   # @return [Boolean] - true, when is String, otherwise return false
   #
   @is_string: (a) ->
     Object.prototype.toString.call(a) is '[object String]'
   #
-  # @method #is_array(a)
   # @param [Any] a - check, that `a` is a Array
   # @return [Boolean] - true, when is Array, otherwise return false
   #
@@ -61,7 +62,7 @@ class Sirius.Utils
 # Class for map urls.
 #
 # Also it's class contain extracted parts from url.
-# Url syntax:
+# ### Url syntax:
 # ```coffee
 # #/:param1/:param2   => extract param1, param2 ...
 # #/[0-9]+            => extract param, which satisfy given regexp
@@ -84,7 +85,7 @@ class Sirius.RoutePart
     @parts = parts[0..-1]
 
   #
-  # @method #match(url) - check if given url equal `parts` url
+  # Check if given url equal `parts` url
   #
   # When return true, then `args` contain extracted arguments:
   # @example
@@ -146,7 +147,7 @@ class Sirius.RoutePart
 #   "#/my-route" : { controller: Controller, action: "action", before: "before", after: "after", guard: "guard", "data" : ["data"] }
 #
 class Sirius.ControlFlow
-  # @method #contructor(params)
+
   # @param params [Object] - object from route
   #
   # `params` is a object with have a next keys `controller`, `action`, `before`, `after`, `data`, `guard`.
@@ -202,7 +203,6 @@ class Sirius.ControlFlow
 
     @data = params['data'] || null
 
-  # @method #handle_event(e, args...)
   # @param e [EventObject|null] - event object if it's a mouse\key events, and `null` when it's url change event
   # @param args [Array<Any>] - arguments, used only for url changes events
   #
@@ -239,7 +239,6 @@ class Sirius.ControlFlow
 #
 Sirius.RouteSystem =
   #
-  # @method #create(routes, fn = ->)
   # @param routes [Object] object with routes
   # @param fn [Function] callback, which will be called, after routes will be defined
   # @event application:hashchange - generate, when url change
