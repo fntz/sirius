@@ -4,6 +4,7 @@ Sirius = {}
 
 #
 # Redirect to given url.
+# @method #redirect(url)
 # @example
 #   var Controller = {
 #     action : function(params) {
