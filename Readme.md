@@ -111,7 +111,6 @@ MyController =
 
 
 
-# LICENSE
-MIT
+# LICENSE : MIT
 
 ![I am SIRIUS](http://makeameme.org/media/created/YEAH-I-AM-n5trg3.jpg)
