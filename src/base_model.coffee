@@ -1,65 +1,87 @@
 
-###
-  A base class for all models in application.
-  @example
-     class Person extends BaseModel
-       @attrs: ["id", "name"]
-
-       @has_many: [Group]
-
-       @form_name: "person-model"
-
-       @guid_for: id
-
-       @validate:
-        id:
-          presence: true
-          numericality: only_integers: true
-        name:
-          presence: true
-          format: with: /^[A-Z].+/
-
-        to_string: () ->
-          "name: #{name}; id: #{id}, group count: #{@get('group').length}"
-
-     class Group extends BaseModel
-       @attrs: ["title", "person_id"]
-
-       @belongs_to: [{model: "person", back: "id"}]
-
-###
+#
+# A top level class for all models in application.
+# Supported features:
+#   + to json\html convert
+#   + create from json\html
+#   + validation
+#   + generate guid
+#   + attributes support
+#   + base relation support (`has_many`, `has_one`, `belongs_to`)
+#
+# @example
+#
+#   class MyModel extends Sirius.BaseModel
+#     @attrs: ["id", {title: "default title"}, "description"]
+#     @to:
+#       id          : tag: "b", class: 'my-model-id'
+#       title       : tag: "span", class: "my-model-title"
+#
+#   class Person extends BaseModel
+#     @attrs: ["id", "name"]
+#
+#     @has_many: [Group]
+#
+#     @form_name: "person-model"
+#
+#     @guid_for: id
+#
+#     @validate:
+#       id:
+#         presence: true
+#         numericality: only_integers: true
+#       name:
+#         presence: true
+#         format: with: /^[A-Z].+/
+#
+#     @to:
+#       id          : tag: "b", class: 'person-id'
+#       name        : tag: "span", class: "person-name"
+#       group       : tag: "p", class: "group"
+#
+#     to_string: () ->
+#       "name: #{name}; id: #{id}, group count: #{@get('group').length}"
+#
+#   class Group extends BaseModel
+#     @attrs: ["title", "person_id"]
+#
+#     @belongs_to: [{model: "person", back: "id"}]
+#
+# @todo Callback support
 class Sirius.BaseModel
 
-  #@nodoc
+  # @nodoc
   attrs: () ->
     @constructor.attrs || []
 
+  # @nodoc
   #normalize model name: UserModel => user_model
   normal_name: () ->
     Sirius.Utils.underscore(@constructor.name)
 
-  #@nodoc
+  # @nodoc
   has_many: () ->
     @constructor.has_many || []
 
-  #@nodoc
+  # @nodoc
   has_one: () ->
     @constructor.has_one || []
 
-  #@nodoc
+  # @nodoc
   belongs_to: () ->
     @constructor.belongs_to || [] #array with object
 
+  # @nodoc
   validators: () ->
     @constructor.validate
-
+  # @nodoc
   guid_for: () ->
     @constructor.guid_for
 
-  ###
-    Because models contain attributes as object, this method extract only keys
-    attrs : [{"id" : 1}] => after normalization ["id"]
-  ###
+  #
+  #  Because models contain attributes as object, this method extract only keys
+  #  attrs : [{"id" : 1}] => after normalization ["id"]
+  #  @nodoc
   normalize_attrs: () ->
     for a in @constructor.attrs
       do(a) ->
@@ -68,20 +90,20 @@ class Sirius.BaseModel
         else
           a
 
-  ###
-    Take a object with attributes for creation;
-    @note: by now not supported relations!
-    @example
-      class MyModel extends BaseModel
-        @attrs: ["id"]
-
-      my_model = new MyModel({id: 1})
-
-    This methods, generate properties for object from `@attrs` array.
-    Each property starts with `_`.
-    Also it's generated properties for `@has_many` and `@has_one` attributes.
-
-  ###
+  #
+  # @method #constructor(obj = {}) base constructor
+  # @param obj [Object] - object with keys (define with `@attrs`) and values for it.
+  #
+  # @example
+  #   class MyModel extends Sirius.BaseModel
+  #     @attrs: ["name"]
+  #
+  #   my_model = new MyModel({name: "Abc"})
+  #   my_model.get("name") # => Abc
+  #
+  # @note Method generate properties for object from `@attrs` array.
+  # @note Method generate properties for `@has_many` and `@has_one` attributes.
+  # @note Method generate add_x, where `x` it's a attribute from `@has_many` or `@has_one`
   constructor: (obj = {}) ->
     @_isValid = false
 
@@ -114,11 +136,15 @@ class Sirius.BaseModel
     if g = @guid_for()
       @set(g, @_generate_guid())
 
+  # @private
+  # @nodoc
   # generate guid from: http://stackoverflow.com/a/105074/1581531
   _generate_guid: () ->
     s4 = () -> Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1)
     "#{s4()}#{s4()}-#{s4()}-#{s4()}-#{s4()}-#{s4()}#{s4()}#{s4()}"
 
+  # @private
+  # @nodoc
   _has_create: (klass, is_one = false) ->
     @["add_#{klass}"] = (z) =>
       name = z.constructor.name
@@ -153,24 +179,35 @@ class Sirius.BaseModel
 
       z.set("#{key}", @get(back))
 
-  # base setter
+  #
+  # Base setter
+  # @method #set(attr, value) - set a `value` for `attr`
+  # @param attr [String] - attribute
+  # @param value [Any]   - value
   # @throw Error, when attributes not defined for current model
+  # @return [Void]
   set: (attr, value) ->
     throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model") if @attributes.indexOf(attr) == -1
 
     @["_#{attr}"] = value
 
-  # base getter
+  #
+  # Base getter
+  # @method #get(attr) - get a `value` for `attr`
+  # @param attr [String] - return current `value` for attribute
   # @throw Error, when attributes not defined for current model
+  # @return [Any]
   get: (attr) ->
     throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model") if @attributes.indexOf(attr) == -1
 
     @["_#{attr}"]
 
-  # @return [Boolean] check if current model instance is valid
+  # Check, if model instance valid
+  # @return [Boolean] true, when is valid, otherwise false
   valid: () ->
     @_isValid
 
+  # @private
   # @nodoc
   validate: () ->
     @errors = {}
@@ -202,10 +239,12 @@ class Sirius.BaseModel
 
     @_isValid = Object.keys(@errors).length == 0 ? true : false
 
-  # @note must be overrided in descendants
+  # @note must be redefine in descendants
+  # @method #save(exception = false)
   # @param exception [Boolean] throw exception, when true and instance not valid,
   # otherwise return false if not valid
-  # @throw Error, when exception in true
+  # @throw Error, when `exception` in true
+  # @return [Void]
   save: (exception = false) ->
     @validate()
     name = @constructor.name
@@ -213,9 +252,33 @@ class Sirius.BaseModel
     return false if @_isValid
     true
 
-  # Convert model instance in a json
+  #
+  # Convert model instance in json
+  # @method #to_json(root = false)
   # @param root [Boolean] when true generated json as { model_name : { attrs } }
   # otherwise as { attrs }
+  # @return [JSON]
+  #
+  # @example
+  #   var m = new MyModel({"id": 10, "description", "text"});
+  #   m.to_json() // => {"id":10,"title":"default title","description":"text"}
+  #   m.to_json(true) // => {"my_model":{"id":10,"title":"default title","description":"text"}}
+  #
+  #   person  = new Person({id: 1, name: "Abc"})
+  #   group0  = new Group({name: "group-0"})
+  #   group1  = new Group({name: "group-1"})
+  #
+  #   person.add_group(group0)
+  #   person.add_group(group1)
+  #
+  #   person.to_json() // =>
+  #   // {"id":1,
+  #   //  "name":"Abc",
+  #   //   "group":[
+  #   //     {"name":"group-0","person_id":1},
+  #   //     {"name":"group-1","person_id":1}
+  #   //   ]
+  #   // }
   #
   to_json: (root = false) ->
     z = {}
@@ -237,9 +300,25 @@ class Sirius.BaseModel
     else
       JSON.stringify(z)
 
-  # convert model into array of element instances
-  # @note not support a relations
-  # @return string with html
+  #
+  # Convert model into array of element instances
+  # @method #to_html()
+  # @return [String]
+  #
+  # @example
+  #   var m = new MyModel({"id": 10, "title": "my title", "description": "text..."});
+  #   m.to_html() // => "<b class = 'my-model-id'>10</b><span class = 'my-model-title'>my title</span><div>text...</div>"
+  #
+  #   person.to_html() // =>
+  #   // "<b class='person-id'>1</b>
+  #   //  <span class='person-name'>Abc</span>
+  #   //    <p class = 'group'>
+  #   //      <span>group-0</span>
+  #   //      <div>1</div>
+  #   //      <span>group-1</span>
+  #   //      <div>1</div>
+  #   //    </p>
+  #
   to_html: () ->
     to = @constructor.to || {}
 
@@ -260,12 +339,27 @@ class Sirius.BaseModel
       "<#{tag}#{attr}>#{value}</#{tag}>"
 
     result.join("")
+
   # Create a new model instance from json structure.
-  # @param json [JSON]
-  # @param models [Object] a object with model classes
-  # @example:
-  #   # Person has many Group
-  #   Person.from_json({... group: {...}}, {group: Group})
+  # @method(json, models = {})
+  # @param json [JSON] - json object
+  # @param models [Object] - object with model classes, see examples
+  # @return [T < Sirius.BaseModel]
+  #
+  # @example
+  #   var json = JSON.stringify({"id": 10, "description": "text"});
+  #   var m = MyModel.from_json(j);
+  #   m.get("id") // => 10
+  #   m.get("description") // => "text"
+  #   m.get("title") // => "default title"
+  #
+  #   var json = JSON.stringify({"id":1,"group":[{"name":"group-0","person_id":1},{"name":"group-1","person_id":1}]})
+  #   var person = Person.from_json(json, {group: Group});
+  #   person.get('group') // => [Group, Group]
+  #
+  #   var person0 = Person.from_json(json)
+  #   person.get('group') // => [{name: 'group-0', ... }, {name: 'group-1', ...}]
+  #
   @from_json: (json, models = {}) ->
     m = new @
     json = JSON.parse(json)
@@ -293,8 +387,26 @@ class Sirius.BaseModel
         m.set(attr, value)
     m
 
+  #
   # Generate a new model instance from form
-  # @note not support a relations
+  # @method #from_html(selector)
+  # @param selector [String] - element selector, for find element, where model may be present in html
+  # @return [T < Sirius.BaseModel]
+  #
+  # @example
+  #   //html form
+  #   <form name="my_model" id="my-model-form">
+  #     <input type="hidden" name="id" class="my-id" value="1" />
+  #     <input type="text" name="title" class="title" value="new title" />
+  #     <textarea name="description">text...</textarea>
+  #   </form>
+  #
+  #   var m = MyModel.from_html("#my-model-form");
+  #   m.get("id")          // => 1
+  #   m.get("title")       // => new title
+  #   m.get("description") // => text...
+  #
+  #
   @from_html: (selector) ->
     #FIXME
     form_name = selector || @.form_name || Sirius.Utils.underscore(@.name)

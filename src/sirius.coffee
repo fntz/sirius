@@ -1,33 +1,74 @@
+#
+# A main module, which included methods and classes for work with application.
 Sirius = {}
 
+#
+# Redirect to given url.
+# @example
+#   var Controller = {
+#     action : function(params) {
+#        if (params.length == 0)
+#          Sirius.redirect("#"); //redirect to root url
+#        else
+#          //code
+#     }
+#
 Sirius.redirect = (url) ->
   location.replace(url)
 
-
+#
+# Utils class with helpers for application
+#
 class Sirius.Utils
+  #
+  # @method #is_function(a)
+  # @param [Any] a - check, that `a` is a Function
+  # @return [Boolean] - true, when is Function, otherwise return false
+  #
   @is_function: (a) ->
     Object.prototype.toString.call(a) is '[object Function]'
-
+  #
+  # @method #is_string(a)
+  # @param [Any] a - check, that `a` is a String
+  # @return [Boolean] - true, when is String, otherwise return false
+  #
   @is_string: (a) ->
     Object.prototype.toString.call(a) is '[object String]'
-
+  #
+  # @method #is_array(a)
+  # @param [Any] a - check, that `a` is a Array
+  # @return [Boolean] - true, when is Array, otherwise return false
+  #
   @is_array: (a) ->
     Object.prototype.toString.call(a) is '[object Array]'
-
+  #
+  # Upper case first letter in string
+  #
+  # @example
+  #   Sirius.Utils.camelize("abc") // => Abc
   @camelize: (str) ->
     str.charAt(0).toUpperCase() + str.slice(1)
 
+  #
+  # Underline before upper case
+  # @example
+  #   Sirius.Utils.underscore("ModelName") // => model_name
   @underscore: (str) ->
     str.replace(/([A-Z])/g, '_$1').replace(/^_/,"").toLowerCase()
 
-###
-  RoutePart is a parser for string route representation
-###
-
-
+#
+# Class for map urls.
+#
+# Also it's class contain extracted parts from url.
+# Url syntax:
+# ```coffee
+# #/:param1/:param2   => extract param1, param2 ...
+# #/[0-9]+            => extract param, which satisfy given regexp
+# #/start/*           => extract all after /start/
+# ```
 class Sirius.RoutePart
   constructor: (route) ->
-    @end   = yes
+    @end   = yes  # when route have a end (ends with `*`)
     @start = null #not used ...
     @parts = []
     @args  = []
@@ -35,14 +76,25 @@ class Sirius.RoutePart
     parts = route.replace(/\/$/, "").split("/")
 
     # mark, this route not have a length and end
-    # example:
     #  #/title/id/*
     # matched with #/title/id/2014 and #/title/id/2014/2020 ...
     @end   = no if parts[parts.length - 1] == "*"
 
     @parts = parts[0..-1]
 
-  # @param [String] - is a url
+  #
+  # @method #match(url) - check if given url equal `parts` url
+  #
+  # When return true, then `args` contain extracted arguments:
+  # @example
+  #   var rp = new Sirius.RoutePart("#/post/:title")
+  #   rp.match("#/abc") // => false
+  #   rp.args          // => []
+  #   rp.match("#/post/my-post-title") // => true
+  #   rp.args                          // => ["my-post-title"]
+  #
+  #
+  # @param url [String] - given url
   # @return [Boolean] true if matched, otherwise - return false
   match: (url) ->
     @args = []
@@ -87,16 +139,23 @@ class Sirius.RoutePart
     true
 
 
-
+#
+# Helper class, which check object for route, and have a method, which used as event listener.
+# @example
+#   "#/my-route" : { controller: Controller, action: "action", before: "before", after: "after", guard: "guard", "data" : ["data"] }
+#
 class Sirius.ControlFlow
-  # obj is a object with controller\action\before\after\data properties
-  # required:
-  #   controller must be a Object
-  #   action is a string
-  # before\after might be given as string or find in controller as before_action and after_action methods
-  # before\after might be a function
-  # data is a string for element (id\class\data-*\...) event routes, otherwise it's a null
-  # if it's a function, then before\after\data is a null or empty function ? TODO
+  # @method #contructor(params)
+  # @param params [Object] - object from route
+  #
+  # `params` is a object with have a next keys `controller`, `action`, `before`, `after`, `data`, `guard`.
+  # @note `controller` required
+  # @note `action` required
+  # @note `before`must be a string, where string is a method from `controller` or function
+  # @note `after` must be a string, where string is a method from `controller` or function
+  # @note `guard` must be a string, where string is a method from `controller` or function
+  # @note you might create in controller method with name: `before_x`, where `x` you action, then you may not specify `before` into params, it automatically find and assigned as `before` method, the same for `after` and `guard`
+  # @note `data` must be a string, or array of string
   constructor: (params) ->
     controller = params['controller'] || throw new Error("Params must contain a Controller")
 
@@ -113,17 +172,6 @@ class Sirius.ControlFlow
     if !Sirius.Utils.is_function(@action) && !Sirius.Utils.is_string(@action)
       throw new Error("Action must be string or function")
 
-    ###
-      extract from `params` before or after function
-      when it's a function then return function
-      when it's a string it's find by `string` in controller
-        when given not a function raise error
-        otherwise return this method from controller
-      if it's not a function or string throw error
-      otherwise find in controller by *_given_action if found a function return it
-        else raise error
-      by end it's return empty function
-    ###
     extract = (property, is_guard = false) =>
       p = params[property]
       k = controller["#{property}_#{act}"]
@@ -153,7 +201,12 @@ class Sirius.ControlFlow
 
     @data = params['data'] || null
 
-  # e is a event need extract event target
+  # @method #handle_event(e, args...)
+  # @param e [EventObject|null] - event object if it's a mouse\key events, and `null` when it's url change event
+  # @param args [Array<Any>] - arguments, used only for url changes events
+  #
+  # @note if you have a guard function, then firstly called it, if `guard` is true, then will be called `before`, `action` and `after` methods
+  #
   handle_event: (e, args...) ->
     #when e defined it's a Event, otherwise it's call from url_routes
     if e
@@ -180,39 +233,17 @@ class Sirius.ControlFlow
         @action.apply(null, args)
         @after()
 
-
-
-
-#TODO make it as function
-###
-  Main Object.
-
-  @example:
-    MyController =
-      my_action: (id) ->
-        #...
-
-      when_click: (event) ->
-        #...
-
-    routes =
-      '#/action/:id'  : [MyController, "my_action"]
-      'click #button" : [MyController, "my_action"]
-      404: (current_url) ->
-        alert("#{current_url} not found!")
-
-    adapter = new JQueryAdapter();
-
-    Sirius.Application.run({adapter: adapter, route: routes})
-###
-
+#
+# Object, for creating event listeners
+#
 Sirius.RouteSystem =
-#@param [Object] is a routes object where keys is a route and value is a array where
-# first element is a controller name, and second element is a action
-# or it's a function
-# @event application:hashchange [current_url, prev_url]
-# @event application:404 when url not found
-# @event application:run after running
+  #
+  # @method #create(routes, fn = ->)
+  # @param routes [Object] object with routes
+  # @param fn [Function] callback, which will be called, after routes will be defined
+  # @event application:hashchange - generate, when url change
+  # @event application:404 - generate, if given url not matched with given routes
+  # @event application:run - generate, after application running
   create: (routes, fn = ->) ->
     current = prev = window.location.hash
 
@@ -269,28 +300,47 @@ Sirius.RouteSystem =
 
     fn()
 
+
+#
+# A main object, it's a start point all user applications
+# @example
+#   var routes = {
+#     "#/"                : { controller : Controller, action: "action" },
+#     "application: run"  : { controller : Controller, action: "run" },
+#     "click #my-element" : { controller : Controller, action: "click_action"}
+#   }
+#   my_logger = function(msg) { console.log("Log: " + msg); }
+#
+#   Sirius.Application({ route : routes, logger: my_logger, log: true, start: "#/" });
+#
 Sirius.Application =
+  # @property [Boolean] - when true, logs will be written
   log: false
-  #adapter for application @see adapter documentation
+  # @property [Adapter] - application adapter for javascript frameworks @see Adapter documentation
   adapter: null
-  #boolean
+  # @property [Boolean] - true, when application already running
   running: false
-  #route object
+  # @property [Object] - user routes
   route: {}
-  #base logger when not support will be call a alert function
+  # @property [String] - a root url for application
+  start : "#"
+  # @method #logger(msg) - logger, default it's write message to console.log, may be redefined
   logger: (msg) ->
     return if !@log
     if window.console
       console.log msg
     else
       alert "Not supported `console`"
+  #
+  # @method #run(options)
+  # @param options [Object] - base options for application
   run: (options = {}) ->
     @running = true
     @log     = options["log"]     || @log
     @adapter = options["adapter"] || throw new Error("Specify adapter")
     @route   = options["route"]   || @route
     @logger  = options["logger"]  || @logger
-    start    = options["start_url"]
+    @start    = options["start"]  || @start
     @logger("Logger enabled? #{@log}")
     n = @adapter.constructor.name
     @logger("Adapter: #{n}")
@@ -300,8 +350,8 @@ Sirius.Application =
       @adapter.fire(document, "application:run", new Date());
     );
 
-    if start
-      Sirius.redirect(start)
+    if @start
+      Sirius.redirect(@start)
 
 
 

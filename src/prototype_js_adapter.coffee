@@ -1,3 +1,7 @@
+#
+#  Adapter for [prototype.js framework](http://prototypejs.org}).
+#  For methods {@see Adapter}
+#
 class PrototypeAdapter extends Adapter
   bind: (selector, event, fn) ->
     $(document).on(event, selector, fn)

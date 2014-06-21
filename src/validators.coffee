@@ -1,21 +1,39 @@
 
-# Base Validator class
+#
+# @abstract
+#
+# Base class for implement all Validators
+#
 class Sirius.Validator
   constructor: () ->
     @msg = null
 
+  #
+  # Return error when value not valid
+  # @method #error_message()
+  # @return [String] - messages
   error_message: () ->
     @msg
 
-
-# validate length for attribute
+# Class for validate length.
+#
 # @example
-#   name: length: {min : 3, max: 10}
-#   title: length : {length: 10 }
+#   attr0 : length: {min: 10}
+#   attr1 : length: {max: 25}
+#   attr2 : length: {min: 10, max: 30}
+#   attr4 : length: {length: 10}
 class Sirius.LengthValidator extends Sirius.Validator
-  #@param [Any] value - current value
-  #@param [Object] attributes object with [mix, max, length] keys
-  #@return [Boolean]
+  #
+  # @overload #validate(value, attributes)
+  # @param [Any] value - current value
+  # @param [Object] attributes - options for validator [min, max, length]
+  #
+  # Attribute keys:
+  # + min - min length for `value`
+  # + max - max length for `value`
+  # + length - define length which must be have a `value`
+  #
+  # @return [Boolean]
   validate: (value, attributes) ->
     max = attributes['max'] || Number.POSITIVE_INFINITY
     min = attributes['min'] || Number.NEGATIVE_INFINITY
@@ -35,14 +53,19 @@ class Sirius.LengthValidator extends Sirius.Validator
         @msg = "Required length in range [#{min}..#{max}], given: #{actual_length}"
         false
 
+
+
+# Class for validate value which excluded in range, which define with `within` option.
 #
-# validate that value in not a `within` range
 # @example
-#   name: exclusion: {within: ["A", "B, "C"]}
+#   letter: exclusion: {within: ["A", "B, "C"]}
 class Sirius.ExclusionValidator extends Sirius.Validator
-  #@param [Any] value
-  #@param [Object] attributes - object with [within] key and range
-  #@return [Boolean]
+  #
+  # @overload #validate(value, attributes)
+  #
+  # @param [Any] value for validation
+  # @param [Object] attributes - object with range, range define with `within`
+  # @return [Boolean]
   validate: (value, attributes) ->
     range = attributes['within'] || []
     if range.indexOf(value) == -1
@@ -51,14 +74,16 @@ class Sirius.ExclusionValidator extends Sirius.Validator
       @msg = "Value #{value} reserved"
       false
 
+# Class for validate value which included in range, which define with `within` option.
 #
-# check that value must exist in range
 # @example
-#   name: inclusion: {within: ["A", "B, "C"]}
+#   letter: inclusion: {within: ["A", "B, "C"]}
 class Sirius.InclusionValidator extends Sirius.Validator
-  #@param [Any] value
-  #@param [Object] attributes - object with [within] key and range
-  #@return [Boolean]
+  # @overload #validate: (value, attributes)
+  #
+  # @param [Any] value - value for validation
+  # @param [Object] attributes - object with range, range define with `within`
+  # @return [Boolean]
   validate: (value, attributes) ->
     range = attributes['within'] || []
     if range.indexOf(value) > -1
@@ -66,14 +91,18 @@ class Sirius.InclusionValidator extends Sirius.Validator
     else
       @msg = "Value #{value} should be in range #{range}"
       false
+
+# Validate value corresponds given format.
 #
-# check that value given format
+# @example
 #   name: format: {with: /\w+/}
-#
 class Sirius.FormatValidator extends Sirius.Validator
-  #@param [Any] value
-  #@param [Object] attributes - object with [with] key and regexp
-  #@return [Boolean]
+  #
+  # @overload #validate(value, attributes)
+  #
+  # @param [Any] value - value for validation
+  # @param [Object] attributes - object with format, format define with `format` key.
+  # @return [Boolean]
   validate: (value, attributes) ->
     format = attributes['with'] || throw new Error("format attribute required")
     if format.test(value)
@@ -82,15 +111,18 @@ class Sirius.FormatValidator extends Sirius.Validator
       @msg = "Value #{value} not for current format"
       false
 
+# Check if value is a number or integer number
 #
-# check if value is a number or integer number
 # @example
-#  value : numericality : {only_integers: true}
-#  value : numericality : {}
+#   value : numericality : {only_integers: true}
+#   value : numericality : {}
 class Sirius.NumericalityValidator extends Sirius.Validator
-  #@param [Any] value
-  #@param [Object] attributes - object with [only_integers?] key
-  #@return [Boolean]
+  #
+  # @overload #validate(value, attributes)
+  #
+  # @param [Any] value - value for validation
+  # @param [Object] attributes - object which might contain, `only_integers` key
+  # @return [Boolean]
   validate: (value, attributes = {}) ->
     if attributes['only_integers']
       if /^\d+$/.test(value)
@@ -106,14 +138,17 @@ class Sirius.NumericalityValidator extends Sirius.Validator
         @msg = "Only allows numbers"
         false
 
+# Check if value exist
 #
-# check if value exist
-# @example:
-#  value : presence: true
+# @example
+#   value : presence: true
 class Sirius.PresenceValidator extends Sirius.Validator
-  #@param [Any] value
-  #@param [Boolean] attributes
-  #@return [Boolean]
+  #
+  # @overload #validate(value, attributes)
+  #
+  # @param [Any] value - value for valiation
+  # @param [Boolean] attributes
+  # @return [Boolean]
   validate: (value, attributes = true) ->
     if value
       true

@@ -1,27 +1,41 @@
-###
-  Base Adapter class, which must be redefine for concrete javascript library: prototypejs or jquery or mootools...
-###
+#
+#  Adapter
+#  It's a base class, which must be redefine for concrete javascript library: prototype.js or jQuery or mootools or etc.
+#  @abstract
+#
 class Adapter
-  # Create a event for selector with callback
-  # @param selector [String] is a tag name
-  # @param event [String] event name
-  # @param fn [Funciton] callback
+
+  #   Attach event to element
+  #   @method #bind(selector, event, fn)
+  #   @param [String] selector - selector string
+  #   @param [String] event - event name
+  #   @param [Function] fn - callback, will be called, when event fired
+  #   @return [Void]
+  #
   bind: (selector, event, fn) ->
+
+  #   Convert element which find with 'selector' to json
+  #   @method #form_to_json(selector)
+  #   @param [String] selector - selector, for find element
+  #   @return [JSON]
   #
-  # serialize form to json
-  # @param [String] selector - form selector
   form_to_json: (selector) ->
+
+  #   Call custom event with params
+  #   @method #fire(element, event, params...)
+  #   @param [String] element - selector for event
+  #   @param [String] event   - event name
+  #   @param [Array]  params  - params which will be passed into event callback
+  #   @return [Void]
   #
-  # Call custom event with data
-  # @param element [String] selector
-  # @param event [String] - event name
-  # @param params [Array] - array with date for event
   fire: (element, event, params...) ->
 
+  #    Extract attribute from target element from event
+  #    @method #get_property(event, properties...)
+  #    @param [EventObject] event - event object
+  #    @param [Array<String>] properties - names of attributes
+  #    @return [Array<String>]
   #
-  # Return properties for target element
-  # @param event [EventObject]
-  # @param properies [Array<String>]
   get_property: (event, properties...) ->
 
 

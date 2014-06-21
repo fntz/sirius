@@ -1,3 +1,7 @@
+#
+#  Adapter for [jQuery framework](http://jquery.com/).
+#  For methods {@see Adapter}
+#
 class JQueryAdapter extends Adapter
   bind: (selector, event, fn) ->
     jQuery(document).on(event, selector, fn)
