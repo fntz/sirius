@@ -1,0 +1,10 @@
+--name       "Sirius"
+--readme     Readme.md
+--title      "Sirius.js Framework"
+--private
+--quiet
+--extension  coffee
+--output     ./doc
+./src
+-
+LICENSE

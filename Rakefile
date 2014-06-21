@@ -53,7 +53,7 @@ task :build do
 end
 
 task :doc do
-  %x(codo -o doc -n Sirius -q -v -u -t Sirius Api src/)
+  %x(codo src)
 end
 
 
