@@ -11,7 +11,8 @@ task :install do
            "https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.js",
            "https://raw.githubusercontent.com/visionmedia/mocha/master/mocha.js",
            "https://raw.githubusercontent.com/visionmedia/mocha/master/mocha.css",
-           "http://chaijs.com/chai.js"
+           "http://chaijs.com/chai.js",
+           "https://github.com/yui/yuicompressor/releases/download/v2.4.8/yuicompressor-2.4.8.jar"
          ]
   begin
     if !File.directory?(vendor)
@@ -56,6 +57,11 @@ task :doc do
   %x(codo src)
 end
 
+task :minify => [:build] do
+  %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js lib/sirius.js -o sirius.min.js)
+  %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js lib/jquery_adapter.js -o jquery_adapter.min.js)
+  %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js lib/prototypejs_adapter.js -o prototypejs_adapter.min.js)
+end
 
 
 
