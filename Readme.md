@@ -115,4 +115,6 @@ MyController =
 
 # LICENSE : MIT
 
-![I am SIRIUS](http://makeameme.org/media/created/YEAH-I-AM-n5trg3.jpg)
+<p align="center">
+  <img src="http://makeameme.org/media/created/YEAH-I-AM-n5trg3.jpg?raw=true" alt="I am Sirius"/>
+</p>
