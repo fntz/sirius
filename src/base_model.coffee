@@ -478,7 +478,7 @@ class Sirius.BaseModel
             json[attr]
         else
           json[attr]
-        m.set(attr, value)
+        m.set(attr, value || m.get(attr))
     m
 
   #

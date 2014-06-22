@@ -58,7 +58,7 @@ class Sirius.Utils
   @underscore: (str) ->
     str.replace(/([A-Z])/g, '_$1').replace(/^_/,"").toLowerCase()
 
-#
+# @private
 # Class for map urls.
 #
 # Also it's class contain extracted parts from url.
@@ -141,7 +141,7 @@ class Sirius.RoutePart
     true
 
 
-#
+# @private
 # Helper class, which check object for route, and have a method, which used as event listener.
 # @example
 #   "#/my-route" : { controller: Controller, action: "action", before: "before", after: "after", guard: "guard", "data" : ["data"] }
@@ -218,11 +218,11 @@ class Sirius.ControlFlow
         if @guard.apply(null, merge)
           @before()
           @action.apply(null, merge)
-          @after
+          @after()
       else
         @before()
         @action.apply(null, merge)
-        @after
+        @after()
     else
       if @guard
         if @guard.apply(null, args)
@@ -234,9 +234,9 @@ class Sirius.ControlFlow
         @action.apply(null, args)
         @after()
 
-#
+# @mixin
+# @private
 # Object, for creating event listeners
-#
 Sirius.RouteSystem =
   #
   # @param routes [Object] object with routes
