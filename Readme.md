@@ -25,7 +25,7 @@ You only need define Route for you application.
 
 `npm install sirius` 
 
-or download manually `sirius.js` and `jquery_adapter.js` or `prototype_js_adapter.js`
+or download manually `sirius.min.js` and `jquery_adapter.min.js` or `prototype_js_adapter.min.js` from repo.
 
 # Usage
 
@@ -87,7 +87,7 @@ MyController =
 1. TodoMVC Application
 2. Docs
 3. Project page
-4. See tests, read source code
+4. See tests, read source
 
 # Tasks
 
