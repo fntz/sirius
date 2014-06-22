@@ -1,3 +1,9 @@
+###!
+#  Sirius.js v0.1
+#  (c) 2014 fntzr
+#  license: MIT
+###
+
 #
 # @author fntzr <fantazuor@gmal.com>
 # @version 0.1

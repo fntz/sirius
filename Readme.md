@@ -99,6 +99,8 @@ MyController =
 
 `rake test` - complile fixtures for tests
 
+`rake minify` - use [yuicompressor](https://github.com/yui/yuicompressor) for minify files
+
 # Contributing
 
 1. Fork it

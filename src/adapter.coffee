@@ -1,3 +1,9 @@
+###!
+#  Sirius.js v0.1
+#  (c) 2014 fntzr
+#  license: MIT
+###
+
 #
 #  Adapter
 #  It's a base class, which must be redefine for concrete javascript library: prototype.js or jQuery or mootools or etc.
