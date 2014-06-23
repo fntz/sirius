@@ -84,7 +84,6 @@ EventController =
     
   new_todo: (event) ->
     new_todo = TodoList.from_html()
-    console.log new_todo
     Todos.push new_todo
     Renderer.render(Todos)
     $("#new-todo").val('')

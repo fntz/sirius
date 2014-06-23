@@ -25,7 +25,7 @@
     }
 
     TodoList.attrs = [
-      "name", {
+      "title", {
         completed: false
       }, "id"
     ];
@@ -63,7 +63,7 @@
           klass = t.get("completed") ? "completed" : "";
           _results.push({
             "class_name": klass,
-            "name": t.get("name"),
+            "title": t.get("title"),
             id: t.get("id")
           });
         }
@@ -115,11 +115,11 @@
   EventController = {
     start: function() {
       Todos.push(new TodoList({
-        name: "Create a TodoMVC template",
+        title: "Create a TodoMVC template",
         completed: true
       }));
       Todos.push(new TodoList({
-        name: "Rule the web"
+        title: "Rule the web"
       }));
       return Renderer.render(Todos);
     },
@@ -224,7 +224,7 @@
       var todo, trg;
       trg = $(e.target);
       todo = Todos.find_by_id(id);
-      todo.set("name", trg.val());
+      todo.set("title", trg.val());
       trg.val('');
       trg.parents("li").toggleClass("editing");
       return Renderer.render(Todos);
