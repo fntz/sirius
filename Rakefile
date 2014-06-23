@@ -4,6 +4,7 @@ require 'uri'
 require 'openssl'
 require "open-uri"
 
+desc "Install dependencies"
 task :install do
   vendor = "vendor"
   deps = [
@@ -37,10 +38,12 @@ task :install do
   end
 end
 
+desc "Compile fixtures"
 task :test => [:build] do
   %x(coffee -b -c test/fixtures.coffee)
 end
 
+desc "Complile to javascript"
 task :build do
   files = Dir["src/*.coffee"]
   without_adapter = files.find_all{|f| !f.include?("adapter") }
@@ -53,10 +56,12 @@ task :build do
   %x(coffee -b -j prototypejs_adapter.js -o lib/ -c #{output_prototype})
 end
 
+desc "Create doc"
 task :doc do
   %x(codo src)
 end
 
+desc "Minify sources"
 task :minify => [:build] do
   %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js lib/sirius.js -o sirius.min.js)
   %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js lib/jquery_adapter.js -o jquery_adapter.min.js)
