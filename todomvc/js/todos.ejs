@@ -1,0 +1,10 @@
+<% for (var i = 0; i < todos.length; i++) { %>
+  <li class="<%= todos[i]["class_name"] %>">
+    <div class="view">
+      <input class="toggle" type="checkbox" data-id='<%= todos[i]["id"] %>'>
+      <label><%= todos[i]["title"] %></label>
+      <button class="destroy" data-id='<%= todos[i]["id"] %>'></button>
+    </div>
+    <input class="edit" data-id='<%= todos[i]["id"] %>' value="<%= todos[i]['title'] %>">
+  </li>
+<% } %>  
