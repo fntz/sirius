@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="static/css/bootstrap.min.css">
+  <link rel="stylesheet" href="static/app.css">
+  <title>Sirius.js Tutorial</title>
+
+</head>
+<body>
+
+<div class="row main">
+  <div class="col-xs-12 col-md-12">
+  </div>
+  <div class="col-xs-12 col-md-12">
+    <nav class="navbar navbar-default" role="navigation">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="index.html">Sirius.js</a>
+        </div>
+
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav">
+            <li><a href="tutorial.html" class="padding">Tutorial</a></li>
+            <li><a href="todomvc/index.html">TODOMVC App</a></li>
+            <li><a href="doc/index.html">Documentation</a></li>
+            <li><a href="https://github.com/fntzr/sirius">Github <img alt="Github" src="static/GitHub-Mark/PNG/GitHub-Mark-32px.png"/></a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </div>
+
+  <div class="col-xs-12 col-md-12 content">
+    <h4>Content</h4>
+
+    <ul>
+      <li>
+        <a href="#rounting">Routing</a>
+      </li>
+      <li>
+        <a href="#controllers">Controllers</a>
+      </li>
+      <li>
+        <a href="#templates">Templates</a>
+      </li>
+      <li>
+        <a href="#models">Models</a>
+      </li>
+      <li>
+        <a href="#validators">Validators</a>
+      </li>
+      <li>
+        <a href="#adapters">Adapters</a>
+      </li>
+      <li>
+        <a href="#application">Sirius.Application</a>
+      </li>
+      <li>
+        <a href="#events">Events</a>
+      </li>
+    </ul>
+
+    <a name="rounting"></a><h3>Routing</h3>
+      <p>
+        A start point for all programms is a <code>public static void main(String[] args)</code>. Start point
+        for web applications is a <code>route</code>.
+
+        <code>Sirius.js</code> have a four types of routes.
+
+        Obviously first it's common url, when hash change, it's call bound method. Example:
+      </p>
+      <p>
+        Obviously first it's common url, when hash change, it's call bound method. Example:
+      </p>
+      <div>
+        <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #aa5500">&quot;#/:action&quot;</span> : {controller: MyController, action: <span style="color: #aa5500">&quot;my_action&quot;</span> }
+</pre></div>
+      </div>
+      <p>
+        And when our url address equal <code>#/anything</code> will be call <code>MyController.my_action</code>
+      </p>
+
+      <p>
+        Other type of routes, is a <code>404</code>. When in url changed, but does not have a suitable route,
+        then will be called (if defined) 404 route.
+        <div>
+    <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #009999">404</span>: <span style="color: #0000aa">function</span>() {
+  alert(<span style="color: #aa5500">&quot;404 Not Found&quot;</span>);
+}
+</pre></div>
+  </div>
+
+
+      <p>
+        Third types of routing is a event. Event in application it's the same as url changes.
+        <div>
+    <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #aa5500">&quot;click #my-id&quot;</span> : {controller: MyController, action: <span style="color: #aa5500">&quot;my_event_action&quot;</span>}
+</pre></div>
+
+  </div>
+      <p>
+        Fourth type is a custom event:
+        <div><!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #aa5500">&quot;custom:event&quot;</span> : {controller: MyController, action: <span style="color: #aa5500">&quot;my_custom_event_action&quot;</span>}
+</pre></div>
+
+  </div>
+
+      <p>
+        As you can see, routing contain two parts: <code>left</code> and <code>right</code>.
+
+        In left part you may define route for url changes, 404, events, and custom events.
+
+        When it's a url changes, then you may define parameters inside url and they will be passed into <code>action</code>:
+        <div><!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">  <span style="color: #aa5500">&quot;#/static&quot;</span> <span style="color: #aaaaaa; font-style: italic">//call when url will be equal #/static</span>
+  <span style="color: #aa5500">&quot;#/:title&quot;</span> <span style="color: #aaaaaa; font-style: italic">//when url equal #/anything, and in bound action, pass parameter</span>
+  <span style="color: #aa5500">&quot;#/:title/[0-9]+&quot;</span> <span style="color: #aaaaaa; font-style: italic">//when url #/anything/1 then in action pass &quot;anything&quot; and &quot;1&quot;, but</span>
+                   <span style="color: #aaaaaa; font-style: italic">//when url is a #/anything/not-number then route ignored</span>
+  <span style="color: #aa5500">&quot;#/a/b/*&quot;</span> <span style="color: #aaaaaa; font-style: italic">//when is route start with #/a/b/c/d/ and in bounded method pass &quot;c&quot;, &quot;d&quot;, ...  </span>
+</pre></div>
+
+  </div>
+
+    <p>
+      When it's a event, then must be start with <code>eventname</code>, and end with <code>selector</code>:
+      <div><!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #aa5500">&quot;click #id&quot;</span>
+<span style="color: #aa5500">&quot;dblclick div.my-class&quot;</span>
+<span style="color: #aa5500">&quot;keypress input&quot;</span>
+</pre></div>
+
+  </div>
+
+    <p>
+        Under the hood, it's only bind you <code>selector</code> with given <code>eventname</code>.
+
+        <p>When it's a custom event, then must be contain colon <code>:</code></p>
+
+        <p>When it's a <code>404</code> it's just <code>404</code> :)</p>
+
+        <p>It's all about left part.</p>
+
+    <p>
+      Right part it's must be <code>function</code> or <code>object</code>. When it's a function everything is just.
+
+      <p>But when it's object...</p>
+
+      Object must be contain <code>controller</code> and <code>action</code> fields. These fields are required.
+      <div><!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #aa5500">&quot;#/&quot;</span> : { controller: MyController, action: <span style="color: #aa5500">&quot;my_action&quot;</span> }
+</pre></div>
+
+      </div>
+
+    <p>
+      Also object might be contain a helpers: <code>after\before\guard\data</code>.
+    </p>
+
+    <h4>Before and after</h4>
+      <p>
+        You might define in <code>object</code> needful method that will be called, before <code>action</code> or after..
+        <div><!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">var</span> MyController = {
+  action: <span style="color: #0000aa">function</span>() { },
+  before_my_action: <span style="color: #0000aa">function</span>() { }
+  after_my_action: <span style="color: #0000aa">function</span>() { }
+}
+
+<span style="color: #aaaaaa; font-style: italic">//in routes</span>
+
+<span style="color: #aa5500">&quot;#&quot;</span> : { controller: MyController, action: <span style="color: #aa5500">&quot;action&quot;</span>, before: <span style="color: #aa5500">&quot;before_my_action&quot;</span>, after: <span style="color: #aa5500">&quot;after_my_action&quot;</span> }
+</pre></div>
+
+  </div>
+        <p>
+          Then the sequence of calls:
+          <ul>
+            <li>1. <code>before_my_action</code></li>
+            <li>2. <code>action</code></li>
+            <li>3. <code>after_my_action</code></li>
+          </ul>
+
+    <p>
+          But when you named before\after function as <code>before_X</code> or <code>after_X</code>,
+          where <code>X</code> is name of <code>action</code>, then you can not specify it's in object:
+          <div><!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">var</span> MyController = {
+  action: <span style="color: #0000aa">function</span>() { },
+  before_action: <span style="color: #0000aa">function</span>() { }
+  after_action: <span style="color: #0000aa">function</span>() { }
+}
+
+<span style="color: #aaaaaa; font-style: italic">//in routes</span>
+
+<span style="color: #aa5500">&quot;#&quot;</span> : { controller: MyController, action: <span style="color: #aa5500">&quot;action&quot;</span> }
+</pre></div>
+
+  </div>
+          <p>
+            Calls:
+          <ul>
+            <li>1. <code>before_action</code></li>
+            <li>2. <code>action</code></li>
+            <li>3. <code>after_action</code></li>
+          </ul>
+
+    <p>
+          And finally <code>before</code> or <code>after</code> might be a simple function.
+          <div><!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #aa5500">&quot;#&quot;</span> : { controler: MyController, action: <span style="color: #aa5500">&quot;action&quot;</span>, before: <span style="color: #0000aa">function</span>() { ... }, after: <span style="color: #0000aa">function</span>() { ... } }
+</pre></div>
+
+  </div>
+
+    <h4>Guards</h4>
+
+    <p>
+      <p>
+    It's often necessary to limit calls only when something happened - password entry, image loaded, etc...
+
+    For it you might create a guard function, for example for <code>Enter</code> pressed:
+        <div><!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">var</span> MyController {
+  action: <span style="color: #0000aa">function</span>() {}
+  before_action: <span style="color: #0000aa">function</span>() {},
+  after_action: <span style="color: #0000aa">function</span>() {},
+  guard_action: <span style="color: #0000aa">function</span>(event) {
+    <span style="color: #0000aa">if</span> (event.which == <span style="color: #009999">13</span>) <span style="color: #aaaaaa; font-style: italic">//Enter</span>
+      <span style="color: #0000aa">return</span> <span style="color: #0000aa">true</span>;
+    <span style="color: #0000aa">return</span> <span style="color: #0000aa">false</span>;
+  }
+}
+
+<span style="color: #aa5500">&quot;keypress input&quot;</span> : { controller: MyController, action: <span style="color: #aa5500">&quot;action&quot;</span>, guard: <span style="color: #aa5500">&quot;guard_action&quot;</span> }
+<span style="color: #aaaaaa; font-style: italic">// or automatically find guard function</span>
+<span style="color: #aa5500">&quot;keypress input&quot;</span> : { controller: MyController, action: <span style="color: #aa5500">&quot;action&quot;</span>}
+</pre></div>
+  </div>
+
+    <p>
+        Then when you press `Enter` then action will be called:
+
+            Calls:
+          <ul>
+            <li>1. <code>guard_action</code></li>
+            <li>2. <code>before_action</code></li>
+            <li>3. <code>action</code></li>
+            <li>4. <code>after_action</code></li>
+          </ul>
+
+    <p>
+        Otherwise only:
+        <ul>
+          <li>1. <code>guard_action</code></li>
+        </ul>
+
+
+    <h4>Data</h4>
+
+    <p>
+      When you click on element, with high probability we can say that you write the next code:
+      <div><!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #aaaaaa; font-style: italic">//jQuery</span>
+<span style="color: #aaaaaa; font-style: italic">//click on element</span>
+<span style="color: #0000aa">function</span>(event) {
+  <span style="color: #0000aa">var</span> target = $(event.target).attr(<span style="color: #aa5500">&quot;id&quot;</span>); <span style="color: #aaaaaa; font-style: italic">//or class or data-* or ...  </span>
+}
+</pre></div>
+    </div>
+
+    <p>
+      With <code>sirius.js</code> you may extract data from <code>target</code> with:
+      <div><!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #aaaaaa; font-style: italic">//1</span>
+<span style="color: #aa5500">&quot;click element&quot;</span> : { controller: Controller, action: <span style="color: #aa5500">&quot;action&quot;</span>, data: [<span style="color: #aa5500">&quot;id&quot;</span>, <span style="color: #aa5500">&quot;class&quot;</span>] }
+<span style="color: #aaaaaa; font-style: italic">//or 2 </span>
+<span style="color: #aa5500">&quot;click element&quot;</span> : { controller: Controller, action: <span style="color: #aa5500">&quot;action&quot;</span>, data: <span style="color: #aa5500">&quot;data-id&quot;</span> }
+</pre></div>
+    </div>
+
+    Then in <code>Controller.action</code>
+    <div><!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">var</span> Controller = {
+  action: <span style="color: #0000aa">function</span>(event, param1, param2) { <span style="color: #aaaaaa; font-style: italic">// param1=id param2= class for 1) and param1 = data-id for 2.</span>
+    ...
+  }
+
+}
+</pre></div>
+    </div>
+
+    <p>That's all you need to know about routing.</p>
+
+
+    <a name="controllers"></a><h3>Controllers</h3>
+    <p>
+      As you can see, controllers it's only object with methods.
+      <div><!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">var</span> MyController = {
+  action0 : <span style="color: #0000aa">function</span>() {},
+  action1 : <span style="color: #0000aa">function</span>() {},
+  other_action : <span style="color: #0000aa">function</span>() {}
+}
+</pre></div>
+    </div>
+
+    <a name="templates"></a><h3>Templates</h3>
+    <p>
+      You might use any templates for <code>Sirius</code> applcations. <code>EJS</code>, <code>underscore.template</code>
+      or <a href="http://garann.github.io/template-chooser/">others</a>.
+    </p>
+
+    <a name="models"></a><h3>Models</h3>
+
+    <p>
+      With <code>Sirius</code> you might use any model library, or built in.
+    </p>
+
+    <p>Example:
+      <div><!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">class</span> Person
+  <span style="color: #aa0000">@attrs        : </span>[<span style="color: #aa5500">&quot;id&quot;</span>, {<span style="color: #aa5500">&quot;name&quot;</span> : <span style="color: #aa5500">&quot;Nobody&quot;</span>}, <span style="color: #aa5500">&quot;age&quot;</span>]            // <span style="color: #009999">1</span>
+  <span style="color: #aa0000">@guid_for     : </span><span style="color: #aa5500">&quot;id&quot;</span>                                          // <span style="color: #009999">2</span>
+  <span style="color: #aa0000">@form_name    : </span><span style="color: #aa5500">&quot;form-name&quot;</span>                                   // <span style="color: #009999">3</span>
+
+  <span style="color: #aa0000">@has_many     : </span>[<span style="color: #aa5500">&quot;group&quot;</span>]                                     // <span style="color: #009999">4</span>
+  <span style="color: #aa0000">@has_one      : </span>[<span style="color: #aa5500">&quot;city&quot;</span>]                                      // <span style="color: #009999">5</span>
+
+  <span style="color: #aa0000">@validate: </span>                                                   // <span style="color: #009999">6</span>
+    <span style="color: #aa0000">name :</span>
+      <span style="color: #aa0000">format   : with: </span><span style="color: #009999">/^[A-Z].+/</span>
+      <span style="color: #aa0000">presence : </span><span style="color: #0000aa">true</span>
+      <span style="color: #aa0000">length   : min: </span><span style="color: #009999">3</span>
+    <span style="color: #aa0000">age:</span>
+      <span style="color: #aa0000">numericality: only_integers: </span><span style="color: #0000aa">true</span>
+      <span style="color: #aa0000">validate_with: </span><span style="color: #00aa00">(value) -&gt;</span>
+        <span style="color: #aaaaaa; font-style: italic">#...validate</span>
+        <span style="color: #0000aa">true</span>
+
+  <span style="color: #aa0000">@to: </span>                                                         // <span style="color: #009999">7</span>
+    <span style="color: #aa0000">id: tag: </span><span style="color: #aa5500">&quot;b&quot;</span>, <span style="color: #0000aa">class</span>: <span style="color: #aa5500">&quot;model-guid&quot;</span>
+
+  <span style="color: #aa0000">to_string: </span>() <span style="color: #00aa00">-&gt;</span>                                              // <span style="color: #009999">8</span>
+    <span style="color: #aa5500">&quot;My name is #{</span>@.get(<span style="color: #aa5500">&#39;name&#39;}&quot;</span>
+
+
+<span style="color: #0000aa">class</span> Group <span style="color: #0000aa">extends</span> BaseModel
+  <span style="color: #aa0000">@attrs: </span>[<span style="color: #aa5500">&quot;name&quot;</span>, <span style="color: #aa5500">&quot;person_id&quot;</span>]
+  <span style="color: #aa0000">@belongs_to: </span>[{<span style="color: #aa0000">model: </span><span style="color: #aa5500">&quot;person&quot;</span>, <span style="color: #aa0000">back: </span><span style="color: #aa5500">&quot;id&quot;</span>}]                 // <span style="color: #009999">9</span>
+  <span style="color: #aa0000">@to:</span>
+    <span style="color: #aa0000">name: tag: </span><span style="color: #aa5500">&quot;span&quot;</span>
+
+
+<span style="color: #aa0000">person = </span><span style="color: #0000aa">new</span> Person({<span style="color: #aa0000">age: </span><span style="color: #aa5500">&quot;abc&quot;</span>})                              // <span style="color: #009999">10</span>
+person.get(<span style="color: #aa5500">&quot;age&quot;</span>)   <span style="color: #aaaaaa; font-style: italic"># =&gt; &quot;abc&quot;</span>
+person.get(<span style="color: #aa5500">&quot;name&quot;</span>) <span style="color: #aaaaaa; font-style: italic"># =&gt; Nobody</span>
+person.valid() <span style="color: #aaaaaa; font-style: italic"># =&gt; false</span>
+person.save()    <span style="color: #aaaaaa; font-style: italic"># =&gt; false, not valid age</span>
+person.set(<span style="color: #aa5500">&quot;age&quot;</span>, <span style="color: #009999">25</span>)
+person.save() <span style="color: #aaaaaa; font-style: italic"># =&gt; true</span>
+person.set(<span style="color: #aa5500">&quot;name&quot;</span>, <span style="color: #aa5500">&quot;qwerty&quot;</span>)
+person.save(<span style="color: #0000aa">true</span>) <span style="color: #aaaaaa; font-style: italic"># =&gt; exception!</span>
+person.add_group(<span style="color: #0000aa">new</span> Gropup())
+person.add_city(<span style="color: #0000aa">new</span> City()) <span style="color: #aaaaaa; font-style: italic"># =&gt; ok</span>
+person.add_city(<span style="color: #0000aa">new</span> City()) <span style="color: #aaaaaa; font-style: italic"># =&gt; exception, already exist</span>
+
+person.to_html() <span style="color: #aaaaaa; font-style: italic"># =&gt; &lt;b class=&#39;model-guid&#39;&gt;-guid-&lt;/b&gt;...</span>
+</pre></div>
+    </div>
+
+
+    <ul>
+      <li>1. <code>@attrs</code> it's array with attributes names, when element is object, then key is a attribute name,
+        and value is a default value for attribute
+      </li>
+
+      <li>2. <code>@guid_for</code>s for "id" (or any specific attribute) will be generate guids
+      </li>
+
+      <li>3. <code>@form_nam</code> use for find element with this name, and convert from html into Model
+      </li>
+
+      <li>4. <code>@has_many</code> array with model names, and when create a model,
+        then automatically generate the next methods: <code>add_x</code>, where <code>x</code>
+        is a models from  <code>@has_many</code>
+      </li>
+
+      <li>5. <code>@has_one</code>, array with model name, generate <code>add_x</code> methods,
+        but specify model determine only once
+      </li>
+
+      <li>6. <code>@validate</code>, object with basic validators, or with user defined.
+      </li>
+
+      <li>7. <code>@to</code> it's use for convert to html,
+        define as object <code>{ "attribute" : key-value }</code>, key is a <code>"tag"</code>,
+        when not defined then it's a <code>div</code>, and other keys it's attributes for html element
+      </li>
+
+      <li>8. <code>to_string</code> - user defined function
+      </li>
+
+      <li>9. <code>@belongs_to</code> - must contain objects with model name, and
+        <code>back</code> is a attribute for model, and it's for set <code>model_back</code>
+        (for example: <code>person_id</code>) attribute
+      </li>
+
+      <li>10. create model with parameter <code>age</code>
+      </li>
+
+    </ul>
+
+    <a name="validators"></a><h4>Predefined Validators</h4>
+      <p>
+        Default validators and parameters
+        <ul>
+          <li>1. LengthValidator [max, min, length]</li>
+          <li>2. PresenceValidator</li>
+          <li>3. NumericalityValidator [only_integers]</li>
+          <li>4. FormatValidator [with]</li>
+          <li>5. InclusionValidator [within]</li>
+          <li>6. ExclusionValidator [within]</li>
+        </ul>
+
+
+    <h4>to_html</h4>
+    <h4>from_html</h4>
+    <h4>to_json</h4>
+    <h4>from_json</h4>
+    <h4>save</h4>
+      <p>
+        Redefine it's method in you model, and call <code>super</code> when want to check model,
+        or when synchronize with server, or specify you action...
+        <div><!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">class</span> Person <span style="color: #0000aa">extends</span> BaseModel
+  <span style="color: #aaaaaa; font-style: italic"># ....</span>
+
+  <span style="color: #aa0000">save: </span>() <span style="color: #00aa00">-&gt;</span> <span style="color: #aaaaaa; font-style: italic">#withou exceptions</span>
+    <span style="color: #0000aa">if</span> <span style="color: #0000aa">super</span>
+      <span style="color: #aaaaaa; font-style: italic"># ajax synchronize</span>
+    <span style="color: #0000aa">else</span>
+      <span style="color: #0000aa">false</span>
+</pre></div>
+    </div>
+
+  <h4>valid</h4>
+      <p>Return true, when current model instance is valid.</p>
+
+    <a name="adapters"></a><h3>Adapters</h3>
+
+    <p>
+      By default, <code>sirius</code> had a two adapters for <code>jQuery</code> and for <code>prototypejs</code>.
+      You might create own.
+      <p>Adapter must define next methods:
+        <div><!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">class</span> YouAdapter
+  <span style="color: #aa0000">bind: </span><span style="color: #00aa00">(selector, event, fn) -&gt;</span>                        <span style="color: #aaaaaa; font-style: italic"># 1</span>
+  <span style="color: #aa0000">form_to_json: </span><span style="color: #00aa00">(selector) -&gt;</span>                           <span style="color: #aaaaaa; font-style: italic"># 2</span>
+  <span style="color: #aa0000">fire: </span><span style="color: #00aa00">(element, event, params...) -&gt;</span>                  <span style="color: #aaaaaa; font-style: italic"># 3</span>
+  <span style="color: #aa0000">get_property: </span><span style="color: #00aa00">(event, properties...) -&gt;</span>               <span style="color: #aaaaaa; font-style: italic"># 4 </span>
+</pre></div>
+  </div>
+
+        <p>
+          Methods:
+          <ul>
+            <li>1. <code>bind</code> for <code>selector</code> create <code>event</code> listener with callback <code>fn</code></li>
+            <li>2. <code>form_to_json</code> convert specific element <code>selector</code> to json</li>
+            <li>3. <code>fire</code> call custom <code>event</code> for <code>element</code> with <code>params</code></li>
+            <li>4. <code>get_property</code> for given <code>event</code> get all <code>properties</code></li>
+          </ul>
+<p>
+          For example, <a href="https://github.com/fntzr/sirius/blob/master/src/jquery_adapter.coffee">JQueryAdapter</a>
+          <div>
+  <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">class</span> JQueryAdapter <span style="color: #0000aa">extends</span> Adapter
+  <span style="color: #aa0000">bind: </span><span style="color: #00aa00">(selector, event, fn) -&gt;</span>
+    jQuery(<span style="color: #00aaaa">document</span>).on(event, selector, fn)
+
+  <span style="color: #aa0000">form_to_json: </span><span style="color: #00aa00">(selector) -&gt;</span>
+    <span style="color: #aa0000">o = </span>{}
+    <span style="color: #aa0000">a = </span>jQuery(selector).serializeArray()
+
+    <span style="color: #0000aa">for</span> obj <span style="color: #0000aa">in</span> a
+      do<span style="color: #00aa00">(obj) =&gt;</span>
+        <span style="color: #aa0000">name = </span>obj[<span style="color: #aa5500">&quot;name&quot;</span>]
+        <span style="color: #aa0000">value = </span>obj[<span style="color: #aa5500">&quot;value&quot;</span>]
+        <span style="color: #0000aa">if</span> o[name]
+          <span style="color: #0000aa">if</span> !o[name].push
+            o[name] = [o[name]]
+          <span style="color: #0000aa">else</span>
+            o[name].push(value || <span style="color: #aa5500">&#39;&#39;</span>)
+        <span style="color: #0000aa">else</span>
+          o[name] = value || <span style="color: #aa5500">&#39;&#39;</span>
+    JSON.stringify(o)
+
+  <span style="color: #aa0000">fire: </span><span style="color: #00aa00">(element, event, params...) -&gt;</span>
+    jQuery(element).trigger(event, params)
+
+  <span style="color: #aa0000">get_property: </span><span style="color: #00aa00">(event, properties) -&gt;</span>
+    <span style="color: #0000aa">for</span> p <span style="color: #0000aa">in</span> properties <span style="color: #0000aa">then</span> jQuery(event.target).attr(p)
+</pre></div>
+
+    <a name="application"></a><h3>Sirius.Application</h3>
+
+    Call method <code>run</code> with options:
+      <div><!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #aa0000">Controller = </span>
+  ....
+
+<span style="color: #aa0000">routes = </span>
+  ....
+
+SirisusApplication.run
+  <span style="color: #aa0000">route  : </span>routes
+</pre></div>
+      </div>
+
+      <p>
+        Options:
+        <ul>
+          <li> 1. <code>route [Object]</code> a routing object</li>
+
+          <li> 2. <code>logger [Function] </code> you own logger function, by default it's only <code>console.log</code></li>
+
+          <li> 3. <code>log [Boolean]</code> - when true, all messages pass into <code>logger</code></li>
+
+          <li> 4. <code>adapter[Adapter]</code> - adapter instance</li>
+
+          <li> 5. <code>start</code> - start url</li>
+        </ul>
+  <h4>Redirect Helper</h4>
+    <p>
+      Redirect with <code>Sirius.redirect</code> function, for example in controller:
+      <div><!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #aa0000">Controller = </span>
+  <span style="color: #aa0000">action: </span>() <span style="color: #00aa00">-&gt;</span>
+    <span style="color: #0000aa">if</span> ...
+      Sirius.redirect(<span style="color: #aa5500">&quot;</span><span style="color: #FF0000; background-color: #FFAAAA">#</span><span style="color: #aa5500">/&quot;</span>)
+</pre></div>
+  </div>
+
+      <a name="events"></a><h3>Events</h3>
+      <p>
+        When <code>Sirius application</code> start, then generate <code>application:run</code> event.
+
+        <p>Next event it's a <code>application:hashchange</code>, when change url hash.</p>
+
+        <p>Other event it's a <code>application:404</code> when route not matched.<p>
+
+        For all this events, you might define routes:
+        <div><!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #aa5500">&quot;application:start&quot;</span> : <span style="color: #0000aa">function</span>() { alert(<span style="color: #aa5500">&quot;go!&quot;</span>); },
+<span style="color: #aa5500">&quot;application:hashchange&quot;</span> : <span style="color: #0000aa">function</span>(current, prev) { alert(<span style="color: #aa5500">&quot;change&quot;</span>); }
+<span style="color: #aa5500">&quot;application:404&quot;</span> : <span style="color: #0000aa">function</span>(current, prev) { alert(<span style="color: #aa5500">&quot;404&quot;</span>); }
+</pre></div>
+  </div>
+
+</div>
+
+  </div>
+<div class="col-xs-12 col-md-12"></div>
+</div>
+</body>
+</html>

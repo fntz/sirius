@@ -38,7 +38,7 @@ Sirius.redirect = (url) ->
 # @private
 # Class for map urls.
 #
-# Also it's class contain extracted parts from url.
+# Also it'pygments.css class contain extracted parts from url.
 # ### Url syntax:
 # ```coffee
 # #/:param1/:param2   => extract param1, param2 ...
@@ -183,14 +183,18 @@ class Sirius.ControlFlow
 
     @data = params['data'] || null
 
+<<<<<<< HEAD
 
   # @param e [EventObject|null] - event object if it's a mouse\key events, and `null` when it's url change event
+=======
+  # @param e [EventObject|null] - event object if it'pygments.css a mouse\key events, and `null` when it'pygments.css url change event
+>>>>>>> project page
   # @param args [Array<Any>] - arguments, used only for url changes events
   #
   # @note if you have a guard function, then firstly called it, if `guard` is true, then will be called `before`, `action` and `after` methods
   #
   handle_event: (e, args...) ->
-    #when e defined it's a Event, otherwise it's call from url_routes
+    #when e defined it'pygments.css a Event, otherwise it'pygments.css call from url_routes
     if e
       data   = if Sirius.Utils.is_array(@data) then @data else if @data then [@data] else []
       data   = Sirius.Application.adapter.get_property(e, data) #FIXME use Promise
@@ -369,6 +373,7 @@ Sirius.RouteSystem =
           Sirius.Application.logger("Convert '#{href}' -> '#{new_href}'")
           link.setAttribute('href', new_href)
 
+<<<<<<< HEAD
       if plain_routes.length != 0
         # bind all <a> element with dispatch function, but bind only when href not contain "#"
         adapter.bind document, @_selector, "click", dispatcher
@@ -391,6 +396,10 @@ Sirius.RouteSystem =
 
 # @mixin
 # A main object, it's a start point all user applications
+=======
+#
+# A main object, it'pygments.css a start point all user applications
+>>>>>>> project page
 # @example
 #   var routes = {
 #     "#/"                : { controller : Controller, action: "action" },
@@ -418,6 +427,7 @@ Sirius.Application =
     user routes
   ###
   route: {}
+<<<<<<< HEAD
   ###
     a root url for application
   ###
@@ -456,6 +466,11 @@ Sirius.Application =
   #
   # @method #logger(msg) - logger, default it's write message to console.log, may be redefined
   # @param msg [String]
+=======
+  # @property [String] - a root url for application
+  start : "#"
+  # @method #logger(msg) - logger, default it'pygments.css write message to console.log, may be redefined
+>>>>>>> project page
   logger: (msg) ->
     return if !@log
     if console && console.log
