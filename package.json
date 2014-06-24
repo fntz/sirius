@@ -1,5 +1,5 @@
 {
-  "name"          : "siriusjs",
+  "name"          : "sirius",
   "description"   : "A light weight javascript MVC framework",
   "url"           : "http://fntzr.github.io/sirius/",
   "keywords"      : ["router", "browser", "client", "mvc"],
@@ -7,13 +7,14 @@
   "dependencies"  : {
 
   },
+  "bugs": {
+    "url": "https://github.com/fntzr/sirius/issues"
+  },
   "devDependencies": {
     "codo": "2.0.9",
     "coffee-script": "1.7.1"
   },
   "scripts": {
-    "test": "cake test",
-    "build": "cake build",
     "doc": "cake doc"
   },
   "main"          : "sirius.min.js",
