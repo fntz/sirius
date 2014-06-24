@@ -415,9 +415,83 @@ person.to_html() <span style="color: #aaaaaa; font-style: italic"># =&gt; &lt;b 
 
 
     <h4>to_html</h4>
+    <p>
+      Convert model into array of element instances
+      <div>
+      <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">var <span style="color: #aa0000">m = </span><span style="color: #0000aa">new</span> MyModel({<span style="color: #aa5500">&quot;id&quot;</span>: <span style="color: #009999">10</span>, <span style="color: #aa5500">&quot;title&quot;</span>: <span style="color: #aa5500">&quot;my title&quot;</span>, <span style="color: #aa5500">&quot;description&quot;</span>: <span style="color: #aa5500">&quot;text...&quot;</span>});
+m.to_html() // =&gt; <span style="color: #aa5500">&quot;&lt;b class = &#39;my-model-id&#39;&gt;10&lt;/b&gt;&lt;span class = &#39;my-model-title&#39;&gt;my title&lt;/span&gt;&lt;div&gt;text...&lt;/div&gt;&quot;</span>
+   person.to_html() // =&gt;
+    <span style="color: #aa5500">&quot;&lt;b class=&#39;person-id&#39;&gt;1&lt;/b&gt;</span>
+<span style="color: #aa5500">     &lt;span class=&#39;person-name&#39;&gt;Abc&lt;/span&gt;</span>
+<span style="color: #aa5500">       &lt;p class = &#39;group&#39;&gt;</span>
+<span style="color: #aa5500">         &lt;span&gt;group-0&lt;/span&gt;</span>
+<span style="color: #aa5500">         &lt;div&gt;1&lt;/div&gt;</span>
+<span style="color: #aa5500">         &lt;span&gt;group-1&lt;/span&gt;</span>
+<span style="color: #aa5500">         &lt;div&gt;1&lt;/div&gt;</span>
+<span style="color: #aa5500">       &lt;/p&gt;</span>
+</pre></div>
+
+      </div>
+    </p>
+
     <h4>from_html</h4>
+    Generate a new model instance from form
+    <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">//html form
+     &lt;form name=<span style="color: #aa5500">&quot;my_model&quot;</span> id=<span style="color: #aa5500">&quot;my-model-form&quot;</span>&gt;
+       &lt;input type=<span style="color: #aa5500">&quot;hidden&quot;</span> name=<span style="color: #aa5500">&quot;id&quot;</span> <span style="color: #0000aa">class</span>=<span style="color: #aa5500">&quot;my-id&quot;</span> value=<span style="color: #aa5500">&quot;1&quot;</span> /&gt;
+       &lt;input type=<span style="color: #aa5500">&quot;text&quot;</span> name=<span style="color: #aa5500">&quot;title&quot;</span> <span style="color: #0000aa">class</span>=<span style="color: #aa5500">&quot;title&quot;</span> value=<span style="color: #aa5500">&quot;new title&quot;</span> /&gt;
+       &lt;textarea name=<span style="color: #aa5500">&quot;description&quot;</span>&gt;text...&lt;/textarea&gt;
+     &lt;/form&gt;
+
+     var <span style="color: #aa0000">m = </span>MyModel.from_html(<span style="color: #aa5500">&quot;my-model-form&quot;</span>);
+     m.get(<span style="color: #aa5500">&quot;id&quot;</span>)          // =&gt; <span style="color: #009999">1</span>
+     m.get(<span style="color: #aa5500">&quot;title&quot;</span>)       // =&gt; <span style="color: #0000aa">new</span> title
+     m.get(<span style="color: #aa5500">&quot;description&quot;</span>) // =&gt; text...
+</pre></div>
+
+
     <h4>to_json</h4>
+      <p>
+        Convert model instance in json
+        <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">var <span style="color: #aa0000">m = </span><span style="color: #0000aa">new</span> MyModel({<span style="color: #aa5500">&quot;id&quot;</span>: <span style="color: #009999">10</span>, <span style="color: #aa5500">&quot;description&quot;</span>, <span style="color: #aa5500">&quot;text&quot;</span>});
+m.to_json() // =&gt; {<span style="color: #aa5500">&quot;id&quot;</span>:<span style="color: #009999">10</span>,<span style="color: #aa5500">&quot;title&quot;</span>:<span style="color: #aa5500">&quot;default title&quot;</span>,<span style="color: #aa5500">&quot;description&quot;</span>:<span style="color: #aa5500">&quot;text&quot;</span>}
+m.to_json(<span style="color: #0000aa">true</span>) // =&gt; {<span style="color: #aa5500">&quot;my_model&quot;</span>:{<span style="color: #aa5500">&quot;id&quot;</span>:<span style="color: #009999">10</span>,<span style="color: #aa5500">&quot;title&quot;</span>:<span style="color: #aa5500">&quot;default title&quot;</span>,<span style="color: #aa5500">&quot;description&quot;</span>:<span style="color: #aa5500">&quot;text&quot;</span>}}
+
+<span style="color: #aa0000">person  = </span><span style="color: #0000aa">new</span> Person({<span style="color: #aa0000">id: </span><span style="color: #009999">1</span>, <span style="color: #aa0000">name: </span><span style="color: #aa5500">&quot;Abc&quot;</span>})
+<span style="color: #aa0000">group0  = </span><span style="color: #0000aa">new</span> Group({<span style="color: #aa0000">name: </span><span style="color: #aa5500">&quot;group-0&quot;</span>})
+<span style="color: #aa0000">group1  = </span><span style="color: #0000aa">new</span> Group({<span style="color: #aa0000">name: </span><span style="color: #aa5500">&quot;group-1&quot;</span>})
+
+person.add_group(group0)
+person.add_group(group1)
+
+person.to_json() // =&gt;
+// {<span style="color: #aa5500">&quot;id&quot;</span>:<span style="color: #009999">1</span>,
+//  <span style="color: #aa5500">&quot;name&quot;</span>:<span style="color: #aa5500">&quot;Abc&quot;</span>,
+//   <span style="color: #aa5500">&quot;group&quot;</span>:[
+//     {<span style="color: #aa5500">&quot;name&quot;</span>:<span style="color: #aa5500">&quot;group-0&quot;</span>,<span style="color: #aa5500">&quot;person_id&quot;</span>:<span style="color: #009999">1</span>},
+//     {<span style="color: #aa5500">&quot;name&quot;</span>:<span style="color: #aa5500">&quot;group-1&quot;</span>,<span style="color: #aa5500">&quot;person_id&quot;</span>:<span style="color: #009999">1</span>}
+//   ]
+// }
+
+</pre></div>
+
+      </p>
     <h4>from_json</h4>
+    Create a new model instance from json structure.
+    <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">var <span style="color: #aa0000">json = </span>JSON.stringify({<span style="color: #aa5500">&quot;id&quot;</span>: <span style="color: #009999">10</span>, <span style="color: #aa5500">&quot;description&quot;</span>: <span style="color: #aa5500">&quot;text&quot;</span>});
+var <span style="color: #aa0000">m = </span>MyModel.from_json(json);
+m.get(<span style="color: #aa5500">&quot;id&quot;</span>) // =&gt; <span style="color: #009999">10</span>
+m.get(<span style="color: #aa5500">&quot;description&quot;</span>) // =&gt; <span style="color: #aa5500">&quot;text&quot;</span>
+m.get(<span style="color: #aa5500">&quot;title&quot;</span>) // =&gt; <span style="color: #aa5500">&quot;default title&quot;</span>
+
+var <span style="color: #aa0000">json = </span>JSON.stringify({<span style="color: #aa5500">&quot;id&quot;</span>:<span style="color: #009999">1</span>,<span style="color: #aa5500">&quot;group&quot;</span>:[{<span style="color: #aa5500">&quot;name&quot;</span>:<span style="color: #aa5500">&quot;group-0&quot;</span>,<span style="color: #aa5500">&quot;person_id&quot;</span>:<span style="color: #009999">1</span>},{<span style="color: #aa5500">&quot;name&quot;</span>:<span style="color: #aa5500">&quot;group-1&quot;</span>,<span style="color: #aa5500">&quot;person_id&quot;</span>:<span style="color: #009999">1</span>}]})
+var <span style="color: #aa0000">person = </span>Person.from_json(json, {<span style="color: #aa0000">group: </span>Group});
+person.get(<span style="color: #aa5500">&#39;group&#39;</span>) // =&gt; [Group, Group]
+
+var <span style="color: #aa0000">person0 = </span>Person.from_json(json)
+person.get(<span style="color: #aa5500">&#39;group&#39;</span>) // =&gt; [{<span style="color: #aa0000">name: </span><span style="color: #aa5500">&#39;group-0&#39;</span>, ... }, {<span style="color: #aa0000">name: </span><span style="color: #aa5500">&#39;group-1&#39;</span>, ...}]
+</pre></div>
+
     <h4>save</h4>
       <p>
         Redefine it's method in you model, and call <code>super</code> when want to check model,
