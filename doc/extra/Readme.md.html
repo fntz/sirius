@@ -34,13 +34,15 @@
         </p>
       </nav>
       <div id='filecontents'>
-        <h1 id="are-you-sirius-">Are you sirius?</h1><p><code>Sirius.js</code> a light weight javascript MVC framework, written with <a href="http://coffeescript.org/">coffeescript</a>. It&#39;s give a simple integration with current javascript frameworks.</p><h3 id="features">Features</h3>
+        <h1 id="are-you-sirius-">Are you sirius?</h1><p><a href="http://fntzr.github.com/sirius">Sirius.js</a> a light weight javascript MVC framework, written with <a href="http://coffeescript.org/">coffeescript</a>. It&#39;s give a simple integration with current javascript frameworks.</p><h3 id="features">Features</h3>
 <ul>
-<li>[1] Template free </li>
-<li>[2] Controller free</li>
-<li>[3] Model free </li>
-<li>[4] Javascript framework free </li>
-</ul><p>[1] You may use any template engine or use any at all.</p><p>[2] You may use object as Controllers for you application or use only functions as controllers.</p><p>[3] You may use a build models, or use alternative model implementaion from <code>Backbone.js</code> or <code>Ember.Data</code> or own models.</p><p>[4] You may create a Adapter for own framework or use for <code>jQuery</code> or <code>prototypejs</code> adapters.</p><p>You only need define Route for you application.</p><h1 id="install">Install</h1><p><code>npm install sirius</code> </p><p>or download manually <code>sirius.min.js</code> and <code>jquery_adapter.min.js</code> or <code>prototype_js_adapter.min.js</code> from repo.</p><h1 id="usage">Usage</h1>
+<li>Template free — you may use any template engine or use any at all</li>
+<li>Controller free — you may use object as Controllers for you application or use only functions as controllers</li>
+<li>Model free — you may use a built in models, or use alternative model implementaion from <code>Backbone.js</code> or <code>Ember.Data</code> or use javascript objects as you models.</li>
+<li>Javascript framework free — you may create a Adapter for own framework or use for <code>jQuery</code> or <code>prototypejs</code> adapters.</li>
+<li>Routing - routing from hash changes, from events, from custom events</li>
+<li>Easy for understanding</li>
+</ul><p>You only need define Route for you application.</p><h1 id="install">Install</h1><p><code>npm install sirius</code> </p><p>or download manually <code>sirius.min.js</code> and <code>jquery_adapter.min.js</code> or <code>prototype_js_adapter.min.js</code> from repo.</p><h1 id="usage">Usage</h1>
 <h3 id="1-define-controllers">1. Define controllers</h3>
 <pre><code class="lang-coffee">MyController = 
   action: (param) -&gt;
@@ -78,12 +80,11 @@
 <pre><code class="lang-coffee">  Sirius.Application({routes: routes})
 </code></pre>
 <h1 id="more-info">More info</h1>
-<ol>
-<li>TodoMVC Application</li>
-<li>Docs</li>
-<li>Project page</li>
-<li>See tests, read source</li>
-</ol>
+<ul>
+<li><a href="http://fntzr.github.io/sirius">Project page</a></li>
+<li><a href="http://fntzr.github.io/sirius/todomvc/index.html">TodoMVC Application</a> and <a href="https://github.com/fntzr/sirius/blob/master/todomvc/js/app.coffee">source</a></li>
+<li><a href="http://fntzr.github.io/sirius/doc/index.html">Docs</a></li>
+</ul>
 <h1 id="tasks">Tasks</h1><p><code>rake install</code> - install all dependencies</p><p><code>rake doc</code> - generate project documentation</p><p><code>rake build</code> - compile coffeescript into javascript file</p><p><code>rake test</code> - complile fixtures for tests</p><p><code>rake minify</code> - use <a href="https://github.com/yui/yuicompressor">yuicompressor</a> for minify files</p><h1 id="contributing">Contributing</h1>
 <ol>
 <li>Fork it</li>
@@ -98,7 +99,7 @@
       </div>
     </div>
     <div id='footer'>
-  June 23, 14 14:45:06 by
+  June 24, 14 15:39:59 by
   <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
     Codo
   </a>
