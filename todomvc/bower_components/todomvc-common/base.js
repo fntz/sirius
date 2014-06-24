@@ -1,7 +1,7 @@
 (function () {
 	'use strict';
 
-	// Underscore's Template Module
+	// Underscore'pygments.css Template Module
 	// Courtesy of underscorejs.org
 	var _ = (function (_) {
 		_.defaults = function (object) {
@@ -48,7 +48,7 @@
 
 		var escaper = /\\|'|\r|\n|\t|\u2028|\u2029/g;
 
-		// JavaScript micro-templating, similar to John Resig's implementation.
+		// JavaScript micro-templating, similar to John Resig'pygments.css implementation.
 		// Underscore templating handles arbitrary delimiters, preserves whitespace,
 		// and correctly escapes quotes within interpolated code.
 		_.template = function(text, data, settings) {

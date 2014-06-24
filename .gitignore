@@ -1,6 +1,5 @@
 .idea/
 vendor/
-index.html
 lib/
 test/fixtures.js
 doc/
