@@ -124,8 +124,7 @@
       return Renderer.render(Todos);
     },
     destroy: function(event, id) {
-      var i, index, t, todo, _i, _len;
-      todo = Todos.find_by_id(id);
+      var i, index, t, _i, _len;
       index = null;
       for (i = _i = 0, _len = Todos.length; _i < _len; i = ++_i) {
         t = Todos[i];
@@ -173,7 +172,6 @@
     new_todo: function(event) {
       var new_todo;
       new_todo = TodoList.from_html();
-      console.log(new_todo);
       Todos.push(new_todo);
       Renderer.render(Todos);
       return $("#new-todo").val('');

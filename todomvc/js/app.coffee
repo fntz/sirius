@@ -57,8 +57,7 @@ EventController =
     
 
   destroy: (event, id) ->
-    todo = Todos.find_by_id(id)
-    index = null 
+    index = null
     for t, i in Todos when t.get("id") == id then index = i 
     
     if index isnt null  
