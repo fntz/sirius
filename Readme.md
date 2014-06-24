@@ -86,6 +86,8 @@ MyController =
 
 # Tasks
 
+Use `cake` or `rake` for run task. Before work run `rake or cake install` for installing dependencies.
+
 `rake install` - install all dependencies
 
 `rake doc` - generate project documentation
