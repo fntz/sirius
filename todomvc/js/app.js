@@ -30,6 +30,7 @@ TodoList = (function(_super) {
     return this.completed();
   };
 
+<<<<<<< HEAD
   return TodoList;
 
 })(Sirius.BaseModel);
@@ -69,6 +70,108 @@ Renderer = {
           "title": t.get("title"),
           id: t.get("id")
         });
+=======
+  EventController = {
+    start: function() {
+      Todos.push(new TodoList({
+        title: "Create a TodoMVC template",
+        completed: true
+      }));
+      Todos.push(new TodoList({
+        title: "Rule the web"
+      }));
+      return Renderer.render(Todos);
+    },
+    destroy: function(event, id) {
+      var i, index, t, _i, _len;
+      index = null;
+      for (i = _i = 0, _len = Todos.length; _i < _len; i = ++_i) {
+        t = Todos[i];
+        if (t.get("id") === id) {
+          index = i;
+        }
+      }
+      if (index !== null) {
+        Todos.splice(index, 1);
+        return $(event.target).parents("li").remove();
+      }
+    },
+    mark: function(event, id) {
+      var todo;
+      todo = Todos.find_by_id(id);
+      if (todo.get("completed")) {
+        todo.set("completed", false);
+      } else {
+        todo.set("completed", true);
+      }
+      return $(event.target).parents("li").toggleClass("completed");
+    },
+    mark_all: function(event, klass) {
+      var t, _i, _j, _len, _len1;
+      if (klass === "marked") {
+        for (_i = 0, _len = Todos.length; _i < _len; _i++) {
+          t = Todos[_i];
+          t.set("completed", true);
+        }
+      } else {
+        for (_j = 0, _len1 = Todos.length; _j < _len1; _j++) {
+          t = Todos[_j];
+          t.set("completed", false);
+        }
+      }
+      $(event.target).toggleClass("marked");
+      return Renderer.render(Todos);
+    },
+    is_enter: function(event) {
+      if (event.which === 13) {
+        return true;
+      }
+      return false;
+    },
+    new_todo: function(event) {
+      var new_todo;
+      new_todo = TodoList.from_html();
+      Todos.push(new_todo);
+      Renderer.render(Todos);
+      return $("#new-todo").val('');
+    },
+    update_footer: function() {
+      var active, completed, _;
+      if (Todos.length === 0) {
+        $("#footer").hide();
+        return;
+      } else {
+        $("#footer").show();
+      }
+      active = ((function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = Todos.length; _i < _len; _i++) {
+          _ = Todos[_i];
+          if (_.is_active()) {
+            _results.push(_);
+          }
+        }
+        return _results;
+      })()).length;
+      completed = ((function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = Todos.length; _i < _len; _i++) {
+          _ = Todos[_i];
+          if (_.is_completed()) {
+            _results.push(_);
+          }
+        }
+        return _results;
+      })()).length;
+      $("#todo-count strong").text(active);
+      if (completed > 0) {
+        $("#clear-completed").show();
+        return $("#clear-completed").text("Clear completed (" + completed + ")");
+      } else {
+        return $("#clear-completed").hide();
+>>>>>>> update todo
       }
       return _results;
     })();
