@@ -1,23 +1,17 @@
 # Are you sirius?
 
 
-`Sirius.js` a light weight javascript MVC framework, written with [coffeescript](http://coffeescript.org/). It's give a simple integration with current javascript frameworks.
+[Sirius.js](http://fntzr.github.com/sirius) a light weight javascript MVC framework, written with [coffeescript](http://coffeescript.org/). It's give a simple integration with current javascript frameworks.
 
 ### Features
 
 
-+ [1] Template free 
-+ [2] Controller free
-+ [3] Model free 
-+ [4] Javascript framework free 
-
-[1] You may use any template engine or use any at all.
-
-[2] You may use object as Controllers for you application or use only functions as controllers.
-
-[3] You may use a build models, or use alternative model implementaion from `Backbone.js` or `Ember.Data` or own models.
-
-[4] You may create a Adapter for own framework or use for `jQuery` or `prototypejs` adapters.
++ Template free — you may use any template engine or use any at all
++ Controller free — you may use object as Controllers for you application or use only functions as controllers
++ Model free — you may use a built in models, or use alternative model implementaion from `Backbone.js` or `Ember.Data` or use javascript objects as you models.
++ Javascript framework free — you may create a Adapter for own framework or use for `jQuery` or `prototypejs` adapters.
++ Routing - routing from hash changes, from events, from custom events
++ Easy for understanding
 
 You only need define Route for you application.
 
@@ -84,10 +78,11 @@ MyController =
 
 # More info
 
-1. TodoMVC Application
-2. Docs
-3. Project page
-4. See tests, read source
++ [Project page](http://fntzr.github.io/sirius)
++ [TodoMVC Application](http://fntzr.github.io/sirius/todomvc/index.html) and [source](https://github.com/fntzr/sirius/blob/master/todomvc/js/app.coffee)
++ [Docs](http://fntzr.github.io/sirius/doc/index.html)
+
+
 
 # Tasks
 
