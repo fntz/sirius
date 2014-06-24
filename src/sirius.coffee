@@ -23,7 +23,7 @@ Sirius.redirect = (url) ->
 # @private
 # Class for map urls.
 #
-# Also it's class contain extracted parts from url.
+# Also it'pygments.css class contain extracted parts from url.
 # ### Url syntax:
 # ```coffee
 # #/:param1/:param2   => extract param1, param2 ...
@@ -177,14 +177,18 @@ class Sirius.ControlFlow
     return
 
 
-  # @param e [EventObject|null] - event object if it's a mouse\key events, and `null` when it's url change event
+  # @param e [EventObject|null] - event object if it'pygments.css a mouse\key events, and `null` when it'pygments.css url change event
   # @param args [Array<Any>] - arguments, used only for url changes events
   #
   # @note if you have a guard function, then firstly called it, if `guard` is true, then will be called `before`, `action` and `after` methods
   #
   handle_event: (e, args...) ->
+<<<<<<< HEAD
     #when e defined it's a Event, otherwise it's call from url_routes
     @logger.info("ControlFlow: Start event processing")
+=======
+    #when e defined it'pygments.css a Event, otherwise it'pygments.css call from url_routes
+>>>>>>> project page
     if e
       data   = if Sirius.Utils.is_array(@data) then @data else if @data then [@data] else []
       result   = Sirius.Application.adapter.get_property(e, data) #FIXME use Promise
@@ -416,6 +420,7 @@ Sirius.RouteSystem =
       for link in links when adapter.get_attr(link, 'class').split(" ").indexOf(active_class) != -1
         current_link = link
 
+<<<<<<< HEAD
       # need detect current url and set active link for current url
       # if previous already set and it not for current url, then we reset class for url
       for link in links when link.getAttribute('href') == current
@@ -434,6 +439,10 @@ Sirius.RouteSystem =
 
 # @mixin
 # A main object, it's a start point all user applications
+=======
+#
+# A main object, it'pygments.css a start point all user applications
+>>>>>>> project page
 # @example
 #   var routes = {
 #     "#/"                : { controller : Controller, action: "action" },
@@ -461,6 +470,7 @@ Sirius.Application =
     user routes
   ###
   route: {}
+<<<<<<< HEAD
   ###
     a root url for application
   ###
@@ -526,6 +536,15 @@ Sirius.Application =
   default_log_function: (level, msg) ->
     if console && console.log
       console.log "#{level}: #{msg}"
+=======
+  # @property [String] - a root url for application
+  start : "#"
+  # @method #logger(msg) - logger, default it'pygments.css write message to console.log, may be redefined
+  logger: (msg) ->
+    return if !@log
+    if window.console
+      console.log msg
+>>>>>>> project page
     else
       alert "Not supported `console`. You should define own `logger` function for Sirius.Application"
 

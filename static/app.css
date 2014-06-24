@@ -1,0 +1,28 @@
+
+.main {
+    margin-top: 1%;
+    width: 80%;
+    margin-right: 10%;
+    margin-left: 10%;
+}
+ul {
+    list-style-type: none;
+}
+.green {
+    color: #6cc644;
+}
+ul.nav li a{
+    font-size: 1.5em !important;
+    padding-top: 10% !important;
+}
+a.padding {
+    font-size: 1.5em !important;
+    margin-top: 7% !important;
+    padding-top: 10% !important;
+}
+a.grow {
+    font-size: 1.5em !important;
+}
+a.navbar-brand {
+    font-size: 2.5em !important;
+}
