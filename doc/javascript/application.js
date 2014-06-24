@@ -647,7 +647,7 @@ var hljs = new function() {
     result.value = fixMarkup(result.value, tabReplace, useBR);
 
     var class_name = block.className;
-    if (!class_name.match('(\\pygments.css|^)(language-)?' + language + '(\\pygments.css|$)')) {
+    if (!class_name.match('(\\s|^)(language-)?' + language + '(\\s|$)')) {
       class_name = class_name ? (class_name + ' ' + language) : language;
     }
     if (/MSIE [678]/.test(navigator.userAgent) && block.tagName == 'CODE' && block.parentNode.tagName == 'PRE') {
@@ -854,7 +854,7 @@ hljs.LANGUAGES.coffeescript = function() {
 
   var COFFEE_FUNCTION_DECLARATION_MODE = {
     className: 'function',
-    begin: JS_IDENT_RE + '\\pygments.css*=\\pygments.css*(\\(.+\\))?\\pygments.css*[-=]>',
+    begin: JS_IDENT_RE + '\\s*=\\s*(\\(.+\\))?\\s*[-=]>',
     returnBegin: true,
     contains: [
       {
@@ -951,7 +951,7 @@ var
 	core_rnotwhite = /\S/,
 	core_rspace = /\s+/,
 
-	// Make sure we trim BOM and NBSP (here'pygments.css looking at you, Safari 5.0 and IE)
+	// Make sure we trim BOM and NBSP (here's looking at you, Safari 5.0 and IE)
 	rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,
 
 	// A simple way to check for HTML strings
@@ -1179,7 +1179,7 @@ jQuery.fn = jQuery.prototype = {
 	},
 
 	// For internal use only.
-	// Behaves like an Array'pygments.css method, not like a jQuery method.
+	// Behaves like an Array's method, not like a jQuery method.
 	push: core_push,
 	sort: [].sort,
 	splice: [].splice
@@ -1682,7 +1682,7 @@ jQuery.extend({
 	},
 
 	// Multifunctional method to get and set values of a collection
-	// The value/pygments.css can optionally be executed if it'pygments.css a function
+	// The value/s can optionally be executed if it's a function
 	access: function( elems, fn, key, value, chainable, emptyGet, pass ) {
 		var exec,
 			bulk = key == null,
@@ -2206,7 +2206,7 @@ jQuery.support = (function() {
 		checkOn: ( input.value === "on" ),
 
 		// Make sure that a selected-by-default option has a working selected property.
-		// (WebKit defaults to false instead of true, IE too, if it'pygments.css in an optgroup)
+		// (WebKit defaults to false instead of true, IE too, if it's in an optgroup)
 		optSelected: opt.selected,
 
 		// Test setAttribute on camelCase class. If it works, we need attrFixes when doing get/setAttribute (ie6/7)
@@ -2244,7 +2244,7 @@ jQuery.support = (function() {
 	select.disabled = true;
 	support.optDisabled = !opt.disabled;
 
-	// Test to see if it'pygments.css possible to delete an expando from an element
+	// Test to see if it's possible to delete an expando from an element
 	// Fails in Internet Explorer
 	try {
 		delete div.test;
@@ -2493,7 +2493,7 @@ jQuery.extend({
 
 		thisCache = cache[ id ];
 
-		// jQuery data() is stored in a separate object inside the object'pygments.css internal data
+		// jQuery data() is stored in a separate object inside the object's internal data
 		// cache in order to avoid key collisions between internal data and user-defined
 		// data.
 		if ( !pvt ) {
@@ -3271,7 +3271,7 @@ jQuery.extend({
 					jQuery.error( "type property can't be changed" );
 				} else if ( !jQuery.support.radioValue && value === "radio" && jQuery.nodeName(elem, "input") ) {
 					// Setting the type on a radio button after the value resets the value in IE6-9
-					// Reset value to it'pygments.css default in case type is set after value
+					// Reset value to it's default in case type is set after value
 					// This is for element creation
 					var val = elem.value;
 					elem.setAttribute( "type", value );
@@ -3387,7 +3387,7 @@ boolHook = {
 			// Remove boolean attributes when set to false
 			jQuery.removeAttr( elem, name );
 		} else {
-			// value is true since we know at this point it'pygments.css type boolean and not false
+			// value is true since we know at this point it's type boolean and not false
 			// Set boolean attributes to the same name and set the DOM property
 			propName = jQuery.propFix[ name ] || name;
 			if ( propName in elem ) {
@@ -3484,7 +3484,7 @@ if ( !jQuery.support.style ) {
 }
 
 // Safari mis-reports the default selected property of an option
-// Accessing the parent'pygments.css selectedIndex property fixes it
+// Accessing the parent's selectedIndex property fixes it
 if ( !jQuery.support.optSelected ) {
 	jQuery.propHooks.selected = jQuery.extend( jQuery.propHooks.selected, {
 		get: function( elem ) {
@@ -3567,7 +3567,7 @@ jQuery.event = {
 			handler.guid = jQuery.guid++;
 		}
 
-		// Init the element'pygments.css event structure and main handler, if this is the first
+		// Init the element's event structure and main handler, if this is the first
 		events = elemData.events;
 		if ( !events ) {
 			elemData.events = events = {};
@@ -3640,7 +3640,7 @@ jQuery.event = {
 				}
 			}
 
-			// Add to the element'pygments.css handler list, delegates in front
+			// Add to the element's handler list, delegates in front
 			if ( selector ) {
 				handlers.splice( handlers.delegateCount++, 0, handleObj );
 			} else {
@@ -3719,7 +3719,7 @@ jQuery.event = {
 			}
 		}
 
-		// Remove the expando if it'pygments.css no longer used
+		// Remove the expando if it's no longer used
 		if ( jQuery.isEmptyObject( events ) ) {
 			delete elemData.handle;
 
@@ -3860,7 +3860,7 @@ jQuery.event = {
 
 				// Call a native DOM method on the target with the same name name as the event.
 				// Can't use an .isFunction() check here because IE6/7 fails that test.
-				// Don't do default actions on window, that'pygments.css where global variables be (#6170)
+				// Don't do default actions on window, that's where global variables be (#6170)
 				// IE<9 dies on focus/blur to hidden element (#1486)
 				if ( ontype && elem[ type ] && ((type !== "focus" && type !== "blur") || event.target.offsetWidth !== 0) && !jQuery.isWindow( elem ) ) {
 
@@ -3950,7 +3950,7 @@ jQuery.event = {
 				handleObj = matched.matches[ j ];
 
 				// Triggered event must either 1) be non-exclusive and have no namespace, or
-				// 2) have namespace(pygments.css) a subset or equal to those in the bound event (both can have no namespace).
+				// 2) have namespace(s) a subset or equal to those in the bound event (both can have no namespace).
 				if ( run_all || (!event.namespace && !handleObj.namespace) || event.namespace_re && event.namespace_re.test( handleObj.namespace ) ) {
 
 					event.data = handleObj.data;
@@ -4057,7 +4057,7 @@ jQuery.event = {
 			event.target = event.target.parentNode;
 		}
 
-		// For mouse/key events, metaKey==false if it'pygments.css undefined (#3368, #11328; IE6/7/8)
+		// For mouse/key events, metaKey==false if it's undefined (#3368, #11328; IE6/7/8)
 		event.metaKey = !!event.metaKey;
 
 		return fixHook.filter? fixHook.filter( event, originalEvent ) : event;
@@ -4094,7 +4094,7 @@ jQuery.event = {
 
 	simulate: function( type, elem, event, bubble ) {
 		// Piggyback on a donor event to simulate a different one.
-		// Fake originalEvent to avoid donor'pygments.css stopPropagation, but if the
+		// Fake originalEvent to avoid donor's stopPropagation, but if the
 		// simulated event prevents default then we do the same on the donor.
 		var e = jQuery.extend(
 			new jQuery.Event(),
@@ -4115,7 +4115,7 @@ jQuery.event = {
 	}
 };
 
-// Some plugins are using, but it'pygments.css undocumented/deprecated and will be removed.
+// Some plugins are using, but it's undocumented/deprecated and will be removed.
 // The 1.7 special event interface should provide all the hooks needed now.
 jQuery.event.handle = jQuery.event.dispatch;
 
@@ -5460,7 +5460,7 @@ sortOrder = docElem.compareDocumentPosition ?
 			hasDuplicate = true;
 			return 0;
 
-		// Fallback to using sourceIndex (in IE) if it'pygments.css available on both nodes
+		// Fallback to using sourceIndex (in IE) if it's available on both nodes
 		} else if ( a.sourceIndex && b.sourceIndex ) {
 			return a.sourceIndex - b.sourceIndex;
 		}
@@ -5548,7 +5548,7 @@ function tokenize( selector, context, xml, parseOnly ) {
 		preFilters, filters,
 		checkContext = !xml && context !== document,
 		// Token cache should maintain spaces
-		key = ( checkContext ? "<pygments.css>" : "" ) + selector.replace( rtrim, "$1<pygments.css>" ),
+		key = ( checkContext ? "<s>" : "" ) + selector.replace( rtrim, "$1<s>" ),
 		cached = tokenCache[ expando ][ key ];
 
 	if ( cached ) {
@@ -5952,7 +5952,7 @@ if ( document.querySelectorAll ) {
 		// Regex strategy adopted from Diego Perini
 		assert(function( div ) {
 			// Select is set to empty string on purpose
-			// This is to test IE'pygments.css treatment of not explictly
+			// This is to test IE's treatment of not explictly
 			// setting a boolean content attribute,
 			// since its presence should be enough
 			// http://bugs.jquery.com/ticket/12359
@@ -6042,7 +6042,7 @@ if ( document.querySelectorAll ) {
 
 		if ( matches ) {
 			assert(function( div ) {
-				// Check to see if it'pygments.css possible to do matchesSelector
+				// Check to see if it's possible to do matchesSelector
 				// on a disconnected node (IE 9)
 				disconnectedMatch = matches.call( div, "div" );
 
@@ -6066,7 +6066,7 @@ if ( document.querySelectorAll ) {
 					try {
 						var ret = matches.call( elem, expr );
 
-						// IE 9'pygments.css matchesSelector returns false on disconnected nodes
+						// IE 9's matchesSelector returns false on disconnected nodes
 						if ( ret || disconnectedMatch ||
 								// As well, disconnected nodes are said to be in a document
 								// fragment in IE 9
@@ -6419,7 +6419,7 @@ var nodeNames = "abbr|article|aside|audio|bdi|canvas|data|datalist|details|figca
 	rhtml = /<|&#?\w+;/,
 	rnoInnerhtml = /<(?:script|style|link)/i,
 	rnocache = /<(?:script|object|embed|option|style)/i,
-	rnoshimcache = new RegExp("<(?:" + nodeNames + ")[\\pygments.css/>]", "i"),
+	rnoshimcache = new RegExp("<(?:" + nodeNames + ")[\\s/>]", "i"),
 	rcheckableType = /^(?:checkbox|radio)$/,
 	// checked="checked" or checked
 	rchecked = /checked\s*(?:[^=]|=\s*.checked.)/i,
@@ -7078,7 +7078,7 @@ jQuery.extend({
 						div = div.lastChild;
 					}
 
-					// Remove IE'pygments.css autoinserted <tbody> from table fragments
+					// Remove IE's autoinserted <tbody> from table fragments
 					if ( !jQuery.support.tbody ) {
 
 						// String was a <table>, *may* have spurious <tbody>
@@ -7189,7 +7189,7 @@ jQuery.extend({
 							if ( special[ type ] ) {
 								jQuery.event.remove( elem, type );
 
-							// This is a shortcut to avoid jQuery.event.remove'pygments.css overhead
+							// This is a shortcut to avoid jQuery.event.remove's overhead
 							} else {
 								jQuery.removeEvent( elem, type, data.handle );
 							}
@@ -7746,7 +7746,7 @@ function css_defaultDisplay( nodeName ) {
 	elem.remove();
 
 	// If the simple way fails,
-	// get element'pygments.css real default display by attaching it to a temp iframe
+	// get element's real default display by attaching it to a temp iframe
 	if ( display === "none" || display === "" ) {
 		// Use the already-created iframe if possible
 		iframe = document.body.appendChild(
@@ -8005,7 +8005,7 @@ function buildParams( prefix, obj, traditional, add ) {
 				// numeric index to resolve deserialization ambiguity issues.
 				// Note that rack (as of 1.0.0) can't currently deserialize
 				// nested arrays properly, and attempting to do so may cause
-				// a server error. Possible fixes are to modify rack'pygments.css
+				// a server error. Possible fixes are to modify rack's
 				// deserialization algorithm or to provide an option or flag
 				// to force array serialization to be shallow.
 				buildParams( prefix + "[" + ( typeof v === "object" ? i : "" ) + "]", v, traditional, add );
@@ -8046,7 +8046,7 @@ var // Document location
 	 * 1) They are useful to introduce custom dataTypes (see ajax/jsonp.js for an example)
 	 * 2) These are called:
 	 *    - BEFORE asking for a transport
-	 *    - AFTER param serialization (pygments.css.data is a string if pygments.css.processData is true)
+	 *    - AFTER param serialization (s.data is a string if s.processData is true)
 	 * 3) key is the dataType
 	 * 4) the catchall symbol "*" can be used
 	 * 5) execution will start with transport dataType and THEN continue down to "*" if needed
@@ -8187,10 +8187,10 @@ jQuery.fn.load = function( url, params, callback ) {
 		url = url.slice( 0, off );
 	}
 
-	// If it'pygments.css a function
+	// If it's a function
 	if ( jQuery.isFunction( params ) ) {
 
-		// We assume that it'pygments.css the callback
+		// We assume that it's the callback
 		callback = params;
 		params = undefined;
 
@@ -8392,8 +8392,8 @@ jQuery.extend({
 			// Callbacks context
 			callbackContext = s.context || s,
 			// Context for global events
-			// It'pygments.css the callbackContext if one was provided in the options
-			// and if it'pygments.css a DOM node or a jQuery collection
+			// It's the callbackContext if one was provided in the options
+			// and if it's a DOM node or a jQuery collection
 			globalEventContext = callbackContext !== s &&
 				( callbackContext.nodeType || callbackContext instanceof jQuery ) ?
 						jQuery( callbackContext ) : jQuery.event,
@@ -8646,7 +8646,7 @@ jQuery.extend({
 			// If data is available, append data to url
 			if ( s.data ) {
 				s.url += ( rquery.test( s.url ) ? "&" : "?" ) + s.data;
-				// #9682: remove data so that it'pygments.css not used in an eventual retry
+				// #9682: remove data so that it's not used in an eventual retry
 				delete s.data;
 			}
 
@@ -8845,7 +8845,7 @@ function ajaxConvert( s, response ) {
 	// Convert to each sequential dataType, tolerating list modification
 	for ( ; (current = dataTypes[++i]); ) {
 
-		// There'pygments.css only work to do if current dataType is non-auto
+		// There's only work to do if current dataType is non-auto
 		if ( current !== "*" ) {
 
 			// Convert response if prev dataType is non-auto and differs from current
@@ -9008,7 +9008,7 @@ jQuery.ajaxSetup({
 	}
 });
 
-// Handle cache'pygments.css special case and global
+// Handle cache's special case and global
 jQuery.ajaxPrefilter( "script", function( s ) {
 	if ( s.cache === undefined ) {
 		s.cache = false;
@@ -9208,7 +9208,7 @@ if ( jQuery.support.ajax ) {
 									}
 								}
 
-								// If it'pygments.css an abort
+								// If it's an abort
 								if ( isAbort ) {
 									// Abort it manually if needed
 									if ( xhr.readyState !== 4 ) {
@@ -9244,7 +9244,7 @@ if ( jQuery.support.ajax ) {
 									// Filter status for non standard behaviors
 
 									// If the request is local and we have data: assume a success
-									// (success with no data won't get notified, that'pygments.css the best we
+									// (success with no data won't get notified, that's the best we
 									// can do given current implementations)
 									if ( !status && s.isLocal && !s.crossDomain ) {
 										status = responses.text ? 200 : 404;
@@ -9270,7 +9270,7 @@ if ( jQuery.support.ajax ) {
 						// if we're in sync mode we fire the callback
 						callback();
 					} else if ( xhr.readyState === 4 ) {
-						// (IE6 & IE7) if it'pygments.css in cache and has been
+						// (IE6 & IE7) if it's in cache and has been
 						// retrieved directly we need to fire the callback
 						setTimeout( callback, 0 );
 					} else {
@@ -9732,7 +9732,7 @@ Tween.propHooks = {
 	}
 };
 
-// Remove in 2.0 - this supports IE8'pygments.css panic based approach
+// Remove in 2.0 - this supports IE8's panic based approach
 // to setting things on disconnected nodes
 
 Tween.propHooks.scrollTop = Tween.propHooks.scrollLeft = {
@@ -10266,7 +10266,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
     for (i = 0; i < _handlers[key].length; i++) {
       handler = _handlers[key][i];
 
-      // see if it'pygments.css in the current scope
+      // see if it's in the current scope
       if(handler.scope == scope || handler.scope == 'all'){
         // check if modifiers match if any
         modifiersMatch = handler.mods.length > 0;
@@ -10389,7 +10389,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
 //     (c) 2009-2012 Jeremy Ashkenas, DocumentCloud Inc.
 //     Underscore is freely distributable under the MIT license.
 //     Portions of Underscore are inspired or borrowed from Prototype,
-//     Oliver Steele'pygments.css Functional, and John Resig'pygments.css Micro-Templating.
+//     Oliver Steele's Functional, and John Resig's Micro-Templating.
 //     For all details and documentation:
 //     http://documentcloud.github.com/underscore
 
@@ -10456,7 +10456,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
 
   // The cornerstone, an `each` implementation, aka `forEach`.
   // Handles objects with the built-in `forEach`, arrays, and raw objects.
-  // Delegates to **ECMAScript 5**'pygments.css native `forEach` if available.
+  // Delegates to **ECMAScript 5**'s native `forEach` if available.
   var each = _.each = _.forEach = function(obj, iterator, context) {
     if (obj == null) return;
     if (nativeForEach && obj.forEach === nativeForEach) {
@@ -10475,7 +10475,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
   };
 
   // Return the results of applying the iterator to each element.
-  // Delegates to **ECMAScript 5**'pygments.css native `map` if available.
+  // Delegates to **ECMAScript 5**'s native `map` if available.
   _.map = _.collect = function(obj, iterator, context) {
     var results = [];
     if (obj == null) return results;
@@ -10488,7 +10488,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
   };
 
   // **Reduce** builds up a single result from a list of values, aka `inject`,
-  // or `foldl`. Delegates to **ECMAScript 5**'pygments.css native `reduce` if available.
+  // or `foldl`. Delegates to **ECMAScript 5**'s native `reduce` if available.
   _.reduce = _.foldl = _.inject = function(obj, iterator, memo, context) {
     var initial = arguments.length > 2;
     if (obj == null) obj = [];
@@ -10509,7 +10509,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
   };
 
   // The right-associative version of reduce, also known as `foldr`.
-  // Delegates to **ECMAScript 5**'pygments.css native `reduceRight` if available.
+  // Delegates to **ECMAScript 5**'s native `reduceRight` if available.
   _.reduceRight = _.foldr = function(obj, iterator, memo, context) {
     var initial = arguments.length > 2;
     if (obj == null) obj = [];
@@ -10535,7 +10535,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
   };
 
   // Return all the elements that pass a truth test.
-  // Delegates to **ECMAScript 5**'pygments.css native `filter` if available.
+  // Delegates to **ECMAScript 5**'s native `filter` if available.
   // Aliased as `select`.
   _.filter = _.select = function(obj, iterator, context) {
     var results = [];
@@ -10558,7 +10558,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
   };
 
   // Determine whether all of the elements match a truth test.
-  // Delegates to **ECMAScript 5**'pygments.css native `every` if available.
+  // Delegates to **ECMAScript 5**'s native `every` if available.
   // Aliased as `all`.
   _.every = _.all = function(obj, iterator, context) {
     var result = true;
@@ -10571,7 +10571,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
   };
 
   // Determine if at least one element in the object matches a truth test.
-  // Delegates to **ECMAScript 5**'pygments.css native `some` if available.
+  // Delegates to **ECMAScript 5**'s native `some` if available.
   // Aliased as `any`.
   var any = _.some = _.any = function(obj, iterator, context) {
     iterator || (iterator = _.identity);
@@ -10644,7 +10644,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
     return shuffled;
   };
 
-  // Sort the object'pygments.css values by a criterion produced by an iterator.
+  // Sort the object's values by a criterion produced by an iterator.
   _.sortBy = function(obj, val, context) {
     var iterator = _.isFunction(val) ? val : function(obj) { return obj[val]; };
     return _.pluck(_.map(obj, function(value, index, list) {
@@ -10660,7 +10660,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
     }), 'value');
   };
 
-  // Groups the object'pygments.css values by a criterion. Pass either a string attribute
+  // Groups the object's values by a criterion. Pass either a string attribute
   // to group by, or a function that returns the criterion.
   _.groupBy = function(obj, val) {
     var result = {};
@@ -10748,7 +10748,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
     }, []);
   };
 
-  // Return a version of the array that does not contain the specified value(pygments.css).
+  // Return a version of the array that does not contain the specified value(s).
   _.without = function(array) {
     return _.difference(array, slice.call(arguments, 1));
   };
@@ -10808,7 +10808,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
   // If the browser doesn't supply us with indexOf (I'm looking at you, **MSIE**),
   // we need this function. Return the position of the first occurrence of an
   // item in an array, or -1 if the item is not included in the array.
-  // Delegates to **ECMAScript 5**'pygments.css native `indexOf` if available.
+  // Delegates to **ECMAScript 5**'s native `indexOf` if available.
   // If the array is large and already in sort order, pass `true`
   // for **isSorted** to use binary search.
   _.indexOf = function(array, item, isSorted) {
@@ -10823,7 +10823,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
     return -1;
   };
 
-  // Delegates to **ECMAScript 5**'pygments.css native `lastIndexOf` if available.
+  // Delegates to **ECMAScript 5**'s native `lastIndexOf` if available.
   _.lastIndexOf = function(array, item) {
     if (array == null) return -1;
     if (nativeLastIndexOf && array.lastIndexOf === nativeLastIndexOf) return array.lastIndexOf(item);
@@ -10862,7 +10862,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
 
   // Create a function bound to a given object (assigning `this`, and arguments,
   // optionally). Binding with arguments is also known as `curry`.
-  // Delegates to **ECMAScript 5**'pygments.css native `Function.bind` if available.
+  // Delegates to **ECMAScript 5**'s native `Function.bind` if available.
   // We check for `func.bind` first, to fail fast when `func` is undefined.
   _.bind = function bind(func, context) {
     var bound, args;
@@ -10879,7 +10879,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
     };
   };
 
-  // Bind all of an object'pygments.css methods to that object. Useful for ensuring that
+  // Bind all of an object's methods to that object. Useful for ensuring that
   // all callbacks defined on an object belong to it.
   _.bindAll = function(obj) {
     var funcs = slice.call(arguments, 1);
@@ -10998,8 +10998,8 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
   // Object Functions
   // ----------------
 
-  // Retrieve the names of an object'pygments.css properties.
-  // Delegates to **ECMAScript 5**'pygments.css native `Object.keys`
+  // Retrieve the names of an object's properties.
+  // Delegates to **ECMAScript 5**'s native `Object.keys`
   _.keys = nativeKeys || function(obj) {
     if (obj !== Object(obj)) throw new TypeError('Invalid object');
     var keys = [];
@@ -11007,7 +11007,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
     return keys;
   };
 
-  // Retrieve the values of an object'pygments.css properties.
+  // Retrieve the values of an object's properties.
   _.values = function(obj) {
     return _.map(obj, _.identity);
   };
@@ -11022,7 +11022,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
     return names.sort();
   };
 
-  // Extend a given object with all the properties in passed-in object(pygments.css).
+  // Extend a given object with all the properties in passed-in object(s).
   _.extend = function(obj) {
     each(slice.call(arguments, 1), function(source) {
       for (var prop in source) {
@@ -11088,7 +11088,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
         // equivalent to `new String("5")`.
         return a == String(b);
       case '[object Number]':
-        // `NaN`pygments.css are equivalent, but non-reflexive. An `egal` comparison is performed for
+        // `NaN`s are equivalent, but non-reflexive. An `egal` comparison is performed for
         // other numeric values.
         return a != +a ? b != +b : (a == 0 ? 1 / a == 1 / b : a == +b);
       case '[object Date]':
@@ -11173,7 +11173,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
   };
 
   // Is a given value an array?
-  // Delegates to ECMA5'pygments.css native Array.isArray
+  // Delegates to ECMA5's native Array.isArray
   _.isArray = nativeIsArray || function(obj) {
     return toString.call(obj) == '[object Array]';
   };
@@ -11335,7 +11335,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
     });
   };
 
-  // JavaScript micro-templating, similar to John Resig'pygments.css implementation.
+  // JavaScript micro-templating, similar to John Resig's implementation.
   // Underscore templating handles arbitrary delimiters, preserves whitespace,
   // and correctly escapes quotes within interpolated code.
   _.template = function(text, data, settings) {
@@ -11585,7 +11585,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
       tagname = (e.target || e.srcElement).tagName;
       return tagname !== 'INPUT' || e.keyCode === 27 || e.ctrlKey === true;
     };
-    key('pygments.css', function(e) {
+    key('s', function(e) {
       e.preventDefault();
       try {
         parent.frames.list.$('#search input').focus().select();
