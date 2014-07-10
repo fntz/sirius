@@ -3,19 +3,35 @@
 
 
 class Sirisus.Collection
-
+  #remote - ajax calls, should return json for model
   #klass Model klass, must be extend BaseModel
-  constructor: (klass, options = {every: 0, on_add: @on_add, on_remove: @on_remove, remote: ->}) ->
+  constructor: (klass, klasses = [], options = {every: 0, on_add: @on_add, on_remove: @on_remove, remote: null}) ->
     throw new Error("Collection must be used only with `BaseModel` inheritor") if klass.__super__.constructor.name isnt 'BaseModel'
     @_array = []
+    @_klasses = klasses
     @_type  = klass.name
+
     @on_add    = options.on_add || @on_add
     @on_remove = options.on_remove || @on_add
-    @remove    = options.remove
+
+    if options.remote
+      @remote = ->
+        result = options.remote()
+        @push(klass.from_json(result, @_klasses))
+    @_timer    = null
     _start_sync(every)
 
   @_start_sync: (every) ->
-    #timeout and push when every != 0
+    if (every != 0)
+      @_timer = setInterval(@remote, every)
+
+
+  unsync: () ->
+    if @_timer
+      clearInterval(@_timer)
+
+  sync: (every) ->
+    @_start_sync(every)
 
   #check if is instance of BaseModel
   push: (model) ->
