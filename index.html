@@ -56,14 +56,7 @@
     <h1>Usage</h1>
 
     <h3 id="define-controllers">1. Define controllers</h3>
-    <table width="100%">
-      <tr>
-        <td>Coffeescript</td>
-        <td>Javascript</td>
-      </tr>
-      <tr>
-        <td>
-          <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #aa0000">MyController = </span>
+    <div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #aa0000">MyController = </span>
   <span style="color: #aa0000">action: </span><span style="color: #00aa00">(param) -&gt;</span>
     <span style="color: #aaaaaa; font-style: italic"># ...</span>
 
@@ -83,36 +76,6 @@
 </pre></div>
 
 
-        </td>
-        <td>
-          <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">var</span> MyController = {
-  action: <span style="color: #0000aa">function</span>() {
-    <span style="color: #aaaaaa; font-style: italic">//...</span>
-  },
-  run: <span style="color: #0000aa">function</span>() {
-    <span style="color: #aaaaaa; font-style: italic">//...</span>
-  },
-  <span style="color: #aaaaaa; font-style: italic">//run after `run` method</span>
-  after_run: <span style="color: #0000aa">function</span>() { },
-  guard_event: <span style="color: #0000aa">function</span>(event) {
-    <span style="color: #0000aa">if</span> (condition) {
-      <span style="color: #0000aa">true</span>
-    } <span style="color: #0000aa">else</span> {
-      <span style="color: #0000aa">false</span>
-    }
-  },
-  event_action: <span style="color: #0000aa">function</span>(event, id) {
-    <span style="color: #aaaaaa; font-style: italic">//...</span>
-  }
-}
-</pre></div>
-
-
-        </td>
-      </tr>
-    </table>
-
-
     <h3 id="define-routes">2. Define routes</h3>
     <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">routes = {
   <span style="color: #aa5500">&quot;application:run&quot;</span>   : controller: MyController, action: <span style="color: #aa5500">&quot;action&quot;</span>
@@ -123,44 +86,11 @@
 
 
     <h3 id="define-models">3. Define models</h3>
-    <table>
-      <tr>
-        <td>Coffeescript</td>
-        <td>Javascript</td>
-      </tr>
-
-      <tr>
-        <td>
-          <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">class</span> Person <span style="color: #0000aa">extends</span> Sirius.BaseModel
+    <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">class</span> Person <span style="color: #0000aa">extends</span> Sirius.BaseModel
   <span style="color: #aa0000">@attrs: </span>[<span style="color: #aa5500">&quot;id&quot;</span>, <span style="color: #aa5500">&quot;name&quot;</span>, {<span style="color: #aa5500">&quot;age&quot;</span>: <span style="color: #009999">21</span>}]
   <span style="color: #aa0000">@guid_for: </span><span style="color: #aa5500">&quot;id&quot;</span>
   <span style="color: #aa0000">@form_name: </span><span style="color: #aa5500">&quot;</span><span style="color: #FF0000; background-color: #FFAAAA">#</span><span style="color: #aa5500">my-person-form&quot;</span>
 </pre></div>
-
-        </td>
-        <td>
-          <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">var</span> Person = <span style="color: #0000aa">function</span>() {
-  __extends(Person, Sirius.BaseModel);
-
-  <span style="color: #0000aa">function</span> Person() {
-    <span style="color: #0000aa">return</span> Person.__super__.constructor.apply(<span style="color: #0000aa">this</span>, arguments);
-  }
-
-  Person.attrs = [<span style="color: #aa5500">&quot;id&quot;</span>, <span style="color: #aa5500">&quot;name&quot;</span>, {<span style="color: #aa5500">&quot;age&quot;</span>: <span style="color: #009999">21</span>}];
-  Person.form_name = <span style="color: #aa5500">&quot;#my-person-form&quot;</span>;
-  Person.guid_for = <span style="color: #aa5500">&quot;id&quot;</span>;
-
-  <span style="color: #0000aa">return</span> Person;
-
-};
-</pre></div>
-
-
-
-        </td>
-      </tr>
-
-    </table>
 
     <h3 id="run-application">4. Run Application</h3>
     <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%">Sirius.Application({<span style="color: #aa0000">routes: </span>routes})
