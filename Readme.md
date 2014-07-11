@@ -75,6 +75,41 @@ MyController =
   Sirius.Application({routes: routes}) 
 ```
 
+#### 5. Use Validators
+
+```coffee
+  class Person extends Sirius.BaseModel
+    @attrs: ["id", "name", "age"]
+    @guid_for: "id"
+    @form_name: "my-person-form"
+    @validate :
+      name:
+        presence: true
+        format: with: /^[A-Z].+/
+        length: min: 3, max: 7
+        exclusion: ["title"]
+```
+
+#### 6. Use collections
+
+```coffee
+persons = new Sirius.Collection(Person, [], {
+  every : 5000,
+  remote: () -> #ajax call
+  on_add: (model) ->
+    # sync with server
+    # add into html
+  on_remove: (model) ->
+    # sync with server
+    # remove from html
+})
+joe = new Person({"name": "Joe", "age" : 25})
+
+persons.add(joe)
+
+person.find("name", "Joe").to_json() # => {"id" : "g-u-i-d", "name" : "Joe", "age" : 25}
+```
+
 
 # More info
 
