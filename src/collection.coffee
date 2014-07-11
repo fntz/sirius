@@ -59,8 +59,12 @@ class Sirius.Collection
 
     if options.remote
       @remote = ->
-        result = options.remote()
-        @push(klass.from_json(result, @_klasses))
+        result = JSON.parse(options.remote())
+        if (Sirius.Utils.is_array(result))
+          for model in result then @push(klass.from_json(model, @_klasses))
+        else
+          @push(klass.from_json(result, @_klasses))
+          
     @_timer    = null
     _start_sync(every)
 
