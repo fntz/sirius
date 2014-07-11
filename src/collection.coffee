@@ -1,8 +1,5 @@
 
-
-
-
-class Sirisus.Collection
+class Sirius.Collection
   #remote - ajax calls, should return json for model
   #klass Model klass, must be extend BaseModel
   constructor: (klass, klasses = [], options = {every: 0, on_add: @on_add, on_remove: @on_remove, remote: null}) ->
@@ -43,7 +40,18 @@ class Sirisus.Collection
   add: (model) ->
     @push(model)
 
-  #remove
+  remove: (other) ->
+    inx = index(other)
+    if inx != null
+      @_array.splice(inx, 1)
+
+  index: (model) ->
+    inx = null
+    for model, i in @_array when model.compare(other)
+      do =>
+        inx = i
+        break
+    inx
 
   find: (key, value) ->
     @findAll(key, value)[0] || null
