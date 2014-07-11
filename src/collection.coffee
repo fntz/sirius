@@ -37,6 +37,7 @@
 #  myCollection.unsycn() # stop synchronization with server
 #  myCollection.sync(3000)   # start sync every 3 second
 #
+#  myCollection.size() # => 3
 class Sirius.Collection
   #
   # @param klass [T <: Sirius.BaseModel] - model class for all instances in collection
@@ -46,8 +47,6 @@ class Sirius.Collection
   # @param on_add [Function] - callback, which will be call when add new instance to collection
   # @param on_rmeove [Function] - callback, which will be call when remove model from collection
   # @param on_remote [Function] - callback, which will be call when synchronize collection, must be return json
-  #remote - ajax calls, should return json for model
-  #klass Model klass, must be extend BaseModel
   constructor: (klass, klasses = [], options = {every: 0, on_add: @on_add, on_remove: @on_remove, remote: null}) ->
     throw new Error("Collection must be used only with `BaseModel` inheritor") if klass.__super__.constructor.name isnt 'BaseModel'
     @_array = []
@@ -64,7 +63,7 @@ class Sirius.Collection
           for model in result then @push(klass.from_json(model, @_klasses))
         else
           @push(klass.from_json(result, @_klasses))
-          
+
     @_timer    = null
     _start_sync(every)
 
@@ -130,7 +129,7 @@ class Sirius.Collection
   # @param key [String] - attribute
   # @param value [Any] - actual value
   # @return [Array<Model>]
-  findAll: (key, value) ->
+  find_all: (key, value) ->
     for model in @_array when model.get(key) == value then model
 
   #
@@ -160,6 +159,10 @@ class Sirius.Collection
   # @return [Array<Model>]
   all: () ->
     @_array
+
+  # return size of collection
+  size: () ->
+    @_array.length
 
   # @nodoc
   on_remove: (model) ->
