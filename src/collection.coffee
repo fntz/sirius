@@ -45,15 +45,15 @@ class Sirius.Collection
   # @param options [Object] - with keys necessary
   # @param every [Numberic] - ms for remote call
   # @param on_add [Function] - callback, which will be call when add new instance to collection
-  # @param on_rmeove [Function] - callback, which will be call when remove model from collection
-  # @param on_remote [Function] - callback, which will be call when synchronize collection, must be return json
+  # @param on_remove [Function] - callback, which will be call when remove model from collection
+  # @param remote [Function] - callback, which will be call when synchronize collection, must be return json
   constructor: (klass, klasses = [], options = {every: 0, on_add: @on_add, on_remove: @on_remove, remote: null}) ->
     throw new Error("Collection must be used only with `BaseModel` inheritor") if klass.__super__.constructor.name isnt 'BaseModel'
     @_array = []
     @_klasses = klasses
     @_type  = klass.name
 
-    @on_add    = options.on_add || @on_add
+    @on_add    = options.on_add    || @on_add
     @on_remove = options.on_remove || @on_add
 
     if options.remote
@@ -65,10 +65,11 @@ class Sirius.Collection
           @push(klass.from_json(result, @_klasses))
 
     @_timer    = null
-    _start_sync(every)
+    @_start_sync(options.every || 0)
+
 
   # @nodoc
-  @_start_sync: (every) ->
+  _start_sync: (every) ->
     if (every != 0)
       @_timer = setInterval(@remote, every)
 
@@ -99,7 +100,7 @@ class Sirius.Collection
 
   # remove model from collection
   remove: (other) ->
-    inx = index(other)
+    inx = @index(other)
     if inx != null
       @_array.splice(inx, 1)
       @on_remove(other)
@@ -108,12 +109,9 @@ class Sirius.Collection
   # Return index of model in collection or null, if not found
   # @param model [T <: Sirius.BaseModel]
   # @return [Numeric | null]
-  index: (model) ->
+  index: (other) ->
     inx = null
-    for model, i in @_array when model.compare(other)
-      do =>
-        inx = i
-        break
+    for model, i in @_array when model.compare(other) then inx = i
     inx
 
   #
@@ -122,7 +120,7 @@ class Sirius.Collection
   # @param value [Any] - actual value
   # @return [Model | null]
   find: (key, value) ->
-    @findAll(key, value)[0] || null
+    @find_all(key, value)[0] || null
 
   #
   # find all models by key with value
