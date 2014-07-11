@@ -1,7 +1,7 @@
 # Are you sirius?
 
 
-[Sirius.js](http://fntzr.github.com/sirius) a light weight javascript MVC framework, written with [coffeescript](http://coffeescript.org/). It's give a simple integration with current javascript frameworks.
+[Sirius.js](http://fntzr.github.com/sirius) a coffeescript MVC framework. It's give a simple integration with current javascript frameworks.
 
 ### Features
 
