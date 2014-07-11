@@ -1,16 +1,16 @@
 ###!
-#  Sirius.js v0.1.1
+#  Sirius.js v0.1.2
 #  (c) 2014 fntzr
 #  license: MIT
 ###
 
 #
 # @author fntzr <fantazuor@gmal.com>
-# @version 0.1.1
+# @version 0.1.2
 # @mixin
 # A main module, which included methods and classes for work with application.
 Sirius =
-  VERSION: "0.1.1"
+  VERSION: "0.1.2"
 
 #
 # Redirect to given url.
@@ -307,7 +307,7 @@ Sirius.RouteSystem =
     fn()
 
 
-#
+# @mixin
 # A main object, it's a start point all user applications
 # @example
 #   var routes = {
@@ -320,17 +320,30 @@ Sirius.RouteSystem =
 #   Sirius.Application({ route : routes, logger: my_logger, log: true, start: "#/" });
 #
 Sirius.Application =
-  # @property [Boolean] - when true, logs will be written
+  ###
+    when true, logs will be written
+  ###
   log: false
-  # @property [Adapter] - application adapter for javascript frameworks @see Adapter documentation
+  ###
+    application adapter for javascript frameworks @see Adapter documentation
+  ###
   adapter: null
-  # @property [Boolean] - true, when application already running
+  ###
+    true, when application already running
+  ###
   running: false
-  # @property [Object] - user routes
+  ###
+    user routes
+  ###
   route: {}
-  # @property [String] - a root url for application
+  ###
+    a root url for application
+  ###
   start : "#"
+
+  #
   # @method #logger(msg) - logger, default it's write message to console.log, may be redefined
+  # @param msg [String]
   logger: (msg) ->
     return if !@log
     if window.console
