@@ -4,6 +4,9 @@ class MyModel extends Sirius.BaseModel
     id          : tag: "b", class: 'my-model-id'
     title       : tag: "span", class: "my-model-title"
 
+  compare: (other) ->
+    @.get("id") == other.get("id")
+
 class ModelwithValidators extends Sirius.BaseModel
   @attrs: ["id", {title: "t"}, "description"]
   @validate :
