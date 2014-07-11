@@ -506,3 +506,7 @@ class Sirius.BaseModel
 
     @.from_json(Sirius.Application.adapter.form_to_json(form_name))
 
+
+
+  compare: (other) ->
+    throw new Error("`compare` method must be overridden")
