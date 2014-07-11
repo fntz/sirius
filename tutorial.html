@@ -47,6 +47,9 @@
         <a href="#templates">Templates</a>
       </li>
       <li>
+        <a href="#collections">Collections</a>
+      </li>
+      <li>
         <a href="#models">Models</a>
       </li>
       <li>
@@ -302,6 +305,118 @@
       or <a href="http://garann.github.io/template-chooser/">others</a>.
     </p>
 
+
+
+    <a name="collections"></a><h3>Collections</h3>
+    <p>
+      Collections - is a wrap on javascript arrays. It's have a methods for server synchronization, methods for manipulation collection, and methods for traversal.
+
+      <h4>Constructor</h4>
+
+      Signature of constructor for collection is looked as
+<p>
+    <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><table><tr><td><pre style="margin: 0; line-height: 125%">1
+2
+3
+4
+5
+6</pre></td><td><pre style="margin: 0; line-height: 125%"><span style="color: #aa0000">constructor: </span>(klass, klasses, <span style="color: #aa0000">options = </span>{
+  <span style="color: #aa0000">every: </span><span style="color: #009999">0</span>
+  <span style="color: #aa0000">on_add : </span><span style="color: #00aa00">(model) -&gt;</span>
+  <span style="color: #aa0000">on_remove: </span><span style="color: #00aa00">(model) -&gt;</span>
+  <span style="color: #aa0000">remote : </span>() <span style="color: #00aa00">-&gt;</span>
+})
+</pre></td></tr></table></div></p>
+
+     <ul>
+       <li>1. klass - this is a child of <code>Sirius.BaseModel</code></li>
+       <li>2. klasses - when we convert from json to Model instance, and if you have a relations for example Person might have a many Group, then need a know about it's relations, for right convert to actual
+         models (Person, Group)</code></li>
+       <li>3. options.every - by default is 0, it's time, which collection will be synchronized with server </li>
+       <li>4. option.on_add - callback function, which will be called, when you add a new model instance into collection</li>
+       <li>5. options.on_remove - callback function, which will be called, when you remo a model from collection</li>
+       <li>6. options.remote - this is a synchronized function, which will be call <code>every</code> time, it's must be return a
+       json with models, after this, it json will be converted into actual models and add into collection</li>
+     </ul>
+
+
+    <h4>Manipulation</h4>
+
+      For example, when we have a <code>class Person</code>: <p>
+    <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><table><tr><td><pre style="margin: 0; line-height: 125%">1
+2
+3
+4
+5</pre></td><td><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">class</span> Person
+  <span style="color: #aa0000">@attrs: </span>[<span style="color: #aa5500">&quot;id&quot;</span>, <span style="color: #aa5500">&quot;name&quot;</span>]
+  <span style="color: #aa0000">@guid_for: </span><span style="color: #aa5500">&quot;id&quot;</span>
+  <span style="color: #aa0000">compare: </span><span style="color: #00aa00">(other_person) -&gt;</span>
+    other_person.get(<span style="color: #aa5500">&quot;id&quot;</span>) == @.get(<span style="color: #aa5500">&quot;id&quot;</span>)
+</pre></td></tr></table></div></p>
+
+    Then we might use a <code>Sirius.Collection</code> for storage all <code>Person</code>.
+
+    The simple example
+<p>
+    <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><table><tr><td><pre style="margin: 0; line-height: 125%">1</pre></td><td><pre style="margin: 0; line-height: 125%"><span style="color: #aa0000">people = </span><span style="color: #0000aa">new</span> Sirius.Collection(Person)
+</pre></td></tr></table></div>
+
+    And then we might add or remove person from <code>Collection</code>:
+
+    <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><table><tr><td><pre style="margin: 0; line-height: 125%">1
+2
+3
+4
+5
+6</pre></td><td><pre style="margin: 0; line-height: 125%">people.add(<span style="color: #0000aa">new</span> Person({<span style="color: #aa0000">name : </span><span style="color: #aa5500">&quot;Joe&quot;</span>})
+<span style="color: #aa0000">ann = </span><span style="color: #0000aa">new</span> Person({<span style="color: #aa0000">name: </span><span style="color: #aa5500">&quot;Ann&quot;</span>})
+people.push(ann) <span style="color: #aaaaaa; font-style: italic"># push alias for add</span>
+people.size() <span style="color: #aaaaaa; font-style: italic"># =&gt; 2</span>
+people.remove(mike)
+people.size() <span style="color: #aaaaaa; font-style: italic"># =&gt; 1</span>
+</pre></td></tr></table></div></p>
+
+
+    We manipulate with collection firstly we add a new Person into collection, and after add yet another person, and end we remove one person from collection. Simple.
+
+    <h4>Synchronization</h4>
+
+    For synchronization you might call <code>collection.sync(every)</code> method, after it, start synchronized with server.
+    For stop synchronization, call <code>collection.unsync()</code>.
+
+    <h4>Traversal</h4>
+
+    For traverse a collection, use standard for other languages methods like a <code>find</code>, <code>find_all</code>, <code>filter</code> and others, see in documentation.
+<p>
+    <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><table><tr><td><pre style="margin: 0; line-height: 125%"> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12</pre></td><td><pre style="margin: 0; line-height: 125%">people.find(<span style="color: #aa5500">&quot;name&quot;</span>, <span style="color: #aa5500">&quot;Joe&quot;</span>) <span style="color: #aaaaaa; font-style: italic"># =&gt; model or null</span>
+people.find(<span style="color: #aa5500">&quot;name&quot;</span>, <span style="color: #aa5500">&quot;Joe&quot;</span>) <span style="color: #aaaaaa; font-style: italic"># =&gt; array of models</span>
+
+people.each(<span style="color: #00aa00">(model) -&gt;</span> ...)
+
+people.filter(<span style="color: #00aa00">(model) -&gt;</span> model.name == <span style="color: #aa5500">&quot;Ann&quot;</span>) <span style="color: #aaaaaa; font-style: italic"># =&gt; [ models... ]</span>
+
+people.index(model) <span style="color: #aaaaaa; font-style: italic"># =&gt; numeric or null</span>
+
+people.size() <span style="color: #aaaaaa; font-style: italic"># =&gt; actual size of collection</span>
+
+people.all() <span style="color: #aaaaaa; font-style: italic"># =&gt; [ all models ... ]</span>
+</pre></td></tr></table></div></p>
+
+
+
+    </p>
+
     <a name="models"></a><h3>Models</h3>
 
     <p>
@@ -509,6 +624,39 @@ person.get(<span style="color: #aa5500">&#39;group&#39;</span>) // =&gt; [{<span
 
   <h4>valid</h4>
       <p>Return true, when current model instance is valid.</p>
+
+  <h4>compare</h4>
+    For usage with collection, you need redefine this method in own collection, it's used for comparing models.
+
+    <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><table><tr><td><pre style="margin: 0; line-height: 125%">1
+2
+3
+4
+5</pre></td><td><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">class</span> Person
+  <span style="color: #aa0000">@attrs: </span>[<span style="color: #aa5500">&quot;id&quot;</span>]
+  <span style="color: #aa0000">@guid_for : </span><span style="color: #aa5500">&quot;id&quot;</span>
+  <span style="color: #aa0000">compare: </span><span style="color: #00aa00">(other) -&gt;</span>
+    @.get(<span style="color: #aa5500">&quot;id&quot;</span>) == other.get(<span style="color: #aa5500">&quot;id&quot;</span>)
+</pre></td></tr></table></div>
+
+
+   <h4>after_create</h4>
+    Callback function, will be called after model creating.
+
+    <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;padding:.2em .6em;"><table><tr><td><pre style="margin: 0; line-height: 125%">1
+2
+3
+4
+5
+6</pre></td><td><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">class</span> Person
+  <span style="color: #aa0000">@attrs: </span>[<span style="color: #aa5500">&quot;name&quot;</span>]
+  after_create() <span style="color: #00aa00">-&gt;</span>
+    alert <span style="color: #aa5500">&quot;Hi! I&#39;m #{</span>@.get(<span style="color: #aa5500">&quot;name&quot;}&quot;</span>
+
+<span style="color: #0000aa">new</span> Person({<span style="color: #aa5500">&quot;name&quot;</span>: <span style="color: #aa5500">&quot;Sirius&quot;</span>}) <span style="color: #aaaaaa; font-style: italic"># =&gt; alert Hi! I&#39;m Sirius</span>
+</pre></td></tr></table></div>
+
+
 
     <a name="adapters"></a><h3>Adapters</h3>
 
