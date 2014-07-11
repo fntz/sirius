@@ -49,106 +49,121 @@
 #
 # @todo Callback support
 class Sirius.BaseModel
-  # @property [Array<String|Object> the attributes for model
-  # When attribute defined as object, then key, will be a `attribute` and `value` it's default value for this `attribute`
-  # @example
-  #   @attrs: ["id", "title", {description : "Lorem ipsum ..."}]
-  #   //now, model attribute `description` have a default value "Lorem ipsum ..."
-  #
+  ###
+    the attributes for model.
+
+    When attribute defined as object, then key, will be a `attribute` and `value` it's default value for this `attribute`
+    @example
+      @attrs: ["id", "title", {description : "Lorem ipsum ..."}]
+      //now, model attribute `description` have a default value "Lorem ipsum ..."
+  ###
   @attrs: []
 
-  # @property [Array<String>] model names for relations
-  # From this property, will be generated helper methods: `add_x`, where `x` is a model name
-  # @note model names, should be written in the next format: ModelName => model_name
-  # @example
-  #   class Model extends Sirius.BaseModel
-  #     @has_many: ["other_model"]
-  #
-  #   my_model = new Model()
-  #   my_model.add_other_model(new OtherModel())
-  #
+  ###
+    model names for relations.
+
+    From this property, will be generated helper methods: `add_x`, where `x` is a model name
+    @note model names, should be written in the next format: ModelName => model_name
+    @example
+      class Model extends Sirius.BaseModel
+        @has_many: ["other_model"]
+
+      my_model = new Model()
+      my_model.add_other_model(new OtherModel())
+  ###
   @has_many: []
 
-  # @property [Array<String>] model names for relations
-  # From this property, will be generated helper methods: `add_x`, where `x` is a model name
-  # @note model names, should be written in the next format: ModelName => model_name
-  # @note when you call `add_model` when `model` already exist
-  # @example
-  #   class MyModel extends Sirius.BaseModel
-  #     @has_one: ["model"]
-  #   my_model = new MyModel()
-  #   my_model.add_model(new Model()) // => ok
-  #   my_model.add_model(new Model()) // => oops, exception
-  #   my_model.set("model", null)
-  #   my_model.add_model(new Model()) // => ok
-  @has_one: []
+  ###
+    model names for relations.
 
-  # @property [Array<Object>] take a object `model` as model for association, and `back` as an `attributes` from `has_*` model
-  # @note for use need to add into `@attrs` the next attribute: `model_back`, see example
-  # @example
-  #   class Person extends Sirius.BaseModel
-  #     @attrs: ["id"]
-  #     @has_many: ["group"]
-  #
-  #   class Group extends Sirius.BaseModel
-  #     @attrs: ["person_id"]
-  #     @belongs_to [{model: "person", back: "id"}]
-  #
-  #   person = new Person({id: 1})
-  #   group  = new Group()
-  #   person.add_group(group) // when add new group, then in `group` set a `person_id` as id from Person instance
-  #
-  #   group.get('person_id') // => 1
+    From this property, will be generated helper methods: `add_x`, where `x` is a model name
+    @note model names, should be written in the next format: ModelName => model_name
+    @note when you call `add_model` when `model` already exist
+    @example
+       class MyModel extends Sirius.BaseModel
+         @has_one: ["model"]
+       my_model = new MyModel()
+       my_model.add_model(new Model()) // => ok
+       my_model.add_model(new Model()) // => oops, exception
+       my_model.set("model", null)
+       my_model.add_model(new Model()) // => ok
+  ###
+  @has_one: []
+  ###
+    take a object `model` as model for association, and `back` as an `attributes` from `has_*` model
+
+  @note for use need to add into `@attrs` the next attribute: `model_back`, see example
+    @example
+       class Person extends Sirius.BaseModel
+         @attrs: ["id"]
+         @has_many: ["group"]
+
+       class Group extends Sirius.BaseModel
+         @attrs: ["person_id"]
+         @belongs_to [{model: "person", back: "id"}]
+
+       person = new Person({id: 1})
+       group  = new Group()
+       person.add_group(group) // when add new group, then in `group` set a `person_id` as id from Person instance
+
+       group.get('person_id') // => 1
+  ###
   @belongs_to: []
 
-  # @property [Object] - object, which contain attributes names as keys, and values is a object, with properties for html element
-  # @note when not set a `tag` for `attribute` default `tag` is a `div`
-  # @example
-  #   class Person extends Sirius.BaseModel
-  #     @attrs: ["id", "name"]
-  #     @to :
-  #       id : tag: b, class: 'person-class'
-  #  (new Person({id: 1, name: "Abc"})).to_html() # => <b class='person-class'>1</b><div>Abc</div>
+  ###
+    object, which contain attributes names as keys, and values is a object, with properties for html element
+    @note when not set a `tag` for `attribute` default `tag` is a `div`
+    @example
+       class Person extends Sirius.BaseModel
+         @attrs: ["id", "name"]
+         @to :
+           id : tag: b, class: 'person-class'
+      (new Person({id: 1, name: "Abc"})).to_html() # => <b class='person-class'>1</b><div>Abc</div>
+  ###
   @to: {}
 
-  # @property [String] - name for element, when you want convert html to Model
-  # @note when it not define, then it's create from model name as: ModelName => model_name
-  # @example
-  #   class Person extends
-  #     @form_name: 'a-b-c'
-  #
+  ###
+    name for element, when you want convert html to Model
+    @note when it not define, then it's create from model name as: ModelName => model_name
+    @example
+       class Person extends
+         @form_name: 'a-b-c'
+  ###
   @form_name: null
 
-  # @property [String] - attribute name, for which generate guid
-  # @example
-  #   class Person extends
-  #     @attrs: ["id", "name"]
-  #     @guid_for: "id"
-  #
+  ###
+    attribute name, for which generate guid
+    @example
+       class Person extends
+         @attrs: ["id", "name"]
+         @guid_for: "id"
+  ###
   @guid_for: null
 
-  # @property [Object] - object, where keys, is a defined `@attrs` and values is a validator objects or function
-  # @note validator object, it's a default Validators @see Sirius.Validator
-  # @example
-  #   class ModelwithValidators extends Sirius.BaseModel
-  #   @attrs: ["id", {title: "t"}, "description"]
-  #   @validate :
-  #     id:
-  #       presence: true,
-  #       numericality: only_integers: true
-  #       inclusion: within: [1..10]
-  #       validate_with:  (value) ->
-  #         if not condition ....
-  #           @msg = .... #define a user friendly message
-  #         else
-  #           true
-  #
-  #     title:
-  #       presence: true
-  #       format: with: /^[A-Z].+/
-  #       length: min: 3, max: 7
-  #       exclusion: ["title"]
-  #
+  ###
+    object, where keys, is a defined `@attrs` and values is a validator objects or function
+
+    @note validator object, it's a default Validators @see Sirius.Validator
+    @example
+       class ModelwithValidators extends Sirius.BaseModel
+       @attrs: ["id", {title: "t"}, "description"]
+       @validate :
+         id:
+           presence: true,
+           numericality: only_integers: true
+           inclusion: within: [1..10]
+           validate_with:  (value) ->
+             if not condition ....
+               @msg = .... #define a user friendly message
+             else
+               true
+
+         title:
+           presence: true
+           format: with: /^[A-Z].+/
+           length: min: 3, max: 7
+           exclusion: ["title"]
+  ###
   @validate : {}
 
   # @nodoc
@@ -235,6 +250,8 @@ class Sirius.BaseModel
 
     if g = @guid_for()
       @set(g, @_generate_guid())
+
+    @after_create() || ->
 
   # @private
   # @nodoc
@@ -509,6 +526,11 @@ class Sirius.BaseModel
 
   # usage for comparing models
   # When equal return true, otherwise return false
-  #
+  # @param other [T] - other model instance
   compare: (other) ->
     throw new Error("`compare` method must be overridden")
+
+  # callback, run after model created
+  # must be overridden in user model
+  after_create: () ->
+
