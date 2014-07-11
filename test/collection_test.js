@@ -43,6 +43,44 @@ suite("Colleciton", function() {
 
   });
   test("sync", function() {
+    var monitor = 1;
+    var options = {
+      every: 100,
+      remote: function() {
+        if (monitor == 1) {
+          monitor++;
+          //return array
+          return JSON.stringify([{"id": 1}, {"id" : 2}]);
+        } else if (monitor == 2) {
+          //return one model
+          monitor++;
+          return JSON.stringify({"id": 1});
+        } else {
+          return JSON.stringify([]);
+        }
+      }
+    };
+    var mc = new Sirius.Collection(MyModel, [], options);
+    setTimeout(function() {
+      assert(mc.size() == 2);
+    }, 150);
+    setTimeout(function() {
+      assert(mc.size() == 3);
+      mc.unsync();
+    }, 300);
+
 
   });
 });
+
+
+
+
+
+
+
+
+
+
+
+

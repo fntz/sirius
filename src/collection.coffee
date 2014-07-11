@@ -57,10 +57,12 @@ class Sirius.Collection
     @on_remove = options.on_remove || @on_add
 
     if options.remote
-      @remote = ->
-        result = JSON.parse(options.remote())
-        if (Sirius.Utils.is_array(result))
-          for model in result then @push(klass.from_json(model, @_klasses))
+      @remote = =>
+        result = options.remote()
+        json = JSON.parse(result)
+        if Sirius.Utils.is_array(json)
+          if json.length != 0
+            for model in json then @push(klass.from_json(JSON.stringify(model), @_klasses))
         else
           @push(klass.from_json(result, @_klasses))
 
