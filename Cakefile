@@ -15,7 +15,7 @@ doc = () -> exe("codo src")
 
 minify = () ->
   build()
-  base = "java -jar vendor/yuicompressor-2.4.8.jar --type=js"
+  base = "java -jar vendor/yuicompressor-2.4.8.jar --type=js --nomunge"
   arr = ["lib/sirius.js -o sirius.min.js", "lib/jquery_adapter.js -o jquery_adapter.min.js", "lib/prototypejs_adapter.js -o prototypejs_adapter.min.js"]
   for i in arr then exe("#{base} #{i}")
 

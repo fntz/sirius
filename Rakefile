@@ -63,9 +63,9 @@ end
 
 desc "Minify sources"
 task :minify => [:build] do
-  %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js lib/sirius.js -o sirius.min.js)
-  %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js lib/jquery_adapter.js -o jquery_adapter.min.js)
-  %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js lib/prototypejs_adapter.js -o prototypejs_adapter.min.js)
+  %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js --nomunge lib/sirius.js -o sirius.min.js)
+  %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js --nomunge lib/jquery_adapter.js -o jquery_adapter.min.js)
+  %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js --nomunge lib/prototypejs_adapter.js -o prototypejs_adapter.min.js)
 end
 
 
