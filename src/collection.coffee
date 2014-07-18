@@ -53,6 +53,10 @@ class Sirius.Collection
     @_klasses = klasses
     @_type  = klass.name
 
+    @on_add = options.on_add || @on_add 
+    @on_push = options.on_push || @on_push
+    @on_remove = options.on_push || @on_remove
+
     if options.remote
       @remote = =>
         result = options.remote()
@@ -175,4 +179,6 @@ class Sirius.Collection
   # @nodoc
   on_add: (model) ->
 
+  # @nodoc
+  on_push: (model) ->  
 
