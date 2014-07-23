@@ -2,7 +2,6 @@
 suite("BaseModel", function() {
   test("should define attributes for model", function() {
     var m = new MyModel();
-
     assert(m.get('id') == null);
     assert(m.get('description') == null);
     assert(m.get('title') == "default title");

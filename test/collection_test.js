@@ -41,7 +41,13 @@ suite("Colleciton", function() {
     assert(mc.last().get("id") == 100);
     mc.remove(m);
 
+    var z = [{"id":100,"title":"default title","description":null}][0];
+    var j = JSON.parse(mc.to_json());
+    assert(j['id'] == z['id'])
+    assert(j['title'] == z['title'])
+    assert(j['description'] == z['description'])
   });
+  
   test("sync", function() {
     var monitor = 1;
     var options = {
@@ -68,8 +74,6 @@ suite("Colleciton", function() {
       assert(mc.size() == 3);
       mc.unsync();
     }, 300);
-
-
   });
 });
 
