@@ -90,7 +90,8 @@ class Sirius.BaseModel
   ###
   @has_one: []
   ###
-    take a object `model` as model for association, and `back` as an `attributes` from `has_*` model
+    take a object `model` as model for association, and `back` as an `attributes` from `has_*` model,
+    key will be created with `compose` function, by default `compose` is a `(model, back) -> "#{model}_#{back}"`
 
   @note for use need to add into `@attrs` the next attribute: `model_back`, see example
     @example
@@ -100,7 +101,7 @@ class Sirius.BaseModel
 
        class Group extends Sirius.BaseModel
          @attrs: ["person_id"]
-         @belongs_to [{model: "person", back: "id"}]
+         @belongs_to [{model: "person", back: "id", compose: (model, back) -> "#{model}_#{back}"}]
 
        person = new Person({id: 1})
        group  = new Group()
@@ -290,7 +291,7 @@ class Sirius.BaseModel
       if @attributes.indexOf(back) == -1
         throw new Error("Foreign key: '#{back}' not contain in a '#{m_name}' model")
 
-      key = "#{me}_#{back}"
+      key = (b_model['compose'] || (model, back) -> "#{model}_#{back}")(me, back)
       if z.attributes.indexOf(key) == -1
         throw new Error("Define #{key} in @attrs for '#{expected}' model")
 
