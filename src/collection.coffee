@@ -51,7 +51,8 @@ class Sirius.Collection
     throw new Error("Collection must be used only with `BaseModel` inheritor") if klass.__super__.constructor.name isnt 'BaseModel'
     @_array = []
     @_klasses = klasses
-    @_type  = klass.name
+    @_klass = klass
+    @_type  = @_klass.name
 
     @on_add = options.on_add || @on_add 
     @on_push = options.on_push || @on_push
@@ -169,9 +170,15 @@ class Sirius.Collection
   all: () ->
     @_array
 
-  # return size of collection
+  # @return [Numeric] size of collection
   size: () ->
     @_array.length
+
+  # convert collection to json
+  # @return [JSON]
+  to_json: () ->
+    z = for e in @_array then e.to_json()
+    JSON.parse(JSON.stringify(z))
 
   # @nodoc
   on_remove: (model) ->
