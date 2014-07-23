@@ -174,6 +174,14 @@ class Sirius.Collection
   size: () ->
     @_array.length
 
+  from_json: (json) ->
+    j = JSON.stringify(json)
+    if Sirius.Utils.is_array(j)
+      for jj in j then @_array.push(@_klass.from_json(jj))
+    else
+      @_array.push(@_klass.from_json(json))
+    @
+
   # convert collection to json
   # @return [JSON]
   to_json: () ->
