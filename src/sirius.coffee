@@ -209,6 +209,7 @@ class Sirius.ControlFlow
 
     @data = params['data'] || null
 
+
   # @param e [EventObject|null] - event object if it's a mouse\key events, and `null` when it's url change event
   # @param args [Array<Any>] - arguments, used only for url changes events
   #
@@ -230,6 +231,7 @@ class Sirius.ControlFlow
         @action.apply(null, merge)
         @after()
     else
+      args = [].concat.apply([], args)
       if @guard
         if @guard.apply(null, args)
           @before()
@@ -254,24 +256,21 @@ Sirius.RouteSystem =
     current = prev = window.location.hash
 
     for url, action of routes when url.indexOf("#") != 0 && url.toString() != "404"
-      do (url, action) =>
-        handler = if Sirius.Utils.is_function(action)
-          action
-        else
-          (e) ->
-            (new Sirius.ControlFlow(action)).handle_event(e)
+      handler = if Sirius.Utils.is_function(action)
+        action
+      else
+        (e) -> (new Sirius.ControlFlow(action)).handle_event(e)
 
-        z = url.match(/^([a-zA-Z:]+)(\s+)?(.*)?/)
-        event_name = z[1]
-        selector   = z[3] || document #when it a custom event: 'custom:event' for example
-        Sirius.Application.adapter.bind(selector, event_name, handler)
+      z = url.match(/^([a-zA-Z:]+)(\s+)?(.*)?/)
+      event_name = z[1]
+      selector   = z[3] || document #when it a custom event: 'custom:event' for example
+      Sirius.Application.adapter.bind(selector, event_name, handler)
 
     # for cache change obj[k, v] to array [[k,v]]
-    array_of_routes = for url, action of routes when url.toString() != "404"
-      do (url, action) ->
-        url    = new Sirius.RoutePart(url)
-        action = if Sirius.Utils.is_function(action) then action else new Sirius.ControlFlow(action)
-        [url, action]
+    array_of_routes = for url, action of routes when url.indexOf("#") == 0 && url.toString() != "404"
+      url    = new Sirius.RoutePart(url)
+      action = if Sirius.Utils.is_function(action) then action else new Sirius.ControlFlow(action)
+      [url, action]
 
     window.onhashchange = (e) =>
       prev = current
@@ -283,17 +282,17 @@ Sirius.RouteSystem =
 
       #call first matched function
       for part in array_of_routes
-        do(part) =>
-          f = part[0]
-          r = f.match(current)
-          if r && !result
-            result = true
-            z = part[1]
-            if z.handle_event
-              z.handle_event(null, f.args)
-            else
-              z.apply(null, f.args)
-            return
+        f = part[0]
+        r = f.match(current)
+        if r && !result
+          result = true
+          flow = part[1]
+
+          if flow.handle_event
+            flow.handle_event(null, f.args)
+          else
+            flow.apply(null, f.args)
+          return
 
       #when no results, then call 404 or empty function
       if !result
