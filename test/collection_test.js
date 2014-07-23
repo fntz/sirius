@@ -46,8 +46,14 @@ suite("Colleciton", function() {
     assert(j['id'] == z['id'])
     assert(j['title'] == z['title'])
     assert(j['description'] == z['description'])
+
+    mc.from_json(mc.to_json())
+
+    assert(mc.size() == 2);
+    assert(mc.first().compare(mc.last()))
+    
   });
-  
+
   test("sync", function() {
     var monitor = 1;
     var options = {
