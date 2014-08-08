@@ -19,7 +19,7 @@ You only need define Route for you application.
 
 `npm install sirius` 
 
-or download manually `sirius.min.js` and `jquery_adapter.min.js` or `prototype_js_adapter.min.js` from repo.
+or download manually [sirius.min.js](https://raw.githubusercontent.com/fntzr/sirius/master/sirius.min.js) and [jquery_adapter.min.js](https://raw.githubusercontent.com/fntzr/sirius/master/jquery_adapter.min.js) or [prototype_js_adapter.min.js](https://raw.githubusercontent.com/fntzr/sirius/master/prototypejs_adapter.min.js) from repo.
 
 # Usage
 
