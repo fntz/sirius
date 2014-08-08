@@ -1,16 +1,16 @@
 ###!
-#  Sirius.js v0.1.4
+#  Sirius.js v0.1.5
 #  (c) 2014 fntzr
 #  license: MIT
 ###
 
 #
 # @author fntzr <fantazuor@gmal.com>
-# @version 0.1.4
+# @version 0.1.5
 # @mixin
 # A main module, which included methods and classes for work with application.
 Sirius =
-  VERSION: "0.1.4"
+  VERSION: "0.1.5"
 
 #
 # Redirect to given url.
@@ -256,15 +256,16 @@ Sirius.RouteSystem =
     current = prev = window.location.hash
 
     for url, action of routes when url.indexOf("#") != 0 && url.toString() != "404"
-      handler = if Sirius.Utils.is_function(action)
-        action
-      else
-        (e) -> (new Sirius.ControlFlow(action)).handle_event(e)
+      do(url, action) ->
+        handler = if Sirius.Utils.is_function(action)
+          action
+        else
+          (e) -> (new Sirius.ControlFlow(action)).handle_event(e)
 
-      z = url.match(/^([a-zA-Z:]+)(\s+)?(.*)?/)
-      event_name = z[1]
-      selector   = z[3] || document #when it a custom event: 'custom:event' for example
-      Sirius.Application.adapter.bind(selector, event_name, handler)
+        z = url.match(/^([a-zA-Z:]+)(\s+)?(.*)?/)
+        event_name = z[1]
+        selector   = z[3] || document #when it a custom event: 'custom:event' for example
+        Sirius.Application.adapter.bind(selector, event_name, handler)
 
     # for cache change obj[k, v] to array [[k,v]]
     array_of_routes = for url, action of routes when url.indexOf("#") == 0 && url.toString() != "404"
