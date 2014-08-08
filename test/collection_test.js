@@ -51,7 +51,7 @@ suite("Colleciton", function() {
 
     assert(mc.size() == 2);
     assert(mc.first().compare(mc.last()))
-    
+
   });
 
   test("sync", function() {
