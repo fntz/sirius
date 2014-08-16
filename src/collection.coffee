@@ -170,6 +170,11 @@ class Sirius.Collection
   all: () ->
     @_array
 
+  # Clear the collection
+  clear: () ->
+    @_array = []
+
+
   # @return [Numeric] size of collection
   size: () ->
     @_array.length
