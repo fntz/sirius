@@ -4,7 +4,10 @@
 #
 class JQueryAdapter extends Adapter
   bind: (element, selector, event, fn) ->
-    jQuery(element).on(event, selector, fn)
+    if selector == null
+      jQuery(element).on(event, fn)
+    else
+      jQuery(element).on(event, selector, fn)
 
   form_to_json: (selector) ->
     o = {}

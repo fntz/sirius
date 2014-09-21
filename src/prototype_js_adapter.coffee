@@ -4,7 +4,10 @@
 #
 class PrototypeAdapter extends Adapter
   bind: (element, selector, event, fn) ->
-    $(element).on(event, selector, fn)
+    if selector == null
+      $(element).on(event, fn)
+    else
+      $(element).on(event, selector, fn)
 
   form_to_json: (selector) ->
     JSON.stringify($$(selector).first().serialize(true))
