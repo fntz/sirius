@@ -69,7 +69,7 @@ task :minify => [:build] do
 end
 
 
-
+task :default => :build
 
 
 
