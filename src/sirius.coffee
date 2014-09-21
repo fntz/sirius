@@ -46,7 +46,7 @@ class Sirius.RoutePart
     @args  = []
     # #/abc/dsa/ => ["#", "abc", "dsa"] or ["", "abc", "dsa"]
     parts = route.replace(/\/$/, "").split("/")
-
+    parts[0] = "#" if parts[0] == "" # hack
     # mark, this route not have a length and end
     #  #/title/id/*
     # matched with #/title/id/2014 and #/title/id/2014/2020 ...
@@ -72,12 +72,12 @@ class Sirius.RoutePart
     @args = []
     parts = url.replace(/\/$/, "").split("/")
 
+    parts[0] = "#" if parts[0] == ""
+
     #when not end, and parts have a different length, this not the same routes
     return false if ((parts.length != @parts.length) && @end)
     #when it have a different length, but @parts len > given len
     return false if (@parts.length > 1) && parts.length < @parts.length
-    # when not end, and last parts not the equals
-    return false if @end && (parts[parts.length-1] != @parts[parts.length-1])
 
     is_named_part = (part) ->
       part.indexOf(":") == 0
@@ -110,6 +110,7 @@ class Sirius.RoutePart
         return false
 
     @args = args
+
     true
 
 
@@ -265,8 +266,7 @@ Sirius.RouteSystem =
       route_array = null
       result      = false
 
-
-      if event.type == "hashchange"
+      if e.type == "hashchange"
         # hashchange
         route_array = array_of_routes
         current = window.location.hash
@@ -314,14 +314,15 @@ Sirius.RouteSystem =
       false
 
 
-    if plain_routes.length != 0 
+    if plain_routes.length != 0
       # bind all <a> element with dispatch function, but bind only when href not contain "#"
       selector  = "a:not([href^='#'])"
 
       Sirius.Application.adapter.bind selector, "click", dispatcher
 
     window.onhashchange = dispatcher
-
+#    if push_state_support
+#      Sirius.Application.adapter.bind window, "popstate", dispatcher
 
     fn()
 
@@ -438,7 +439,6 @@ Sirius.Application =
     # start
     R.create @route, setting, () => @adapter.fire(document, "application:run", new Date())
 
-    @logger()
     if @start
       Sirius.redirect(@start)
 
