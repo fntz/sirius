@@ -210,6 +210,16 @@ class Sirius.ControlFlow
 # @private
 # Object, for creating event listeners
 Sirius.RouteSystem =
+
+  _hash_route: (url) ->
+    url.toString().indexOf("#") == 0
+
+  _404_route: (url) ->
+    url.toString() == "404"
+
+  _plain_route: (url) ->
+    url.toString().indexOf("/") == 0
+
   #
   # @param routes [Object] object with routes
   # @param fn [Function] callback, which will be called, after routes will be defined
@@ -219,24 +229,24 @@ Sirius.RouteSystem =
   create: (routes, fn = ->) ->
     current = prev = window.location.hash
 
-    for url, action of routes when url.indexOf("#") != 0 && url.toString() != "404"
-      do(url, action) ->
-        handler = if Sirius.Utils.is_function(action)
-          action
-        else
-          (e) -> (new Sirius.ControlFlow(action)).handle_event(e)
+    # set routing by event
+    for url, action of routes when !@_hash_route(url) && !@_404_route(url) && !@_plain_route(url)
+      handler = if Sirius.Utils.is_function(action)
+        action
+      else
+        (e) -> (new Sirius.ControlFlow(action)).handle_event(e)
 
-        z = url.match(/^([a-zA-Z:]+)(\s+)?(.*)?/)
-        event_name = z[1]
-        selector   = z[3] || document #when it a custom event: 'custom:event' for example
-        Sirius.Application.adapter.bind(selector, event_name, handler)
+      z = url.match(/^([a-zA-Z:]+)(\s+)?(.*)?/)
+      event_name = z[1]
+      selector   = z[3] || document #when it a custom event: 'custom:event' for example
+      Sirius.Application.adapter.bind(selector, event_name, handler)
 
     # for cache change obj[k, v] to array [[k,v]]
-    array_of_routes = for url, action of routes when url.indexOf("#") == 0 && url.toString() != "404"
+    array_of_routes = for url, action of routes when @_hash_route(url) && !@_404_route(url) && !@_plain_route(url)
       url    = new Sirius.RoutePart(url)
       action = if Sirius.Utils.is_function(action) then action else new Sirius.ControlFlow(action)
       [url, action]
-
+    c array_of_routes
     window.onhashchange = (e) =>
       prev = current
       current = window.location.hash
@@ -323,7 +333,7 @@ Sirius.Application =
     @adapter = options["adapter"] || throw new Error("Specify adapter")
     @route   = options["route"]   || @route
     @logger  = options["logger"]  || @logger
-    @start    = options["start"]  || @start
+    @start   = options["start"]   || @start
     @logger("Logger enabled? #{@log}")
 
     n = @adapter.constructor.name
