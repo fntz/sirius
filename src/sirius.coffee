@@ -44,7 +44,7 @@ class Sirius.RoutePart
     @start = null #not used ...
     @parts = []
     @args  = []
-    # #/abc/dsa/ => ["#", "abc", "dsa"]
+    # #/abc/dsa/ => ["#", "abc", "dsa"] or ["", "abc", "dsa"]
     parts = route.replace(/\/$/, "").split("/")
 
     # mark, this route not have a length and end
@@ -76,6 +76,8 @@ class Sirius.RoutePart
     return false if ((parts.length != @parts.length) && @end)
     #when it have a different length, but @parts len > given len
     return false if (@parts.length > 1) && parts.length < @parts.length
+    # when not end, and last parts not the equals
+    return false if @end && (parts[parts.length-1] != @parts[parts.length-1])
 
     is_named_part = (part) ->
       part.indexOf(":") == 0
@@ -220,6 +222,8 @@ Sirius.RouteSystem =
   _plain_route: (url) ->
     url.toString().indexOf("/") == 0
 
+  _event_route: (url) ->
+    !@_hash_route(url) && !@_404_route(url) && !@_plain_route(url)
   #
   # @param routes [Object] object with routes
   # @param fn [Function] callback, which will be called, after routes will be defined
@@ -230,7 +234,7 @@ Sirius.RouteSystem =
     current = prev = window.location.hash
 
     # set routing by event
-    for url, action of routes when !@_hash_route(url) && !@_404_route(url) && !@_plain_route(url)
+    for url, action of routes when @_event_route(url)
       handler = if Sirius.Utils.is_function(action)
         action
       else
@@ -242,21 +246,40 @@ Sirius.RouteSystem =
       Sirius.Application.adapter.bind(selector, event_name, handler)
 
     # for cache change obj[k, v] to array [[k,v]]
-    array_of_routes = for url, action of routes when @_hash_route(url) && !@_404_route(url) && !@_plain_route(url)
+    array_of_routes = for url, action of routes when @_hash_route(url)
       url    = new Sirius.RoutePart(url)
       action = if Sirius.Utils.is_function(action) then action else new Sirius.ControlFlow(action)
       [url, action]
-    c array_of_routes
-    window.onhashchange = (e) =>
+
+    plain_routes = for url, action of routes when @_plain_route(url)
+      url    = new Sirius.RoutePart(url)
+      action = if Sirius.Utils.is_function(action) then action else new Sirius.ControlFlow(action)
+      [url, action]
+
+    dispatcher = (e) ->
+      c 111111
       prev = current
-      current = window.location.hash
       result = false
+      arr = null
+
+      if event.type == "hashchange"
+        # hashchange
+        arr = array_of_routes
+        current = window.location.hash
+      else
+        #plain
+        arr = plain_routes
+        href = e.target.href # TODO the same for hashchange
+        history.pushState({href: href}, "#{href}", href)
+        pathname = window.location.pathname
+        pathname = "/" if pathname == ""
+        e.preventDefault()
+        current = pathname
 
       Sirius.Application.logger("Url change to: #{current}")
-      Sirius.Application.adapter.fire(document, "application:hashchange", current, prev)
+      Sirius.Application.adapter.fire(document, "application:urlchange", current, prev)
 
-      #call first matched function
-      for part in array_of_routes
+      for part in arr
         f = part[0]
         r = f.match(current)
         if r && !result
@@ -269,14 +292,25 @@ Sirius.RouteSystem =
             flow.apply(null, f.args)
           return
 
-      #when no results, then call 404 or empty function
       if !result
         Sirius.Application.adapter.fire(document, "application:404", current, prev)
         #FIXME
-        r404 = routes['404']
+        r404 = routes['404'] || routes[404]
         if r404
           z = new Sirius.ControlFlow(r404)
           z.handle_event(null, current)
+
+      false
+
+
+    if plain_routes.length != 0 # TODO && use_modern_routing ???
+      # bind all <a> element with dispatch function, but bind only when href not contain "#"
+      selector  = "a:not([href^='#'])"
+
+      Sirius.Application.adapter.bind selector, "click", dispatcher
+
+    window.onhashchange = dispatcher
+
 
     fn()
 
