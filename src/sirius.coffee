@@ -267,7 +267,6 @@ Sirius.RouteSystem =
         current = window.location.hash
         tgt = window.location.origin
         history.replaceState({href: current}, "#{current}", "#{tgt}/#{current}")
-        #window.location.href="#{tgt}/#{current}"
       else
         # plain
         route_array = plain_routes
@@ -275,7 +274,10 @@ Sirius.RouteSystem =
         history.pushState({href: href}, "#{href}", href)
         pathname = window.location.pathname
         pathname = "/" if pathname == ""
-        e.preventDefault()
+        if (e.preventDefault)
+          e.preventDefault()
+        else
+          e.returnValue = false
         current = pathname
 
       Sirius.Application.logger("Url change to: #{current}")
@@ -350,7 +352,7 @@ Sirius.Application =
   ###
     a root url for application
   ###
-  start : false 
+  start : false
 
   ###
     when, false, then hash will be add into last for url, for true, no
@@ -390,16 +392,24 @@ Sirius.Application =
     @route   = options["route"]   || @route
     @logger  = options["logger"]  || @logger
     @start   = options["start"]   || @start
+    @hash_always_on_top = options["hash_always_on_top"] || @hash_always_on_top
+    @use_hash_routing_for_old_browsers = options["use_hash_routing_for_old_browsers"] || @use_hash_routing_for_old_browsers
     @logger("Logger enabled? #{@log}")
 
     n = @adapter.constructor.name
     @logger("Adapter: #{n}")
+    @logger("Hash always on top: #{@hash_always_on_top}")
+    @logger("Use hash routing for old browsers: #{@use_hash_routing_for_old_browsers}")
+    @logger("Current browser: #{navigator.userAgent}")
+
+
 
     # start
     Sirius.RouteSystem.create(@route, () =>
       @adapter.fire(document, "application:run", new Date());
     );
 
+    @logger()
     if @start
       Sirius.redirect(@start)
 
