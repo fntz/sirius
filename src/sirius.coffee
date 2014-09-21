@@ -403,6 +403,12 @@ Sirius.Application =
     @logger("Current browser: #{navigator.userAgent}")
 
 
+    push_state_support = if history.pushState then true else false
+    @logger("History push state support: #{push_state_support}")
+
+    if !push_state_support && !@use_hash_routing_for_old_browsers
+      @logger("Warning! You browser not support pushState, and you disable hash routing for old browser")
+    
 
     # start
     Sirius.RouteSystem.create(@route, () =>
