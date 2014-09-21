@@ -230,8 +230,12 @@ Sirius.RouteSystem =
   # @event application:urlchange - generate, when url change
   # @event application:404 - generate, if given url not matched with given routes
   # @event application:run - generate, after application running
-  create: (routes, fn = ->) ->
+  # setting : old, top, support
+  create: (routes, setting, fn = ->) ->
     current = prev = window.location.hash
+    hash_on_top        = setting["top"]
+    redirect_to_hash   = setting["old"]
+    push_state_support = setting["support"]
 
     # set routing by event
     for url, action of routes when @_event_route(url)
@@ -257,21 +261,23 @@ Sirius.RouteSystem =
       [url, action]
 
     dispatcher = (e) ->
-      prev = current
-      result = false
+      prev        = current
       route_array = null
+      result      = false
+
 
       if event.type == "hashchange"
         # hashchange
         route_array = array_of_routes
         current = window.location.hash
-        tgt = window.location.origin
-        history.replaceState({href: current}, "#{current}", "#{tgt}/#{current}")
+        if hash_on_top and push_state_support
+          origin = window.location.origin
+          history.replaceState({href: current}, "#{current}", "#{origin}/#{current}")
       else
         # plain
         route_array = plain_routes
         href = e.target.href # TODO the same for hashchange
-        history.pushState({href: href}, "#{href}", href)
+        history.pushState({href: href}, "#{href}", href) if push_state_support
         pathname = window.location.pathname
         pathname = "/" if pathname == ""
         if (e.preventDefault)
@@ -308,7 +314,7 @@ Sirius.RouteSystem =
       false
 
 
-    if plain_routes.length != 0 # TODO && use_modern_routing ???
+    if plain_routes.length != 0 
       # bind all <a> element with dispatch function, but bind only when href not contain "#"
       selector  = "a:not([href^='#'])"
 
@@ -424,10 +430,13 @@ Sirius.Application =
         route[url] = action
       @route = route
 
+    setting =
+      old: @use_hash_routing_for_old_browsers
+      top: @hash_always_on_top
+      support: push_state_support
+
     # start
-    #R.create(@route, () =>
-    #  @adapter.fire(document, "application:run", new Date());
-    #);
+    R.create @route, setting, () => @adapter.fire(document, "application:run", new Date())
 
     @logger()
     if @start
