@@ -31,3 +31,15 @@ class JQueryAdapter extends Adapter
 
   get_property: (event, properties) ->
     for p in properties then jQuery(event.target).attr(p)
+
+  swap: (element, content) ->
+    jQuery(element).html(content) #FIXME use text ?
+
+  append: (element, content) ->
+    jQuery(element).append(content)
+
+  prepend: (element, content) ->
+    jQuery(element).prepend(element)
+
+  clear: (element) ->
+    jQuery(element).text("")

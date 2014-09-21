@@ -17,3 +17,15 @@ class PrototypeAdapter extends Adapter
 
   get_property: (event, properties...) -> #FIXME
     for p in properties then Event.element(event).readAttribute(p);
+
+  swap: (element, content) ->
+    $(element).update(content)
+
+  append: (element, content) ->
+    $(element).insert({bottom: content})
+
+  prepend: (element, content) ->
+    $(element).insert({top: content})
+
+  clear: (element) ->
+    $(element).update("")

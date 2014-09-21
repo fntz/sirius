@@ -41,5 +41,23 @@ class Adapter
   #
   get_property: (event, properties...) ->
 
+  # Change content into element
+  # @param   [String] element - selector
+  # @content [String] content - new content
+  swap: (element, content) ->
+
+  # Add in bottom
+  # @param   [String] element - selector
+  # @content [String] content - new content
+  append: (element, content) ->
+
+  # Add in top
+  # @param   [String] element - selector
+  # @content [String] content - new content
+  prepend: (element, content) ->
+
+  # Remove content from element
+  # @param [String] element - selector
+  clear: (element) ->
 
 
