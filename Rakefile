@@ -43,7 +43,7 @@ task :test => [:build] do
   %x(coffee -b -c test/fixtures.coffee)
 end
 
-desc "Complile to javascript"
+desc "Compile to javascript"
 task :build do
   files = Dir["src/*.coffee"]
   without_adapter = files.find_all{|f| !f.include?("adapter") }
