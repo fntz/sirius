@@ -44,9 +44,3 @@ class Sirius.View
   clear: () ->
     @_adapter.clear(element)
     @
-
-
-
-
-
-
