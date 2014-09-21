@@ -8,9 +8,10 @@
 
 + Template free — you may use any template engine or use any at all
 + Controller free — you may use object as Controllers for you application or use only functions as controllers
-+ Model free — you may use a built in models, or use alternative model implementaion from `Backbone.js` or `Ember.Data` or use javascript objects as you models.
++ Model free — you may use a built in models, or use alternative model implementation from `Backbone.js` or `Ember.Data` or use javascript objects as you models.
 + Javascript framework free — you may create a Adapter for own framework or use for `jQuery` or `prototypejs` adapters.
 + Routing - routing from hash changes, from events, from custom events
++ Possible use plain routing, if browser not support plain routing, then `Sirius` automatically switch to hash-based routing
 + Easy for understanding
 
 You only need define Route for you application.
@@ -51,6 +52,7 @@ MyController =
 ```coffee
   routes = {
     "application:run"   : controller: MyController, action: "action"
+    "/plain"            : controller: MyController, action: "plain"
     "#/:title"          : controller: MyController, action: "run"
     "click #my-element" : controller: MyController, action: "event_action", guard: "guard_event", data: "id"  
   } 
@@ -129,7 +131,7 @@ Use `cake` or `rake` for run task. Before work run `rake or cake install` for in
 
 `rake build` - compile coffeescript into javascript file
 
-`rake test` - complile fixtures for tests
+`rake test` - complile fixtures for tests, and run server
 
 `rake minify` - use [yuicompressor](https://github.com/yui/yuicompressor) for minify files
 
