@@ -21,7 +21,7 @@
 <script src="control_flow_test.js" type="text/javascript"></script>
 <script src="collection_test.js" type="text/javascript"></script>
 <script type="text/javascript">
-  mocha.checkLeaks();
+  mocha.setup({ignoreLeaks: true});
   mocha.run();
 </script>
 
