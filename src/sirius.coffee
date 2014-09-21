@@ -408,12 +408,26 @@ Sirius.Application =
 
     if !push_state_support && !@use_hash_routing_for_old_browsers
       @logger("Warning! You browser not support pushState, and you disable hash routing for old browser")
-    
+
+    R = Sirius.RouteSystem
+
+    if @use_hash_routing_for_old_browsers and !push_state_support
+      # convert to new routing
+      urls = [] #save urls into array, for check collision
+      route = {}
+      for url, action of @route
+        urls.push(url) if R._hash_route(url)
+        if R._plain_route(url)
+          url = "\##{url}"
+          if urls.indexOf(url) != -1
+            @logger("Warning! Routes already have '#{url}' url")
+        route[url] = action
+      @route = route
 
     # start
-    Sirius.RouteSystem.create(@route, () =>
-      @adapter.fire(document, "application:run", new Date());
-    );
+    #R.create(@route, () =>
+    #  @adapter.fire(document, "application:run", new Date());
+    #);
 
     @logger()
     if @start
