@@ -3,8 +3,8 @@
 #  For methods {@see Adapter}
 #
 class PrototypeAdapter extends Adapter
-  bind: (selector, event, fn) ->
-    $(document).on(event, selector, fn)
+  bind: (element, selector, event, fn) ->
+    $(element).on(event, selector, fn)
 
   form_to_json: (selector) ->
     JSON.stringify($$(selector).first().serialize(true))

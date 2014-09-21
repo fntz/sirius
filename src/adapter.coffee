@@ -12,12 +12,13 @@
 class Adapter
 
   #   Attach event to element
+  #   @param [String] main element for bind
   #   @param [String] selector - selector string
   #   @param [String] event - event name
   #   @param [Function] fn - callback, will be called, when event fired
   #   @return [Void]
   #
-  bind: (selector, event, fn) ->
+  bind: (element, selector, event, fn) ->
 
   #   Convert element which find with 'selector' to json
   #   @param [String] selector - selector, for find element

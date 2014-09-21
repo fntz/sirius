@@ -3,8 +3,8 @@
 #  For methods {@see Adapter}
 #
 class JQueryAdapter extends Adapter
-  bind: (selector, event, fn) ->
-    jQuery(document).on(event, selector, fn)
+  bind: (element, selector, event, fn) ->
+    jQuery(element).on(event, selector, fn)
 
   form_to_json: (selector) ->
     o = {}
