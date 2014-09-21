@@ -41,6 +41,7 @@ end
 desc "Compile fixtures"
 task :test => [:build] do
   %x(coffee -b -c test/fixtures.coffee)
+  system("ruby test/app.rb")
 end
 
 desc "Compile to javascript"
