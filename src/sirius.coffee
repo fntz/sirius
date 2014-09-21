@@ -248,7 +248,7 @@ Sirius.RouteSystem =
       z = url.match(/^([a-zA-Z:]+)(\s+)?(.*)?/)
       event_name = z[1]
       selector   = z[3] || document #when it a custom event: 'custom:event' for example
-      Sirius.Application.adapter.bind(selector, event_name, handler)
+      Sirius.Application.adapter.bind(document, selector, event_name, handler)
 
     # for cache change obj[k, v] to array [[k,v]]
     array_of_routes = for url, action of routes when @_hash_route(url)
@@ -318,11 +318,19 @@ Sirius.RouteSystem =
       # bind all <a> element with dispatch function, but bind only when href not contain "#"
       selector  = "a:not([href^='#'])"
 
-      Sirius.Application.adapter.bind selector, "click", dispatcher
-
+      Sirius.Application.adapter.bind document, selector, "click", dispatcher
+    `var c = function(m){console.log(m);};`
     window.onhashchange = dispatcher
-#    if push_state_support
-#      Sirius.Application.adapter.bind window, "popstate", dispatcher
+    if push_state_support
+      Sirius.Application.adapter.bind window, null, "popstate", (e) ->
+        # should run only for plain routes, not for hash based!
+        # history.state.href contain url which start from "#", when hash change
+        #                    contain full address otherwise
+        # also when we visit from plain url to hash, then history.state is null
+        if history && history.state && (history.state == null || history.state['href'].indexOf("#") != 0)
+          dispatcher(e)
+
+
 
     fn()
 
