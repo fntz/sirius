@@ -227,7 +227,7 @@ Sirius.RouteSystem =
   #
   # @param routes [Object] object with routes
   # @param fn [Function] callback, which will be called, after routes will be defined
-  # @event application:hashchange - generate, when url change
+  # @event application:urlchange - generate, when url change
   # @event application:404 - generate, if given url not matched with given routes
   # @event application:run - generate, after application running
   create: (routes, fn = ->) ->
@@ -257,18 +257,17 @@ Sirius.RouteSystem =
       [url, action]
 
     dispatcher = (e) ->
-      c 111111
       prev = current
       result = false
-      arr = null
+      route_array = null
 
       if event.type == "hashchange"
         # hashchange
-        arr = array_of_routes
+        route_array = array_of_routes
         current = window.location.hash
       else
         #plain
-        arr = plain_routes
+        route_array = plain_routes
         href = e.target.href # TODO the same for hashchange
         history.pushState({href: href}, "#{href}", href)
         pathname = window.location.pathname
@@ -279,7 +278,7 @@ Sirius.RouteSystem =
       Sirius.Application.logger("Url change to: #{current}")
       Sirius.Application.adapter.fire(document, "application:urlchange", current, prev)
 
-      for part in arr
+      for part in route_array
         f = part[0]
         r = f.match(current)
         if r && !result
@@ -294,11 +293,12 @@ Sirius.RouteSystem =
 
       if !result
         Sirius.Application.adapter.fire(document, "application:404", current, prev)
-        #FIXME
         r404 = routes['404'] || routes[404]
         if r404
-          z = new Sirius.ControlFlow(r404)
-          z.handle_event(null, current)
+          if Sirius.Utils.is_function(r404)
+            r404(current)
+          else
+            (new Sirius.ControlFlow(r404)).handle_event(null, current)
 
       false
 
