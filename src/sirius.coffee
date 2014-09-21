@@ -350,7 +350,7 @@ Sirius.Application =
   ###
     a root url for application
   ###
-  start : "#"
+  start : false 
 
   ###
     when, false, then hash will be add into last for url, for true, no
