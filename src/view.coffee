@@ -4,7 +4,7 @@
 #
 # @example:
 #
-#   myView = new Sirius.View("body", false, (content) -> "<div>#{content}</div>"
+#   myView = new Sirius.View("body", (content) -> "<div>#{content}</div>"
 #   # in controller
 #   myView.render(results_from_ajax_to_html).swap() # change body content
 #
@@ -14,16 +14,10 @@
 #
 class Sirius.View
 
-  constructor: (@element, @cache = false, clb = ->) ->
-    @_cache_result = []
+  constructor: (@element, clb = ->) ->
     @_adapter = Sirius.Application.adapter
     @_result = (args...) =>
-      result = clb.apply(null, args...)
-      @_cache_result.push([arguments, result]) if @cache
-      result
-
-  clear_cache: () ->
-    @_cache_result = []
+      clb.apply(null, args...)
 
   render: (args...) ->
     @_result(args)
