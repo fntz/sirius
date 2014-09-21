@@ -313,7 +313,7 @@ Sirius.Application =
     if window.console
       console.log msg
     else
-      alert "Not supported `console`"
+      alert "Not supported `console`. You should define own `logger` function for Sirius.Application"
   #
   # @method #run(options)
   # @param options [Object] - base options for application
@@ -325,6 +325,7 @@ Sirius.Application =
     @logger  = options["logger"]  || @logger
     @start    = options["start"]  || @start
     @logger("Logger enabled? #{@log}")
+
     n = @adapter.constructor.name
     @logger("Adapter: #{n}")
 
