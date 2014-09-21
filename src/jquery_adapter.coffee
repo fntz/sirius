@@ -39,7 +39,7 @@ class JQueryAdapter extends Adapter
     jQuery(element).append(content)
 
   prepend: (element, content) ->
-    jQuery(element).prepend(element)
+    jQuery(element).prepend(content)
 
   clear: (element) ->
     jQuery(element).text("")

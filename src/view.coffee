@@ -15,32 +15,32 @@
 class Sirius.View
 
   constructor: (@element, clb = ->) ->
-    @_adapter = Sirius.Application.adapter
-    @_result = (args...) =>
+    @_result_fn = (args...) =>
       clb.apply(null, args...)
 
   render: (args...) ->
-    @_result(args)
+    @_result = @_result_fn(args)
     @
 
   # swap content for given element
   # @return null
   swap: () ->
-    @_adapter.swap(element, content)
+
+    Sirius.Application.adapter.swap(@element, @_result)
     null
 
   # append to current element new content in bottom
   # @return null
   append: () ->
-    @_adapter.append(element, content)
+    Sirius.Application.adapter.append(@element, @_result)
     null
 
   # prepend to current element new content in top
   prepend: () ->
-    @_adapter.prepend(element, content)
+    Sirius.Application.adapter.prepend(@element, @_result)
     null
 
   # clear element content
   clear: () ->
-    @_adapter.clear(element)
+    Sirius.Application.adapter.clear(@element)
     @
