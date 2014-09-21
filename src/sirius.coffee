@@ -265,8 +265,11 @@ Sirius.RouteSystem =
         # hashchange
         route_array = array_of_routes
         current = window.location.hash
+        tgt = window.location.origin
+        history.replaceState({href: current}, "#{current}", "#{tgt}/#{current}")
+        #window.location.href="#{tgt}/#{current}"
       else
-        #plain
+        # plain
         route_array = plain_routes
         href = e.target.href # TODO the same for hashchange
         history.pushState({href: href}, "#{href}", href)
@@ -348,6 +351,25 @@ Sirius.Application =
     a root url for application
   ###
   start : "#"
+
+  ###
+    when, false, then hash will be add into last for url, for true, no
+    false:
+      "http://example.com/" - start
+      "http://example.com/another" - change to another url
+      "http://example.com/another#hash" - change to hash
+    true
+      "http://example.com/" - start
+      "http://example.com/another" - change to another url
+      "http://example.com/#/hash" - change to hash
+  ###
+  hash_always_on_top : true
+
+  ###
+    when true, then all routing will be redefined with hash based routing
+    "/" => "#/"
+  ###
+  use_hash_routing_for_old_browsers : true
 
   #
   # @method #logger(msg) - logger, default it's write message to console.log, may be redefined
