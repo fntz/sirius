@@ -243,11 +243,13 @@ class Sirius.BaseModel
       @["_#{klass}"] = []
       @attributes.push("#{klass}")
       @_has_create(klass)
+      @_gen_method_name_for_attribute(klass, true)
 
     for klass in @has_one()
       @["_#{klass}"] = null
       @attributes.push("#{klass}")
       @_has_create(klass, true)
+      @_gen_method_name_for_attribute(klass, true)
 
     if Object.keys(obj).length != 0
       for attr in Object.keys(obj)
@@ -261,12 +263,15 @@ class Sirius.BaseModel
   # @private
   # @nodoc
   # "key-1" -> key_1
-  _gen_method_name_for_attribute: (attribute) ->
+  _gen_method_name_for_attribute: (attribute, when_has_attribute = false) ->
     normalize_name = Sirius.Utils.underscore(attribute)
     throw new Error("Method #{normalize_name} already exist") if Object.keys(@).indexOf(normalize_name) != -1
     @[normalize_name] = (value) =>
       if value
-        @set(attribute, value)
+        if when_has_attribute
+          @["add_#{attribute}"](value)
+        else
+          @set(attribute, value)
       else
         @get(attribute)
 
