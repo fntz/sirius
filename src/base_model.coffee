@@ -319,6 +319,12 @@ class Sirius.BaseModel
       z.set("#{key}", @get(back))
 
   #
+  #
+  # @return [Array] - return all attributes for current model
+  get_attributes: () ->
+    @attributes
+
+  #
   # Base setter
   # @param attr [String] - attribute
   # @param value [Any]   - value
