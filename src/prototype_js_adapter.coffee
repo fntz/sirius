@@ -18,6 +18,9 @@ class PrototypeAdapter extends Adapter
   get_property: (event, properties...) -> #FIXME
     for p in properties then Event.element(event).readAttribute(p);
 
+  set_attr(element, attr, value) ->
+    $(element).writeAttribute(attr, value)
+
   swap: (element, content) ->
     $(element).update(content)
 

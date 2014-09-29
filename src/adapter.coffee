@@ -60,6 +60,13 @@ class Adapter
   # @param [String] element - selector
   clear: (element) ->
 
+  # set new attribute for element
+  # @param [String] - selector
+  # @param [String] - attribute
+  # @param [String] - new value for attribute
+  set_attr: (element, attr, value) ->
+
+
   # return all selectors
   all: (selector) ->
     document.querySelectorAll(selector)

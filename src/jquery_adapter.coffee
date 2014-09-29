@@ -35,6 +35,9 @@ class JQueryAdapter extends Adapter
   swap: (element, content) ->
     jQuery(element).text(content) #FIXME use text ?
 
+  set_attr: (element, attr, value) ->
+    jQuery(element).attr(attr, value)
+
   append: (element, content) ->
     jQuery(element).append(content)
 
