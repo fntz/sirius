@@ -60,4 +60,11 @@ class Adapter
   # @param [String] element - selector
   clear: (element) ->
 
+  # return all selectors
+  all: (selector) ->
+    document.querySelectorAll(selector)
+
+  # first from selector
+  get: (selector) ->
+    document.querySelector(selector)
 

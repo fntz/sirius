@@ -33,7 +33,7 @@ class JQueryAdapter extends Adapter
     for p in properties then jQuery(event.target).attr(p)
 
   swap: (element, content) ->
-    jQuery(element).html(content) #FIXME use text ?
+    jQuery(element).text(content) #FIXME use text ?
 
   append: (element, content) ->
     jQuery(element).append(content)
@@ -43,3 +43,6 @@ class JQueryAdapter extends Adapter
 
   clear: (element) ->
     jQuery(element).text("")
+
+  text: (element) ->
+    jQuery(element).text()
