@@ -14,7 +14,7 @@
 #
 class Sirius.View
 
-  constructor: (@element, clb = ->) ->
+  constructor: (@element, clb = (txt) -> txt) ->
     @_result_fn = (args...) =>
       clb.apply(null, args...)
 
@@ -25,6 +25,7 @@ class Sirius.View
   # swap content for given element
   # @return null
   swap: () ->
+    console.log 111111
     Sirius.Application.adapter.swap(@element, @_result)
     null
 
@@ -56,7 +57,7 @@ class Sirius.View
   #
   # for view1 we should use Dom level 3\4 events
   # also we should know which attributes changed (filter), therefore
-  # view1.bind(view2, with: ["id"])
+  # view1.bind(view2, to: ["id"])
   # when we change text in view1, then should changes in view2 id attribute
   #
   # ### 3 View to View relation change attributes in View1
@@ -66,24 +67,25 @@ class Sirius.View
   # when change id in view1, we should change text in view2
   #
   # ### 4 Combination of 3 and 4
-  #
+  # view1.bind(view2, from: ["id"], to: ["class"]
   # ### 5 View Model relation
   #
   # ### 6 View to any function relation
-  bind: (klass) ->
+  #
+  #
+  # # TODO Also need strategy for change: swap, append, prepend or custom
+  #
+  # @param [Any] - klass, another view\model\function
+  # @param [Object] - hash with setting: [to, from]
+  bind: (klass, object_setting) ->
     `var c = function(m){console.log(m);};`
+    current = @element
     if klass && klass.constructor && klass.constructor.name
       if klass.constructor.name == "View"
-        adapter = Sirius.Application.adapter
-        elements = document.querySelectorAll(klass.element)
+        clb = (new_text) ->
+          klass.render(new_text).swap()
 
-        #FIXME optimize this
-        for element in elements
-          # it's for input,textarea, select...
-          if Object.keys(element).indexOf("value") != -1
-            c "value"
-          else
+        new Sirius.Observer(current, clb)
 
-        1
 
   bind2: () ->
