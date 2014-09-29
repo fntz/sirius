@@ -24,9 +24,12 @@ class Sirius.View
 
   # swap content for given element
   # @return null
-  swap: () ->
-    console.log 111111
-    Sirius.Application.adapter.swap(@element, @_result)
+  swap: (attributes...) ->
+    if attributes.length == 0
+      Sirius.Application.adapter.swap(@element, @_result)
+    else
+      for attr in attributes
+        Sirius.Application.adapter.set_attr(@element, attr, @_result)
     null
 
   # append to current element new content in bottom
@@ -80,10 +83,17 @@ class Sirius.View
   bind: (klass, object_setting) ->
     `var c = function(m){console.log(m);};`
     current = @element
+    to = object_setting['to'] || null
+    from = object_setting['from'] || null
     if klass && klass.constructor && klass.constructor.name
       if klass.constructor.name == "View"
-        clb = (new_text) ->
-          klass.render(new_text).swap()
+        # {text: null, attribute: null}
+        clb = (result) ->
+          txt = result['text']
+          if txt && !result['attribute']
+            klass.render(txt).swap(to)
+          else
+            c result
 
         new Sirius.Observer(current, clb)
 
