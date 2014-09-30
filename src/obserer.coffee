@@ -21,28 +21,35 @@ class Sirius.Observer
   # http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-MutationEvent
   # https://dvcs.w3.org/hg/domcore/raw-file/tip/Overview.html#mutation-observers
   # BUG when reset input, bind element should reset the same
+  # TODO add logger for events
   constructor: (@from_element, @clb = ->) ->
     `var c = function(m){console.log(m);};`
     adapter = Sirius.Application.adapter
+    logger  = Sirius.Application.logger
     clb  = @clb
     from = @from_element
 
-    tag = adapter.get_attr(from, 'tagName')
+    tag  = adapter.get_attr(from, 'tagName')
+    type = adapter.get_attr(from, 'type')
 
     handler = (e) ->
       result = {text: null, attrribute: null}
-      if e.type == "input" || e.type == "childList"
+      if e.type == "input" || e.type == "childList" || e.type == "change"
         result['text'] = adapter.text(from)
       clb(result)
-
+      
     if ONCHANGE_TAGS.indexOf(tag) != -1
-      adapter.bind(document, @from_element, 'input', handler)
+      if type == "checkbox"
+        adapter.bind(document, @from_element, 'change', handler)
+      else
+        adapter.bind(document, @from_element, 'input', handler)
+
 
     else
       if MO
         # TODO from element should not be input\textarea\select
         observer = new MO( (mutations) ->
-          mutations.forEach handler 
+          mutations.forEach handler
         )
 
         cnf = { childList: true, attributes: true, characterData: true, subtree: false } # FIXME subtree: true
