@@ -13,38 +13,46 @@ class Sirius.Observer
        window.WebKitMutationObserver ||
        window.MozMutationObserver || null
 
+  ONCHANGE_TAGS = ["INPUT", "TEXTAREA", "SELECT"]
 
+  # browser support: http://caniuse.com/#feat=mutationobserver
+  # MutationObserver support in FF and Chrome, but in old ie (9-10) not
+  # for support this browser
+  # http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-MutationEvent
+  # https://dvcs.w3.org/hg/domcore/raw-file/tip/Overview.html#mutation-observers
+  # BUG when reset input, bind element should reset the same
   constructor: (@from_element, @clb = ->) ->
     `var c = function(m){console.log(m);};`
     adapter = Sirius.Application.adapter
-    # browser support: http://caniuse.com/#feat=mutationobserver
-    # MutationObserver support in FF and Chrome, but in old ie (9-10) not
-    # for support this browser
-    # http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-MutationEvent
-    # https://dvcs.w3.org/hg/domcore/raw-file/tip/Overview.html#mutation-observers
-    if MO
-      clb  = @clb
-      from = @from_element
+    clb  = @clb
+    from = @from_element
 
-      observer = new MO( (mutations) ->
-        mutations.forEach (m) ->
-          # m have type
-          # m have target (from_element)
-          # m have oldValue
-          # m have attributeName
-          clb(adapter.text(from))
+    tag = adapter.get_attr(from, 'tagName')
 
+    handler = (e) ->
+      result = {text: null, attrribute: null}
+      if e.type == "input" || e.type == "childList"
+        result['text'] = adapter.text(from)
+      clb(result)
 
-      )
+    if ONCHANGE_TAGS.indexOf(tag) != -1
+      adapter.bind(document, @from_element, 'input', handler)
 
-      cnf = { childList: true, attributes: true, characterData: true, subtree: false } # FIXME subtree: true
+    else
+      if MO
+        # TODO from element should not be input\textarea\select
+        observer = new MO( (mutations) ->
+          mutations.forEach handler 
+        )
 
-      elems = adapter.get(@from_element) # fixme : all
+        cnf = { childList: true, attributes: true, characterData: true, subtree: false } # FIXME subtree: true
 
-      observer.observe(elems, cnf)
+        elems = adapter.get(@from_element) # fixme : all
 
-    else # when null, need register event with routes
-      1
+        observer.observe(elems, cnf)
+
+      else # when null, need register event with routes
+        1
 
 
 
