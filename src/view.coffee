@@ -25,10 +25,11 @@ class Sirius.View
   # swap content for given element
   # @return null
   swap: (attributes...) ->
-    if attributes.length == 0
+    real_attributes = for a in attributes when a != null then a
+    if real_attributes.length == 0
       Sirius.Application.adapter.swap(@element, @_result)
     else
-      for attr in attributes
+      for attr in real_attributes
         Sirius.Application.adapter.set_attr(@element, attr, @_result)
     null
 
@@ -80,10 +81,10 @@ class Sirius.View
   #
   # @param [Any] - klass, another view\model\function
   # @param [Object] - hash with setting: [to, from]
-  bind: (klass, object_setting) ->
+  bind: (klass, object_setting = {}) ->
     `var c = function(m){console.log(m);};`
     current = @element
-    to = object_setting['to'] || null
+    to   = object_setting['to'] || null
     from = object_setting['from'] || null
     if klass && klass.constructor && klass.constructor.name
       if klass.constructor.name == "View"
@@ -97,5 +98,6 @@ class Sirius.View
 
         new Sirius.Observer(current, clb)
 
+    @
 
   bind2: () ->
