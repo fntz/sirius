@@ -319,7 +319,7 @@ Sirius.RouteSystem =
       selector  = "a:not([href^='#'])"
 
       Sirius.Application.adapter.bind document, selector, "click", dispatcher
-    `var c = function(m){console.log(m);};`
+
     window.onhashchange = dispatcher
     if push_state_support
       Sirius.Application.adapter.bind window, null, "popstate", (e) ->

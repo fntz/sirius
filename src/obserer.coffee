@@ -37,9 +37,9 @@ class Sirius.Observer
       if e.type == "input" || e.type == "childList" || e.type == "change"
         result['text'] = adapter.text(from)
       clb(result)
-      
+
     if ONCHANGE_TAGS.indexOf(tag) != -1
-      if type == "checkbox"
+      if type == "checkbox" || type == "radio"
         adapter.bind(document, @from_element, 'change', handler)
       else
         adapter.bind(document, @from_element, 'input', handler)
