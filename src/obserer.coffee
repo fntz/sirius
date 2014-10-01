@@ -33,8 +33,9 @@ class Sirius.Observer
     type = adapter.get_attr(from, 'type')
     # FIXME maybe save all needed attributes in hash ????
     handler = (e) ->
+      c e.type
       result = {text: null, attribute: null}
-      if e.type == "input" || e.type == "childList" || e.type == "change"
+      if e.type == "input" || e.type == "childList" || e.type == "change" || e.type == "DOMNodeInserted"
         result['text'] = adapter.text(from)
       if e.type == "attributes"
         attr_name = e.attributeName
@@ -43,21 +44,30 @@ class Sirius.Observer
 
         result['text'] = new_attr
 
-#        # when old < new, then we add value, send diff
-#        # when old = new, then swap value, send new
-#        # when old > new, then we remove value, send new
-#        new_value = null
-#        old_attr_length = old_attr.length
-#        new_attr_length = new_attr.length
-#
-#        if old_attr_length < new_attr_length
-#
-#        else if old_attr_length == new_attr_length
-#
-#        else # old > new
+        #        # when old < new, then we add value, send diff
+        #        # when old = new, then swap value, send new
+        #        # when old > new, then we remove value, send new
+        #        new_value = null
+        #        old_attr_length = old_attr.length
+        #        new_attr_length = new_attr.length
+        #
+        #        if old_attr_length < new_attr_length
+        #
+        #        else if old_attr_length == new_attr_length
+        #
+        #        else # old > new
 
 
         result['attribute'] = attr_name
+
+      if e.type == "DOMAttrModified" # for ie 9...
+        attr_name = e.originalEvent.attrName
+        old_attr  = e.originalEvent.prevValue
+        new_attr  = adapter.get_attr(from, attr_name)
+        result['text'] = new_attr
+        result['attribute'] = attr_name
+
+
       clb(result)
 
     if ONCHANGE_TAGS.indexOf(tag) != -1
@@ -87,7 +97,9 @@ class Sirius.Observer
         observer.observe(elems, cnf)
 
       else # when null, need register event with routes
-        1
+        adapter.bind(document, @from_element, 'DOMNodeInserted', handler)
+        adapter.bind(document, @from_element, 'DOMNodeRemoved', handler)
+        adapter.bind(document, @from_element, 'DOMAttrModified', handler)
 
 
 
