@@ -31,11 +31,33 @@ class Sirius.Observer
 
     tag  = adapter.get_attr(from, 'tagName')
     type = adapter.get_attr(from, 'type')
-
+    # FIXME maybe save all needed attributes in hash ????
     handler = (e) ->
-      result = {text: null, attrribute: null}
+      result = {text: null, attribute: null}
       if e.type == "input" || e.type == "childList" || e.type == "change"
         result['text'] = adapter.text(from)
+      if e.type == "attributes"
+        attr_name = e.attributeName
+        old_attr = e.oldValue || [] # FIXME remove this, because not used
+        new_attr  = adapter.get_attr(from, attr_name)
+
+        result['text'] = new_attr
+
+#        # when old < new, then we add value, send diff
+#        # when old = new, then swap value, send new
+#        # when old > new, then we remove value, send new
+#        new_value = null
+#        old_attr_length = old_attr.length
+#        new_attr_length = new_attr.length
+#
+#        if old_attr_length < new_attr_length
+#
+#        else if old_attr_length == new_attr_length
+#
+#        else # old > new
+
+
+        result['attribute'] = attr_name
       clb(result)
 
     if ONCHANGE_TAGS.indexOf(tag) != -1
@@ -52,7 +74,13 @@ class Sirius.Observer
           mutations.forEach handler
         )
 
-        cnf = { childList: true, attributes: true, characterData: true, subtree: false } # FIXME subtree: true
+        cnf =
+          childList: true
+          attributes: true
+          characterData: true
+          attributeOldValue: true
+          characterDataOldValue: true
+          subtree: false # FIXME subtree: true
 
         elems = adapter.get(@from_element) # fixme : all
 
