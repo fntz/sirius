@@ -135,6 +135,7 @@ class Sirius.View
             c result
         new Sirius.Observer(current, clb)
       else # then it Sirius.Model
+        #TODO refactor this
         children = adapter.all("#{current} *")
         if children.length == 0
           # then it single element and we need extract data-bind-to, data-bind-from and name
@@ -142,7 +143,7 @@ class Sirius.View
           data_bind_from = adapter.get_attr(current, 'data-bind-from')
 
           if to && data_bind_to
-            c "You define `to` attribute twice: #{to}, #{data_bind_to}"
+            c "You define `to` attribute twice"
 
           if from && data_bind_from
             c "You define `from` attribute twice: #{from}, #{data_bind_from}"
@@ -157,16 +158,36 @@ class Sirius.View
           if klass.attributes.indexOf(to) == -1
             c "Error attribute #{to} not exist in model class #{klass}"
 
-
-
           clb = (result) ->
             txt = result['text']
             if txt && !from
               klass[to](txt)
             if from == result['attribute']
               klass[to](txt)
-            
+
+
           new Sirius.Observer(current, clb)
+
+        else
+          if to || from
+            c "Error, `to` or `from` which pass into `bind` method, not taken use `data-bind-to` or `name` and `data-bind-from`"
+
+          for child in children
+            do(child) ->
+              ddata_bind_to   = adapter.get_attr(child, 'data-bind-to') || adapter.get_attr(child, 'name')
+              ddata_bind_from = adapter.get_attr(child, 'data-bind-from')
+
+              if ddata_bind_to
+                clb = (result) ->
+                  txt = result['text']
+                  if txt && !ddata_bind_from
+                    klass[ddata_bind_to](txt)
+                  if ddata_bind_from == result['attribute']
+                    klass[ddata_bind_to](txt)
+
+
+                new Sirius.Observer(child, clb)
+
 
 
     else
