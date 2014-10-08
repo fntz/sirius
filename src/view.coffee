@@ -161,9 +161,11 @@ class Sirius.View
 
           clb = (result) ->
             txt = result['text']
-            klass[to](txt)
-            c klass 
-
+            if txt && !from
+              klass[to](txt)
+            if from == result['attribute']
+              klass[to](txt)
+            
           new Sirius.Observer(current, clb)
 
 
