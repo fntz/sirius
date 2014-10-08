@@ -134,61 +134,63 @@ class Sirius.View
             c "not implemented #1"
             c result
         new Sirius.Observer(current, clb)
-      else # then it Sirius.Model
-        #TODO refactor this
+      else # then it's Sirius.Model
         children = adapter.all("#{current} *")
-        if children.length == 0
-          # then it single element and we need extract data-bind-to, data-bind-from and name
-          data_bind_to   = adapter.get_attr(current, 'data-bind-to') || adapter.get_attr(current, 'name')
-          data_bind_from = adapter.get_attr(current, 'data-bind-from')
+        count    = children.length
 
-          if to && data_bind_to
+        # before
+        if count == 0
+          # then it single element and we need extract data-bind-to, data-bind-from and name
+          tmp_to   = adapter.get_attr(current, 'data-bind-to') || adapter.get_attr(current, 'name')
+          tmp_from = adapter.get_attr(current, 'data-bind-from')
+
+          if to && tmp_to
             c "You define `to` attribute twice"
 
-          if from && data_bind_from
-            c "You define `from` attribute twice: #{from}, #{data_bind_from}"
+          if from && tmp_from
+            c "You define `from` attribute twice"
 
-          if !data_bind_to && !to
+          if !tmp_to && !to
             c "Error# need pass `to` attribute into `.bind` method or define `data-bind-to` or `name` into html element code"
 
-          to   = to   ? data_bind_to
-          from = from ? data_bind_from
-
-          # check if attribute present into model class
-          if klass.attributes.indexOf(to) == -1
-            c "Error attribute #{to} not exist in model class #{klass}"
-
-          clb = (result) ->
-            txt = result['text']
-            if txt && !from
-              klass[to](txt)
-            if from == result['attribute']
-              klass[to](txt)
-
-
-          new Sirius.Observer(current, clb)
+          to   = to   ? tmp_to
+          from = from ? tmp_from
 
         else
           if to || from
             c "Error, `to` or `from` which pass into `bind` method, not taken use `data-bind-to` or `name` and `data-bind-from`"
 
-          for child in children
-            do(child) ->
-              ddata_bind_to   = adapter.get_attr(child, 'data-bind-to') || adapter.get_attr(child, 'name')
-              ddata_bind_from = adapter.get_attr(child, 'data-bind-from')
+        # check if attribute present into model class
+        if klass.attributes.indexOf(to) == -1
+          c "Error attribute #{to} not exist in model class #{klass}"
 
-              if ddata_bind_to
-                clb = (result) ->
-                  txt = result['text']
-                  if txt && !ddata_bind_from
-                    klass[ddata_bind_to](txt)
-                  if ddata_bind_from == result['attribute']
-                    klass[ddata_bind_to](txt)
+        # when only one element in collection need wrap his in array
+        children = if count == 0
+          [current]
+        else
+          children
 
+        for child in children
+          do(child) ->
+            data_bind_to = if count == 0
+              to
+            else
+              adapter.get_attr(child, 'data-bind-to') || adapter.get_attr(child, 'name')
 
-                new Sirius.Observer(child, clb)
+            data_bind_from = if count == 0
+              from
+            else
+              adapter.get_attr(child, 'data-bind-from')
 
+            if data_bind_to
+              clb = (result) ->
+                txt = result['text']
+                if txt && !data_bind_from
+                  klass[data_bind_to](txt)
+                if data_bind_from == result['attribute']
+                  klass[data_bind_to](txt)
 
+              new Sirius.Observer(child, clb)
 
     else
       if Sirius.Utils.is_function(klass)
