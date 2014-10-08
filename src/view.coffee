@@ -113,7 +113,11 @@ class Sirius.View
   #
   # # TODO Also need strategy for change: swap, append, prepend or custom
   # # TODO default value, when text: undefined
-  #
+  # # TODO back to after call callback, for example when user enter
+  # # input then with bind with model
+  # # after we return errors for view
+  # # is it possible?
+  # #
   # @param [Any] - klass, another view\model\function
   # @param [Object] - hash with setting: [to, from]
   bind: (klass, object_setting = {}) ->
