@@ -33,7 +33,8 @@ class Sirius.Observer
     type = adapter.get_attr(from, 'type')
     # FIXME maybe save all needed attributes in hash ????
     handler = (e) ->
-      c e.type
+      c e.type # TODO into log
+
       result = {text: null, attribute: null}
       if e.type == "input" || e.type == "childList" || e.type == "change" || e.type == "DOMNodeInserted"
         result['text'] = adapter.text(from)
@@ -43,22 +44,8 @@ class Sirius.Observer
         new_attr  = adapter.get_attr(from, attr_name)
 
         result['text'] = new_attr
-
-        #        # when old < new, then we add value, send diff
-        #        # when old = new, then swap value, send new
-        #        # when old > new, then we remove value, send new
-        #        new_value = null
-        #        old_attr_length = old_attr.length
-        #        new_attr_length = new_attr.length
-        #
-        #        if old_attr_length < new_attr_length
-        #
-        #        else if old_attr_length == new_attr_length
-        #
-        #        else # old > new
-
-
         result['attribute'] = attr_name
+        result['previous'] = old_attr
 
       if e.type == "DOMAttrModified" # for ie 9...
         attr_name = e.originalEvent.attrName
@@ -66,7 +53,7 @@ class Sirius.Observer
         new_attr  = adapter.get_attr(from, attr_name)
         result['text'] = new_attr
         result['attribute'] = attr_name
-
+        result['previous'] = old_attr
 
       clb(result)
 
@@ -92,9 +79,14 @@ class Sirius.Observer
           characterDataOldValue: true
           subtree: false # FIXME subtree: true
 
-        elems = adapter.get(@from_element) # fixme : all
 
-        observer.observe(elems, cnf)
+        if Sirius.Utils.is_string(from)
+          elements = adapter.get(from) # fixme : all
+          observer.observe(elements, cnf)
+        else
+          observer.observe(from, cnf)
+
+
 
       else # when null, need register event with routes
         adapter.bind(document, @from_element, 'DOMNodeInserted', handler)
