@@ -2,6 +2,8 @@
 # Class which represent Views for Application
 # Fluent interface for manipulate views
 #
+# @note By default this function mark elements with id
+#
 # @example:
 #
 #   myView = new Sirius.View("body", (content) -> "<div>#{content}</div>"
@@ -27,6 +29,7 @@ class Sirius.View
   # swap content for given element
   # @return null
   swap: (attributes...) ->
+
     real_attributes = for a in attributes when a != null then a
     if real_attributes.length == 0
       Sirius.Application.adapter.swap(@element, @_result)
@@ -198,7 +201,7 @@ class Sirius.View
 
     else
       if Sirius.Utils.is_function(klass)
-        1 #when it's only function
+        klass(@element)
 
     @
 
