@@ -222,7 +222,7 @@ class Sirius.BaseModel
   # @note Method generate add_x, where `x` it's a attribute from `@has_many` or `@has_one`
   constructor: (obj = {}) ->
     @_isValid = false
-
+    @callbacks = []
     # object, which contain all errors, which registers after validation
     @errors = {}
     @attributes = @normalize_attrs()
@@ -334,6 +334,10 @@ class Sirius.BaseModel
     throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model") if @attributes.indexOf(attr) == -1
 
     @["_#{attr}"] = value
+
+    for clb in @callbacks
+      clb.apply(null, [attr, value])
+
 
   #
   # Base getter
@@ -561,4 +565,86 @@ class Sirius.BaseModel
   # callback, run after model created
   # must be overridden in user model
   after_create: () ->
+
+
+  #
+  # bind
+  #
+  # 1. model to view
+  #
+  # view = Sirius.View("#span-element")
+  #
+  # model = new Model()
+  #
+  # model.bind(view, {from: 'model-attribute', to: 'view-attribute'})
+  # also `model-attribute` it might be a .errors?
+  # FIXME also need when it logical element [radio, checkbox, select]  hot to use it?
+  # <span id="span-element" data-bind-model-from: 'title', data-bind-model-to='text'>
+  # when to text, then it inner text or value for input, #FIXME when it html, then use html for insert?
+  # when it attribute need strategy
+  #
+  # 2. model to model ? # TODO thinks about it
+  #
+  # 3. model to function ?
+  #
+  bind: (view, object_setting = {}) ->
+    throw new Error("`bind` only work with Sirius.View") if !(view.name && view.name() == "View")
+
+    to = object_setting['to'] || null
+    from = object_setting['from'] || null
+
+    adapter = Sirius.Application.adapter
+    current = view.element
+
+    children = adapter.all("#{current} *")
+    count = children.length
+
+    if count == 0
+      to = adapter.get_attr(view.element, 'data-bind-view-to') || to || 'text'
+      from = adapter.get_attr(view.element, 'data-bind-view-from') || @attributes[0]
+      c to
+      c from
+      clb = (attr, value) ->
+        if attr is from
+          if to == 'text'
+            view.render(value).swap()
+          else
+            view.render(value).swap(to)
+
+      @callbacks.push(clb)
+
+    else
+      for child in children
+        do(child) ->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
