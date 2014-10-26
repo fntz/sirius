@@ -41,6 +41,8 @@ class Adapter
   #
   get_property: (event, properties...) ->
 
+  get_attr: (element, attr) ->
+
   # Change content into element
   # @param   [String] element - selector
   # @content [String] content - new content
