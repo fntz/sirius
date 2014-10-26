@@ -602,8 +602,7 @@ class Sirius.BaseModel
     if count == 0
       to = adapter.get_attr(view.element, 'data-bind-view-to') || to || 'text'
       from = adapter.get_attr(view.element, 'data-bind-view-from') || @attributes[0]
-      c to
-      c from
+
       clb = (attr, value) ->
         if attr is from
           if to == 'text'
@@ -614,8 +613,25 @@ class Sirius.BaseModel
       @callbacks.push(clb)
 
     else
+      throw new Error("For element with children not use object setting") if to || from
+      callbacks = @callbacks
       for child in children
         do(child) ->
+          bind_to = adapter.get_attr(child, 'data-bind-view-to') || 'text'
+          bind_from = adapter.get_attr(child, 'data-bind-view-from')
+
+          if bind_from
+            sub_view = new Sirius.View(child)
+            clb = (attr, value) ->
+              if attr is bind_from
+                if bind_to == 'text'
+                  sub_view.render(value).swap()
+                else
+                  sub_view.render(value).swap(bind_to)
+
+            callbacks.push(clb)
+
+
 
 
 
