@@ -33,7 +33,18 @@ class JQueryAdapter extends Adapter
     for p in properties then jQuery(event.target).attr(p)
 
   swap: (element, content) ->
-    jQuery(element).text(content) #FIXME use text ?
+    tag = @get_attr(element, 'tagName')
+    if tag == "INPUT" || tag == "TEXTAREA"
+      jQuery(element).val(content)
+    else
+      jQuery(element).text(content) #FIXME use text ?
+
+  get_attr: (element, attr) ->
+    if attr.indexOf('data') == 0
+      attr = attr.substring(5, attr.length)
+      jQuery(element).data(attr)
+    else
+      jQuery(element).prop(attr)
 
   set_attr: (element, attr, value) ->
     jQuery(element).attr(attr, value)
@@ -48,4 +59,14 @@ class JQueryAdapter extends Adapter
     jQuery(element).text("")
 
   text: (element) ->
-    jQuery(element).text()
+    tag  = @get_attr(element, 'tagName')
+    type = @get_attr(element, 'type')
+    if tag == "INPUT" || tag == "TEXTAREA"
+      if type == "checkbox" || type == "radio"
+        jQuery("#{element}:checked").val()
+      else
+        jQuery(element).val()
+    else if tag == "SELECT"
+      jQuery("#{element} option:selected").val()
+    else
+      jQuery(element).text()
