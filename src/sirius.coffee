@@ -321,9 +321,9 @@ Sirius.RouteSystem =
         r404 = routes['404'] || routes[404]
         if r404
           if Sirius.Utils.is_function(r404)
-            r404(current)
+            wrapper(r404)(current)
           else
-            (new Sirius.ControlFlow(r404)).handle_event(null, current)
+            (new Sirius.ControlFlow(r404, wrapper)).handle_event(null, current)
 
       false
 
