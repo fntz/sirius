@@ -12,6 +12,7 @@
 + Javascript framework free — you may create a Adapter for own framework or use for `jQuery` or `prototypejs` adapters.
 + Routing - routing from hash changes, from events, from custom events
 + Possible use plain routing, if browser not support plain routing, then `Sirius` automatically switch to hash-based routing
++ Include MVVM Support
 + Easy for understanding
 
 You only need define Route for you application.
