@@ -146,9 +146,6 @@ class Sirius.ControlFlow
 
     @action = wrapper(action)
 
-    if !Sirius.Utils.is_function(@action) && !Sirius.Utils.is_string(@action)
-      throw new Error("Action must be string or function")
-
     extract = (property, is_guard = false) =>
       p = params[property]
       k = controller["#{property}_#{act}"]
