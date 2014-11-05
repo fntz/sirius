@@ -121,8 +121,8 @@ class Sirius.RoutePart
 #
 class Sirius.ControlFlow
 
-  # @param params [Object] - object from route
-  #
+  # @param params  [Object] - object from route
+  # @param wrapper [Function] - wrap action in this function, used for shared helpers between all controllers
   # `params` is a object with have a next keys `controller`, `action`, `before`, `after`, `data`, `guard`.
   # @note `controller` required
   # @note `action` required
@@ -131,18 +131,20 @@ class Sirius.ControlFlow
   # @note `guard` must be a string, where string is a method from `controller` or function
   # @note you might create in controller method with name: `before_x`, where `x` you action, then you may not specify `before` into params, it automatically find and assigned as `before` method, the same for `after` and `guard`
   # @note `data` must be a string, or array of string
-  constructor: (params) ->
+  constructor: (params, wrapper = (x) -> x) ->
     controller = params['controller'] || throw new Error("Params must contain a Controller")
 
 
     act = params['action']
 
-    @action = if Sirius.Utils.is_string(act)
+    action = if Sirius.Utils.is_string(act)
                 controller[act]
               else if Sirius.Utils.is_function(act)
                 act
               else
                 throw new Error("Action must be string or function");
+
+    @action = wrapper(action)
 
     if !Sirius.Utils.is_function(@action) && !Sirius.Utils.is_string(@action)
       throw new Error("Action must be string or function")
@@ -238,12 +240,21 @@ Sirius.RouteSystem =
     redirect_to_hash   = setting["old"]
     push_state_support = setting["support"]
 
+    # context should be null for functions without controller
+    wrapper = (fn) ->
+      #console.log Sirius.Application.controller_wrapper
+      for key, value of Sirius.Application.controller_wrapper
+        @[key] = value
+
+      fn
+
+
     # set routing by event
     for url, action of routes when @_event_route(url)
       handler = if Sirius.Utils.is_function(action)
-        action
+        wrapper(action)
       else
-        (e) -> (new Sirius.ControlFlow(action)).handle_event(e)
+        (e) -> (new Sirius.ControlFlow(action, wrapper)).handle_event(e)
 
       z = url.match(/^([a-zA-Z:]+)(\s+)?(.*)?/)
       event_name = z[1]
@@ -253,12 +264,18 @@ Sirius.RouteSystem =
     # for cache change obj[k, v] to array [[k,v]]
     array_of_routes = for url, action of routes when @_hash_route(url)
       url    = new Sirius.RoutePart(url)
-      action = if Sirius.Utils.is_function(action) then action else new Sirius.ControlFlow(action)
+      action = if Sirius.Utils.is_function(action)
+                 action
+               else
+                 new Sirius.ControlFlow(action)
       [url, action]
 
     plain_routes = for url, action of routes when @_plain_route(url)
       url    = new Sirius.RoutePart(url)
-      action = if Sirius.Utils.is_function(action) then action else new Sirius.ControlFlow(action)
+      action = if Sirius.Utils.is_function(action)
+                 action
+               else
+                 new Sirius.ControlFlow(action)
       [url, action]
 
     dispatcher = (e) ->
@@ -345,7 +362,7 @@ Sirius.RouteSystem =
 #   }
 #   my_logger = function(msg) { console.log("Log: " + msg); }
 #
-#   Sirius.Application({ route : routes, logger: my_logger, log: true, start: "#/" });
+#   Sirius.Application.run({ route : routes, logger: my_logger, log: true, start: "#/" });
 #
 Sirius.Application =
   ###
@@ -415,8 +432,8 @@ Sirius.Application =
     @logger  = options["logger"]  || @logger
     @start   = options["start"]   || @start
 
-    @controller_wrapper = for key, value in (options["controller_wrapper"] || {})
-                            @controller_wrapper[key] = options["controller_wrapper"][key]
+    for key, value of (options["controller_wrapper"] || {})
+      @controller_wrapper[key] = value
 
     @hash_always_on_top = options["hash_always_on_top"] || @hash_always_on_top
     @use_hash_routing_for_old_browsers = options["use_hash_routing_for_old_browsers"] || @use_hash_routing_for_old_browsers
