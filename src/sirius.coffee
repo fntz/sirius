@@ -262,17 +262,17 @@ Sirius.RouteSystem =
     array_of_routes = for url, action of routes when @_hash_route(url)
       url    = new Sirius.RoutePart(url)
       action = if Sirius.Utils.is_function(action)
-                 action
+                 wrapper(action)
                else
-                 new Sirius.ControlFlow(action)
+                 new Sirius.ControlFlow(action, wrapper)
       [url, action]
 
     plain_routes = for url, action of routes when @_plain_route(url)
       url    = new Sirius.RoutePart(url)
       action = if Sirius.Utils.is_function(action)
-                 action
+                 wrapper(action)
                else
-                 new Sirius.ControlFlow(action)
+                 new Sirius.ControlFlow(action, wrapper)
       [url, action]
 
     dispatcher = (e) ->
