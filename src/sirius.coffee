@@ -1,12 +1,12 @@
 ###!
-#  Sirius.js v0.2.1
+#  Sirius.js v0.3.0
 #  (c) 2014 fntzr
 #  license: MIT
 ###
 
 #
 # @author fntzr <fantazuor@gmal.com>
-# @version 0.2.1
+# @version 0.3.0
 # @mixin
 # A main module, which included methods and classes for work with application.
 Sirius =
@@ -370,6 +370,13 @@ Sirius.Application =
   start : false
 
   ###
+    a shared methods for controllers
+  ###
+  controller_wrapper: {
+    redirect: Sirius.redirect
+  } #fixme add redirect and then merge with user
+
+  ###
     when, false, then hash will be add into last for url, for true, no
     false:
       "http://example.com/" - start
@@ -407,6 +414,10 @@ Sirius.Application =
     @route   = options["route"]   || @route
     @logger  = options["logger"]  || @logger
     @start   = options["start"]   || @start
+
+    @controller_wrapper = for key, value in (options["controller_wrapper"] || {})
+                            @controller_wrapper[key] = options["controller_wrapper"][key]
+
     @hash_always_on_top = options["hash_always_on_top"] || @hash_always_on_top
     @use_hash_routing_for_old_browsers = options["use_hash_routing_for_old_browsers"] || @use_hash_routing_for_old_browsers
     @logger("Logger enabled? #{@log}")
