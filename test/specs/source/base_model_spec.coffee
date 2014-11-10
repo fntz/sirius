@@ -109,6 +109,22 @@ describe "BaseModel", ->
         expect(obj["group"][0]["name"]).toEqual(json["group"][0]["name"])
 
       it "from_json", ->
+        `var c = function(){console.log(m);}`
+        json = JSON.stringify({"id":1,"group":[{"name":"group-0","person_id":1},{"name":"group-1","person_id":1}],"name":{"name":"abc","person_id":1}})
+
+        person = Person.from_json(json, {group: Group, name: Name});
+
+        expect(p0.id()).toEqual(person.id())
+        expect(p0.name().name()).toEqual(person.name().name())
+        expect(p0.group()[0].person_id()).toEqual(person.group()[0].person_id())
+        expect(person.group().length).toEqual(2)
+
+        person = Person.from_json(json)
+
+        expect(p0.id()).toEqual(person.id())
+        expect(person.name()["name"]).toEqual(p0.name().name())
+        expect(p0.group()[0].person_id()).toEqual(person.group()[0]["person_id"])
+        expect(person.group().length).toEqual(2)
 
   it "guid", ->
     a = new UModel()
