@@ -9,7 +9,6 @@ end
 get '/:dir/:file' do
   file = params[:file]
   dir  = params[:dir]
-
   if file.end_with?("css")
     content_type "text/css"
   elsif file.end_with?("js")
