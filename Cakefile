@@ -42,9 +42,6 @@ install = () ->
   deps = [
     "https://ajax.googleapis.com/ajax/libs/prototype/1.7.2.0/prototype.js",
     "https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.js",
-    "https://raw.githubusercontent.com/visionmedia/mocha/master/mocha.js",
-    "https://raw.githubusercontent.com/visionmedia/mocha/master/mocha.css",
-    "http://chaijs.com/chai.js",
     "https://github.com/yui/yuicompressor/releases/download/v2.4.8/yuicompressor-2.4.8.jar"
   ]
   try
