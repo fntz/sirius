@@ -3,7 +3,7 @@ require 'sinatra'
 set :public_folder, File.dirname(__FILE__)
 
 get '/' do
-   File.read("#{File.dirname(__FILE__)}/test.html")
+   File.read("#{File.dirname(__FILE__)}/SpecRunner.html")
 end
 
 get '/:dir/:file' do

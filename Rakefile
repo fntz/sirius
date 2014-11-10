@@ -40,8 +40,13 @@ end
 
 desc "Compile fixtures"
 task :test => [:build] do
-  %x(coffee -b -c test/fixtures.coffee)
-  system("ruby test/app.rb")
+
+  #%x(coffee -b -c test/fixtures.coffee)
+  Dir["test/specs/source/*"].each do |file|
+    name = File.basename(file, ".coffee")
+    %x(coffee -o test/specs/compile -b -c #{file})
+  end
+  #system("ruby test/app.rb")
 end
 
 desc "Compile to javascript"

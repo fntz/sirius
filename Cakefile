@@ -21,18 +21,18 @@ minify = () ->
 
 test = () ->
   build()
-  exe("coffee -b -c test/fixtures.coffee")
+  exe("source -b -c test/fixtures.source")
 
 build = () ->
   fs.readdir("src/", (err, files) ->
     if !err
       without_adapter = for f in files when f.indexOf("adapter") == -1 then "src/#{f}"
       output0 = without_adapter.join(" ")
-      output_jquery = "src/adapter.coffee src/jquery_adapter.coffee"
-      output_prototype = "src/adapter.coffee src/prototype_js_adapter.coffee"
-      exe("coffee -b -j sirius.js -o lib/ -c #{output0}")
-      exe("coffee -b -j jquery_adapter.js -o lib/ -c #{output_jquery}")
-      exe("coffee -b -j prototypejs_adapter.js -o lib/ -c #{output_prototype}")
+      output_jquery = "src/adapter.source src/jquery_adapter.source"
+      output_prototype = "src/adapter.source src/prototype_js_adapter.source"
+      exe("source -b -j sirius.js -o lib/ -c #{output0}")
+      exe("source -b -j jquery_adapter.js -o lib/ -c #{output_jquery}")
+      exe("source -b -j prototypejs_adapter.js -o lib/ -c #{output_prototype}")
     else
       log("build error #{err}")
   )

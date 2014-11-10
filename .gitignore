@@ -5,3 +5,4 @@ lib/
 test/fixtures.js
 doc/
 Gemfile.lock
+test/specs/compile
