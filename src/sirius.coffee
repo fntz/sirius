@@ -25,8 +25,15 @@ Sirius =
 #     }
 #
 Sirius.redirect = (url) ->
-  location.replace(url)
+  app = Sirius.Application
 
+  if url.indexOf("#") == 0
+    if app.hash_always_on_top && app.push_state_support
+      origin = window.location.origin
+      history.replaceState({href: url}, "#{url}", "#{origin}/#{url}")
+  else
+    if app.push_state_support
+      history.pushState({href: url}, "#{url}", url)
 
 # @private
 # Class for map urls.
@@ -443,7 +450,7 @@ Sirius.Application =
     @logger("Current browser: #{navigator.userAgent}")
 
 
-    push_state_support = if history.pushState then true else false
+    @push_state_support = if history.pushState then true else false
     @logger("History pushState support: #{push_state_support}")
 
     if !push_state_support && !@use_hash_routing_for_old_browsers
@@ -467,7 +474,7 @@ Sirius.Application =
     setting =
       old: @use_hash_routing_for_old_browsers
       top: @hash_always_on_top
-      support: push_state_support
+      support: @push_state_support
 
     # start
     R.create @route, setting, () => @adapter.fire(document, "application:run", new Date())
