@@ -50,17 +50,4 @@ describe "Collections", ->
     expect(mc.first().compare(mc.last())).toBeTruthy()
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  pending "sync"
