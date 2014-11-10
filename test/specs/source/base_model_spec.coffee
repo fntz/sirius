@@ -99,6 +99,14 @@ describe "BaseModel", ->
     describe "JSON", ->
 
       it "to_json", ->
+        obj = {"id":1,"group":[{"name":"group-0","person_id":1},{"name":"group-1","person_id":1}],"name":{"name":"abc","person_id":1}};
+        json = JSON.parse(p0.to_json())
+
+        expect(obj["id"]).toEqual(json["id"])
+        expect(obj["name"]["person_id"]).toEqual(json["name"]["person_id"])
+        expect(obj["name"]["name"]).toEqual(json["name"]["name"])
+        expect(json["group"].length).toEqual(2)
+        expect(obj["group"][0]["name"]).toEqual(json["group"][0]["name"])
 
       it "from_json", ->
 
