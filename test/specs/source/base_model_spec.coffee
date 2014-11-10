@@ -66,8 +66,35 @@ describe "BaseModel", ->
 
   describe "Relations", ->
 
-    it "has_*", ->
+    p0 = new Person({id: 1})
+    p1 = new Person({id: 2})
+    n0 = new Name({name: "abc"})
+    n1 = new Name({name: "qwe"})
+    g0 = new Group({name: "group-0"})
+    g1 = new Group({name: "group-1"})
+    g2 = new Group({name: "group-2"})
 
+    p0.add_group(g0)
+    p0.add_group(g1)
+    p1.add_group(g2)
+    p0.add_name(n0)
+
+    it "has_*", ->
+      expect(p0.attributes.length).toEqual(3)
+      expect(p0.group().length).toEqual(2)
+
+      expect(p1.group().length).toEqual(1)
+
+      # feedback
+      expect(g0.attributes.length).toEqual(2)
+
+      expect(g0.get('person_id')).toEqual(1)
+      expect(g1.get('person_id')).toEqual(1)
+      expect(g2.get('person_id')).toEqual(2)
+
+      expect(() ->
+        p0.add_name(n1)
+      ).toThrowError()
 
     describe "JSON", ->
 
