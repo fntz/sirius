@@ -1,0 +1,2 @@
+describe "BaseModel", ->
+  it "example", ->
