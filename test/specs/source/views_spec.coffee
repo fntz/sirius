@@ -92,3 +92,5 @@ describe "View", ->
         it "#prepend", ->
           view.render("content").prepend()
           expect($(element).text()).toEqual(" text: content default")
+
+          
