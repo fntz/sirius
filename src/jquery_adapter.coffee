@@ -47,7 +47,10 @@ class JQueryAdapter extends Adapter
       jQuery(element).prop(attr)
 
   set_attr: (element, attr, value) ->
-    jQuery(element).attr(attr, value)
+    if attr.indexOf('data-') == -1
+      jQuery(element).attr(attr, value)
+    else
+      jQuery(element).data(attr.replace("data-", ""), value)
 
   append: (element, content) ->
     tag = @get_attr(element, 'tagName')
