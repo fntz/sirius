@@ -151,6 +151,8 @@ class Sirius.ControlFlow
               else
                 throw new Error("Action must be string or function");
 
+    throw new Error("action #{act} not found in controller #{controller}") if !action
+
     @action = wrapper(action)
 
     extract = (property, is_guard = false) =>
