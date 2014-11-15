@@ -1,5 +1,4 @@
 describe "View", ->
-  `var c = function(m){console.log(m);};`
 
   Sirius.Application.adapter = new JQueryAdapter()
 
@@ -93,4 +92,3 @@ describe "View", ->
           view.render("content").prepend()
           expect($(element).text()).toEqual(" text: content default")
 
-          
