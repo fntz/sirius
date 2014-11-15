@@ -5,10 +5,10 @@ describe "View", ->
 
   describe "Elements", ->
     describe "Input Text element", ->
-      describe "for value", ->
-        element = "#txt"
-        view = new Sirius.View(element)
+      element = "#txt"
+      view = new Sirius.View(element)
 
+      describe "for value", ->
         beforeEach () ->
           $(element).val("default")
 
@@ -25,26 +25,33 @@ describe "View", ->
           expect($(element).val()).toEqual("new valuedefault")
 
       describe "for attribute", ->
-        pending "#swap change attribute with new content", ->
-        pending "#append add content into attribute", ->
-        pending "#prepend content before attribute", ->
+        beforeEach () ->
+          $(element).removeClass().addClass("input-class")
+          $(element).removeData('name').data('name', 'input')
 
-    describe "Input Checkbox element", ->
-      describe "for value", ->
+        it "#swap change attribute with new content", ->
+          view.render("new-class").swap('class')
+          expect($(element).attr('class')).toEqual("new-class")
 
+        it "#append add content into attribute", ->
+          view.render("new-class").append('class', 'data-name')
+          expect($(element).attr('class')).toEqual("input-classnew-class")
+          expect($(element).data('name')).toEqual("inputnew-class")
 
-      describe "for attribute", ->
-
-
-    describe "Input Radio element", ->
-      describe "for value", ->
-
-      describe "for attribute", ->
+        it "#prepend content before attribute", ->
+          view.render("new-class").prepend('class', 'data-name')
+          expect($(element).attr('class')).toEqual("new-classinput-class")
+          expect($(element).data('name')).toEqual("new-classinput")
 
     describe "Select element", ->
+      element = "#views-select"
+      view = new Sirius.View(element)
+
       describe "for value", ->
 
-      describe "for attribute", ->
+        it "should swap option in select element", ->
+          view.render("val3").swap()
+          expect($(element).val()).toEqual("val3")
 
     describe "DIV element", ->
       describe "for value [inner text]", ->
