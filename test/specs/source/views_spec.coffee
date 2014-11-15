@@ -1,11 +1,28 @@
 describe "View", ->
+  `var c = function(m){console.log(m);};`
+
+  Sirius.Application.adapter = new JQueryAdapter()
 
   describe "Elements", ->
     describe "Input Text element", ->
       describe "for value", ->
-        pending "#swap should change value", ->
-        pending "#append should add text into value", ->
-        pending "#prepend should prepend text before original", ->
+        element = "#txt"
+        view = new Sirius.View(element)
+
+        beforeEach () ->
+          $(element).val("default")
+
+        it "#swap should change value", ->
+          view.render("new value").swap()
+          expect($(element).val()).toEqual("new value")
+
+        it "#append should add text into value", ->
+          view.render("new value").append()
+          expect($(element).val()).toEqual("defaultnew value")
+
+        it "#prepend should prepend text before original", ->
+          view.render("new value").prepend()
+          expect($(element).val()).toEqual("new valuedefault")
 
       describe "for attribute", ->
         pending "#swap change attribute with new content", ->
@@ -34,7 +51,7 @@ describe "View", ->
         pending "#swap change content", ->
         pending "#append add new content in end", ->
         pending "#prepend add new content in start", ->
-        
+
 
       describe "for attribute", ->
 
