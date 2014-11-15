@@ -32,25 +32,46 @@ class Sirius.View
   # swap content for given element
   # @return null
   swap: (attributes...) ->
-
-    real_attributes = for a in attributes when a != null then a
-    if real_attributes.length == 0
-      Sirius.Application.adapter.swap(@element, @_result)
-    else
-      for attr in real_attributes
-        Sirius.Application.adapter.set_attr(@element, attr, @_result)
-    null
+    @_apply_strategy
+      attributes: for a in attributes when a != null then a
+      name : 'swap'
+      transform: (old, result) -> "#{result}"
 
   # append to current element new content in bottom
+  # @param [Array] list of attributes for append new value
+  # when attributes is empty(is default for text|value) then only append
   # @return null
-  append: () ->
-    Sirius.Application.adapter.append(@element, @_result)
-    null
+  append: (attributes...) ->
+    @_apply_strategy
+      attributes: for a in attributes when a != null then a
+      name : 'append'
+      transform: (old, result) -> "#{old}#{result}"
 
   # prepend to current element new content in top
-  prepend: () ->
-    Sirius.Application.adapter.prepend(@element, @_result)
+  # @return null
+  prepend: (attributes...) ->
+    @_apply_strategy
+      attributes: for a in attributes when a != null then a
+      name : 'prepend'
+      transform: (old, result) -> "#{result}#{old}"
+
+
+
+
+  _apply_strategy: (object = {attributes: [], name: 'swap', transform: (old, result) -> "#{result}" }) ->
+    adapter = Sirius.Application.adapter
+    if object.attributes.length == 0
+      adapter[object.name](@element, @_result)
+    else
+      for attr in object.attributes
+        do(attr) =>
+          if attr == 'text'
+            adapter[object.name](@element, @_result)
+          else
+            old_val = adapter.get_attr(@element, attr)
+            adapter.set_attr(@element, attr, object.transform(old_val, @_result))
     null
+
 
   # clear element content
   clear: () ->
