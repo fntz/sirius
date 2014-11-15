@@ -40,6 +40,7 @@ class Sirius.View
   # append to current element new content in bottom
   # @param [Array] list of attributes for append new value
   # when attributes is empty(is default for text|value) then only append
+  # @note this strategy not work for SELECT element
   # @return null
   append: (attributes...) ->
     @_apply_strategy
@@ -48,6 +49,7 @@ class Sirius.View
       transform: (old, result) -> "#{old}#{result}"
 
   # prepend to current element new content in top
+  # @note this strategy not work for SELECT element
   # @return null
   prepend: (attributes...) ->
     @_apply_strategy
@@ -57,7 +59,7 @@ class Sirius.View
 
 
 
-
+  # @nodoc
   _apply_strategy: (object = {attributes: [], name: 'swap', transform: (old, result) -> "#{result}" }) ->
     adapter = Sirius.Application.adapter
     if object.attributes.length == 0

@@ -34,7 +34,7 @@ class JQueryAdapter extends Adapter
 
   swap: (element, content) ->
     tag = @get_attr(element, 'tagName')
-    if tag == "INPUT" || tag == "TEXTAREA"
+    if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
       jQuery(element).val(content)
     else
       jQuery(element).text(content) #FIXME use text ?
