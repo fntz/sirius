@@ -73,3 +73,22 @@ describe "View", ->
           expect($(element).text()).toEqual("new contentdefault")
 
 
+    describe "With Custom Transform method", ->
+      element = "#content"
+      view = new Sirius.View(element, (txt) -> " text: #{txt} ")
+
+      describe "for inner text", ->
+        beforeEach () ->
+          $(element).text("default")
+
+        it "#swap", ->
+          view.render("content").swap()
+          expect($(element).text()).toEqual(" text: content ")
+
+        it "#append", ->
+          view.render("content").append()
+          expect($(element).text()).toEqual("default text: content ")
+
+        it "#prepend", ->
+          view.render("content").prepend()
+          expect($(element).text()).toEqual(" text: content default")
