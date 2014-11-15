@@ -455,12 +455,12 @@ Sirius.Application =
     @push_state_support = if history.pushState then true else false
     @logger("History pushState support: #{push_state_support}")
 
-    if !push_state_support && !@use_hash_routing_for_old_browsers
+    if !@push_state_support && !@use_hash_routing_for_old_browsers
       @logger("Warning! You browser not support pushState, and you disable hash routing for old browser")
 
     R = Sirius.RouteSystem
 
-    if @use_hash_routing_for_old_browsers and !push_state_support
+    if @use_hash_routing_for_old_browsers and !@push_state_support
       # convert to new routing
       urls = [] #save urls into array, for check collision
       route = {}
