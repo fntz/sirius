@@ -92,3 +92,27 @@ describe "View", ->
           view.render("content").prepend()
           expect($(element).text()).toEqual(" text: content default")
 
+    describe "Event", ->
+      element = "#content"
+      view = new Sirius.View(element)
+      pp1 = pp2 = null
+
+      beforeEach () ->
+
+        Sirius.Application.run
+          route :
+            "event:click": (e1, e2, p1, p2) ->
+              pp1 = p1
+              pp2 = p2
+          adapter: new JQueryAdapter()
+
+        p1 = 1
+        p2 = "abc"
+
+        view.on("click", "event:click", p1, p2)
+        $(element).trigger("click")
+
+
+      it "should fire custom event and pass params", ->
+        expect(pp1).toEqual(1)
+        expect(pp2).toEqual("abc")
