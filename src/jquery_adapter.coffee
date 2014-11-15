@@ -50,10 +50,21 @@ class JQueryAdapter extends Adapter
     jQuery(element).attr(attr, value)
 
   append: (element, content) ->
-    jQuery(element).append(content)
+    tag = @get_attr(element, 'tagName')
+    if tag == "INPUT" || tag == "TEXTAREA"
+      old_val = jQuery(element).val()
+      jQuery(element).val("#{old_val}#{content}")
+    else
+      jQuery(element).append(content)
+
 
   prepend: (element, content) ->
-    jQuery(element).prepend(content)
+    tag = @get_attr(element, 'tagName')
+    if tag == "INPUT" || tag == "TEXTAREA"
+      old_val = jQuery(element).val()
+      jQuery(element).val("#{content}#{old_val}")
+    else
+      jQuery(element).prepend(content)
 
   clear: (element) ->
     jQuery(element).text("")
