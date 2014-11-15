@@ -18,6 +18,9 @@ class Sirius.View
 
   name: () -> 'View' # define name, because not work in IE: constructor.name
 
+  # @param [String] - selector for element
+  # @param [Function] - transform function for new content
+  #
   constructor: (@element, clb = (txt) -> txt) ->
     @_result_fn = (args...) =>
       clb.apply(null, args...)
