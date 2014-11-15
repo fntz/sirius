@@ -35,13 +35,18 @@ task :install do
   end
 end
 
-desc "Compile fixtures"
-task :test => [:build] do
+desc "Compile test sources"
+task :test_compile do
+  puts "===== recompile..."
   %x(coffee -b -c test/fixtures.coffee)
   Dir["test/specs/source/*"].each do |file|
     name = File.basename(file, ".coffee")
     %x(coffee -o test/specs/compile -b -c #{file})
   end
+end
+
+desc "Run test app"
+task :test => [:build, :test_compile] do
   system("ruby test/app.rb")
 end
 
