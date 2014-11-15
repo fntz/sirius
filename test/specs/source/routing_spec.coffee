@@ -69,32 +69,33 @@ describe "Routing", ->
       expect(r.args.length).toEqual(0)
 
 
-  describe "Routing and Controllers", ->
-    it "Hash Routing", ->
+  describe "Routing and Controllers for Hash Routing and Event Routing", ->
+
+    postValue = errorValue = actionId = actionClass = titleValue = null
+    emptyValue = postXValue = eventCustomValue = nonEmptyValue = null
+    beforeEach (done) ->
       window.location.hash = ""
-      error = null
       Controller =
         error: (current) ->
-          error = current
-          #expect(current).toEqual("#/error")
+          errorValue = current
 
         action: (e, id, klass) ->
-          expect(id).toEqual("my-div")
-          expect(klass).toEqual("abc")
+          actionId = id
+          actionClass = klass
 
         title: (title) ->
-          expect(title).toEqual("abc")
+          titleValue = "abc"
+
 
       r =
-        "#/": () -> expect(arguments.length).toEqual(0)
+        "#/": () -> emptyValue = arguments.length
         "#/post/[0-9]+" : (id) ->
-          expect(arguments.length).toEqual(1)
-          expect(id).toEqual(12)
+          postValue = id
         "#/post/:title" : {controller: Controller, action: "title"}
-        "#/post/x/*": () -> expect(arguments.length).toEqual(3)
-        "#/static" : () -> expect(arguments.length).toEqual(0)
+        "#/post/x/*": () -> nonEmptyValue = arguments.length
+        "#/static" : () -> postXValue = arguments.length
         404: {controller: Controller, action: "error"}
-        "event:custom" : (e, p0) -> expect(p0).toEqual(0)
+        "event:custom" : (e, p0) -> eventCustomValue = p0
         "click #my-div": {controller: Controller, action: "action", data: ["id", "class"]}
 
       j = new JQueryAdapter()
@@ -132,7 +133,9 @@ describe "Routing", ->
         2000
       )
       setTimeout(
-        () ->  window.location.hash = ""
+        () ->
+          window.location.hash = ""
+          done()
         2400
       )
 
@@ -140,30 +143,40 @@ describe "Routing", ->
       $("#my-div").trigger("click")
 
 
-    it "Plain Routing", ->
+    it "test", (done)->
+
+      expect(postValue).toEqual("12")
+      expect(actionId).toEqual("my-div")
+      expect(actionClass).toEqual("abc")
+      expect(titleValue).toEqual("abc")
+      expect(errorValue).toEqual("#/error")
+      expect(emptyValue).toEqual(0)
+      expect(nonEmptyValue).toEqual(3)
+      expect(postXValue).toEqual(0)
+      expect(eventCustomValue).toEqual(0)
+      done()
+
+
+  describe "Routing and Controllers for Hash Routing", ->
+    emptyValue = postValue = titleValue = postXValue = staticValue = errorValue = null
+
+    beforeEach (done) ->
       $("body").append("<div id='links'></div>")
       arr = ["/", "/post/12", "/post/abc", "/post/x/a/b/c", "/static", "/error", "/"]
       for a in arr
         $('#links').append($("<a></a>").attr({'href':a}))
 
       Controller =
-        error: (current) ->
-          expect(current).toEqual("#/error")
-
-        title: (title) ->
-          expect(title).toEqual("abc")
-
+        error: (current) -> errorValue = current
+        title: (title) -> titleValue = title
 
       r =
-        "/": () -> expect(arguments.length).toEqual(0)
-        "/post/[0-9]+" : (id) ->
-          expect(arguments.length).toEqual(1)
-          expect(id).toEqual(12)
+        "/": () -> emptyValue = arguments.length
+        "/post/[0-9]+" : (id) -> postValue = id
         "/post/:title" : {controller: Controller, action: "title"}
-        "/post/x/*": () -> expect(arguments.length).toEqual(3)
-        "/static" : () -> expect(arguments.length).toEqual(0)
+        "/post/x/*": () -> postXValue = arguments.length
+        "/static" : () -> staticValue = arguments.length
         404: {controller: Controller, action: "error"}
-
 
       Sirius.Application.run({
         route: r,
@@ -174,9 +187,21 @@ describe "Routing", ->
         links = $("#links a")
         for l in links
           $(l).trigger("click")
-
+        done()
         2800
       )
+
+    it "test", (done) ->
+      expect(emptyValue).toEqual(0)
+      expect(postValue).toEqual("12")
+      expect(titleValue).toEqual("abc")
+      expect(errorValue).toEqual("/error")
+      expect(postXValue).toEqual(3)
+      expect(staticValue).toEqual(0)
+      done()
+
+
+
 
 
 
