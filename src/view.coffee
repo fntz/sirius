@@ -57,6 +57,30 @@ class Sirius.View
       name : 'prepend'
       transform: (old, result) -> "#{result}#{old}"
 
+  #
+  #
+  # @param [String] - event name
+  # @param [String] - custom event name, which will be fired on event name
+  # @param [Array]  - parameters which will be pass into method for custom event name
+  # @note  First param for bind method is an Custom Event
+  # @note  Second param for bind method is an Original Event
+  # @example
+  #    //html
+  #    <button id="click">click me</button>
+  #
+  #    //js
+  #    buttonView = Sirius.View("#click")
+  #    buttonView.on("click", "button:click", 'param1', 'param2', param3')
+  #
+  #    routes =
+  #      "button:click": (custom_event, original_event, p1, p2, p3) ->
+  #         # you code
+  on: (event_name, custom_event_name, params...) ->
+    adapter = Sirius.Application.adapter
+    adapter.bind(document, @element, event_name, (e) ->
+      params = [e].concat(params)
+      adapter.fire(document, custom_event_name, params...)
+    )
 
 
   # @nodoc
