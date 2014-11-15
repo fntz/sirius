@@ -54,12 +54,22 @@ describe "View", ->
           expect($(element).val()).toEqual("val3")
 
     describe "DIV element", ->
+      element = "#content"
+      view = new Sirius.View(element)
       describe "for value [inner text]", ->
-        pending "#swap change content", ->
-        pending "#append add new content in end", ->
-        pending "#prepend add new content in start", ->
+        beforeEach () ->
+          $(element).text("default")
 
+        it "#swap change content", ->
+          view.render("new content").swap('text')
+          expect($(element).text()).toEqual("new content")
 
-      describe "for attribute", ->
+        it "#append add new content in end", ->
+          view.render("new content").append()
+          expect($(element).text()).toEqual("defaultnew content")
+
+        it "#prepend add new content in start", ->
+          view.render("new content").prepend()
+          expect($(element).text()).toEqual("new contentdefault")
 
 
