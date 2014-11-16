@@ -177,19 +177,18 @@ class Sirius.View
     `var c = function(m){console.log(m);};`
     adapter = Sirius.Application.adapter
     current = @element
-    to   = object_setting['to'] || null
-    from = object_setting['from'] || null
+    to   = object_setting['to']   || 'text'
+    from = object_setting['from'] || 'text'
 
     if klass
       if klass.name && klass.name() == "View"
         # {text: null, attribute: null}
         clb = (result) ->
           txt = result['text']
-          if txt && !result['attribute']
+          if txt && !result['attribute'] # for change text
             klass.render(txt).swap(to)
           else
-            c "not implemented #1"
-            c result
+            klass.render(txt).swap(to)
         new Sirius.Observer(current, clb)
       else # then it's Sirius.Model
         children = adapter.all("#{current} *")

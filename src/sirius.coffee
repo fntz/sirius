@@ -5,7 +5,7 @@
 ###
 
 #
-# @author fntzr <fantazuor@gmal.com>
+# @author fntzr <fantazuor@gmail.com>
 # @version 0.4.1
 # @mixin
 # A main module, which included methods and classes for work with application.
