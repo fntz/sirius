@@ -7,27 +7,7 @@
   <link rel="shortcut icon" type="image/png" href="jasmine-standalone-2.0.3/lib/jasmine-2.0.3/jasmine_favicon.png">
   <link rel="stylesheet" type="text/css" href="jasmine-standalone-2.0.3/lib/jasmine-2.0.3/jasmine.css">
 
-  <script type="text/javascript" src="../vendor/jquery.js"></script>
 
-  <script type="text/javascript" src="jasmine-standalone-2.0.3/lib/jasmine-2.0.3/jasmine.js"></script>
-  <script type="text/javascript" src="jasmine-standalone-2.0.3/lib/jasmine-2.0.3/jasmine-html.js"></script>
-  <script type="text/javascript" src="jasmine-standalone-2.0.3/lib/jasmine-2.0.3/boot.js"></script>
-  <script type="text/javascript" src="jasmine-standalone-2.0.3/lib/jasmine-2.0.3/jasmine-fixture.js"></script>
-  <script type="text/javascript" src="jasmine-standalone-2.0.3/lib/jasmine-2.0.3/jasmine-jquery.js"></script>
-
-  <!-- include source files here... -->
-  <script type="text/javascript" src="../lib/jquery_adapter.js"></script>
-  <script type="text/javascript" src="../lib/sirius.js"></script>
-  <script type="text/javascript" src="fixtures.js"></script>
-  <!-- include spec files here... -->
-  <script type="text/javascript" src="specs/compile/base_model_spec.js"></script>
-  <script type="text/javascript" src="specs/compile/binding_spec.js"></script>
-  <script type="text/javascript" src="specs/compile/collection_spec.js"></script>
-  <script type="text/javascript" src="specs/compile/control_flow_spec.js"></script>
-  <script type="text/javascript" src="specs/compile/form_spec.js"></script>
-  <script type="text/javascript" src="specs/compile/routing_spec.js"></script>
-  <script type="text/javascript" src="specs/compile/validation_spec.js"></script>
-  <script type="text/javascript" src="specs/compile/views_spec.js"></script>
 
 </head>
 
@@ -45,6 +25,42 @@
   </select>
   <div id="content"></div>
 </div>
+<div class="view2view">
+  <div class="attribute2text">
+    <div class="element" data-name="element"></div>
+    <div class="related-div"></div>
+    <input class="related-input" />
+    <select class="related-select">
+      <option value="val1">val1</option>
+      <option value="val2">val2</option>
+      <option value="val3">val3</option>
+    </select>
+  </div>
+</div>
+
+
+
+<script type="text/javascript" src="../vendor/jquery.js"></script>
+
+<script type="text/javascript" src="jasmine-standalone-2.0.3/lib/jasmine-2.0.3/jasmine.js"></script>
+<script type="text/javascript" src="jasmine-standalone-2.0.3/lib/jasmine-2.0.3/jasmine-html.js"></script>
+<script type="text/javascript" src="jasmine-standalone-2.0.3/lib/jasmine-2.0.3/boot.js"></script>
+<script type="text/javascript" src="jasmine-standalone-2.0.3/lib/jasmine-2.0.3/jasmine-fixture.js"></script>
+<script type="text/javascript" src="jasmine-standalone-2.0.3/lib/jasmine-2.0.3/jasmine-jquery.js"></script>
+
+<!-- include source files here... -->
+<script type="text/javascript" src="../lib/jquery_adapter.js"></script>
+<script type="text/javascript" src="../lib/sirius.js"></script>
+<script type="text/javascript" src="fixtures.js"></script>
+<!-- include spec files here... -->
+<script type="text/javascript" src="specs/compile/base_model_spec.js"></script>
+<script type="text/javascript" src="specs/compile/binding_spec.js"></script>
+<script type="text/javascript" src="specs/compile/collection_spec.js"></script>
+<script type="text/javascript" src="specs/compile/control_flow_spec.js"></script>
+<script type="text/javascript" src="specs/compile/form_spec.js"></script>
+<script type="text/javascript" src="specs/compile/routing_spec.js"></script>
+<script type="text/javascript" src="specs/compile/validation_spec.js"></script>
+<script type="text/javascript" src="specs/compile/views_spec.js"></script>
 
 </body>
 </html>
