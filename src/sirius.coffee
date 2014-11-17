@@ -10,7 +10,7 @@
 # @mixin
 # A main module, which included methods and classes for work with application.
 Sirius =
-  VERSION: "0.4.1"
+  VERSION: "0.4.2"
 
 #
 # Redirect to given url.
