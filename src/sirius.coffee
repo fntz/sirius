@@ -141,6 +141,7 @@ class Sirius.ControlFlow
   constructor: (params, wrapper = (x) -> x) ->
     controller = params['controller'] || throw new Error("Params must contain a Controller")
 
+    `var c = function(m){console.log(m);};`
 
     act = params['action']
 
@@ -196,6 +197,8 @@ class Sirius.ControlFlow
       data   = if Sirius.Utils.is_array(@data) then @data else if @data then [@data] else []
       data   = Sirius.Application.adapter.get_property(e, data)
       merge  = [].concat([], [e], data)
+      # fix bug#4 when event is a custom event we should get a args for this event
+      merge  = [].concat([], merge, args...)
       if @guard
         if @guard.apply(null, merge)
           @before()
@@ -254,13 +257,13 @@ Sirius.RouteSystem =
 
       fn
 
-
     # set routing by event
     for url, action of routes when @_event_route(url)
       handler = if Sirius.Utils.is_function(action)
         wrapper(action)
       else
-        (e) -> (new Sirius.ControlFlow(action, wrapper)).handle_event(e)
+        (e, params...) ->
+          (new Sirius.ControlFlow(action, wrapper)).handle_event(e, params)
 
       z = url.match(/^([a-zA-Z:]+)(\s+)?(.*)?/)
       event_name = z[1]
