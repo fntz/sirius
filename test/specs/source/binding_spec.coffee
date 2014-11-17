@@ -56,24 +56,82 @@ describe "Binding", ->
         expect($(related_select).data('name')).toEqual(txt)
         done()
 
-    describe "text to attribute", ->
-      pending "change value in input change attribute for related element"
-      pending "change value in select change attribute for related element"
-      pending "change value in div change attribute for related element"
+    describe "/text to attribute/", ->
+      # from text to data-name attribute
+      div = ".text2attribute .div"
+      input = ".text2attribute .input"
+      select = ".text2attribute .select"
+      for_div = ".text2attribute .for-div"
+      for_input = ".text2attribute .for-input"
+      for_select = ".text2attribute .for-select"
+
+      divView = new Sirius.View(div)
+      forDiv = new Sirius.View(for_div)
+      inputView = new Sirius.View(for_input)
+      forInput = new Sirius.View(for_input)
+      selectView = new Sirius.View(select)
+      forSelect = new Sirius.View(for_select)
+
+      divView.bind(forDiv, {to: 'data-name'})
+      inputView.bind(forInput, {to: 'data-name'})
+      selectView.bind(forSelect, {to: 'data-name'})
+
+      value = "val3"
+
+      beforeEach (done) ->
+        for a in value
+          $(input).sendkeys(a)
+        $(div).text(value)
+
+        setTimeout(
+          () ->
+            done()
+          1000
+        )
+
+      it "change value in input|select|div change attribute for related element", (done) ->
+        expect($(for_div).data('name')).toEqual(value)
+        expect($(for_input).data('name')).toEqual(value)
+        #expect($(for_select).data('name')).toEqual(value)
+        done()
+
+
+  describe "View to Model", ->
+    # form to model
+    # text div to model
+    describe "view /text to model/ attribute", ->
+      form = ".view2model form.my-form"
+      formView = new Sirius.View(form)
+      model = new MyModel()
+
+      formView.bind(model)
+
+      description = "new description content"
+      title       = "title for model"
+
+      beforeEach (done) ->
+        for a in title
+          $("#{form} input[type='text']").sendkeys(a)
+        for a in description
+          $("#{form} textarea").sendkeys(a)
+
+        setTimeout(
+          () ->
+            done()
+          1000
+        )
+
+      it "change text in form should change model attributes", (done) ->
+        expect(model.title()).toEqual(title)
+        expect(model.description()).toEqual(description)
+        done()
+
+    describe "view attribute to model attribute", ->
+
 
 
   describe "Model to View", ->
     describe "model attribute to text", ->
 
 
-
     describe "model attribute to element attribute", ->
-
-
-  describe "View to Model", ->
-
-    describe "view text to model attribute", ->
-
-    describe "view attribute to model attribute", ->
-
-

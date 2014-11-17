@@ -58,7 +58,7 @@ class Sirius.View
       transform: (old, result) -> "#{result}#{old}"
 
   #
-  #
+  # @param [String] - selector in element
   # @param [String] - event name
   # @param [String] - custom event name, which will be fired on event name
   # @param [Array]  - parameters which will be pass into method for custom event name
@@ -75,12 +75,13 @@ class Sirius.View
   #    routes =
   #      "button:click": (custom_event, original_event, p1, p2, p3) ->
   #         # you code
-  on: (event_name, custom_event_name, params...) ->
+  on: (selector, event_name, custom_event_name, params...) ->
     adapter = Sirius.Application.adapter
-    adapter.bind(document, @element, event_name, (e) ->
-      params = [e].concat(params)
-      adapter.fire(document, custom_event_name, params...)
-    )
+    handler = (e) ->
+      adapter.fire.call(null, document, custom_event_name, e, params...)
+
+    adapter.bind(document, "#{@element} #{selector}", event_name, handler)
+    null
 
 
   # @nodoc
@@ -177,11 +178,11 @@ class Sirius.View
     `var c = function(m){console.log(m);};`
     adapter = Sirius.Application.adapter
     current = @element
-    to   = object_setting['to']   || 'text'
-    from = object_setting['from'] || 'text'
 
     if klass
       if klass.name && klass.name() == "View"
+        to   = object_setting['to']   || 'text'
+        from = object_setting['from'] || 'text'
         # {text: null, attribute: null}
         clb = (result) ->
           txt = result['text']
@@ -191,6 +192,9 @@ class Sirius.View
             klass.render(txt).swap(to)
         new Sirius.Observer(current, clb)
       else # then it's Sirius.Model
+        to   = object_setting['to']
+        from = object_setting['from']
+
         children = adapter.all("#{current} *")
         count    = children.length
 
@@ -209,16 +213,12 @@ class Sirius.View
           if !tmp_to && !to
             c "Error# need pass `to` attribute into `.bind` method or define `data-bind-to` or `name` into html element code"
 
-          to   = to   ? tmp_to
-          from = from ? tmp_from
+          to   = to is null ? tmp_to : to
+          from = from is null ? tmp_from : from
 
         else
           if to || from
             c "Error, `to` or `from` which pass into `bind` method, not taken use `data-bind-to` or `name` and `data-bind-from`"
-
-        # check if attribute present into model class
-        if klass.attributes.indexOf(to) == -1
-          c "Error attribute #{to} not exist in model class #{klass}"
 
         # when only one element in collection need wrap his in array
         children = if count == 0
@@ -233,20 +233,25 @@ class Sirius.View
             else
               adapter.get_attr(child, 'data-bind-to') || adapter.get_attr(child, 'name')
 
-            data_bind_from = if count == 0
-              from
-            else
-              adapter.get_attr(child, 'data-bind-from')
-
             if data_bind_to
-              clb = (result) ->
-                txt = result['text']
-                if txt && !data_bind_from
-                  klass[data_bind_to](txt)
-                if data_bind_from == result['attribute']
-                  klass[data_bind_to](txt)
+              # check if attribute present into model class
+              if klass.attributes.indexOf(data_bind_to) == -1
+                c "Error attribute #{to} not exist in model class #{klass}"
 
-              new Sirius.Observer(child, clb)
+              data_bind_from = if count == 0
+                from
+              else
+                adapter.get_attr(child, 'data-bind-from')
+
+              if data_bind_to
+                clb = (result) ->
+                  txt = result['text']
+                  if txt && !data_bind_from
+                    klass[data_bind_to](txt)
+                  if data_bind_from == result['attribute']
+                    klass[data_bind_to](txt)
+
+                new Sirius.Observer(child, clb)
 
     else
       if Sirius.Utils.is_function(klass)
