@@ -141,8 +141,6 @@ class Sirius.ControlFlow
   constructor: (params, wrapper = (x) -> x) ->
     controller = params['controller'] || throw new Error("Params must contain a Controller")
 
-    `var c = function(m){console.log(m);};`
-
     act = params['action']
 
     action = if Sirius.Utils.is_string(act)
@@ -197,7 +195,7 @@ class Sirius.ControlFlow
       data   = if Sirius.Utils.is_array(@data) then @data else if @data then [@data] else []
       data   = Sirius.Application.adapter.get_property(e, data)
       merge  = [].concat([], [e], data)
-      # fix bug#4 when event is a custom event we should get a args for this event
+      # fix bug#4 when event is a custom event we should get an args for this event
       merge  = [].concat([], merge, args...)
       if @guard
         if @guard.apply(null, merge)
@@ -251,7 +249,6 @@ Sirius.RouteSystem =
 
     # context should be null for functions without controller
     wrapper = (fn) ->
-      #console.log Sirius.Application.controller_wrapper
       for key, value of Sirius.Application.controller_wrapper
         @[key] = value
 
