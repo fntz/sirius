@@ -579,7 +579,7 @@ class Sirius.BaseModel
   # model.bind(view, {from: 'model-attribute', to: 'view-attribute'})
   # also `model-attribute` it might be a .errors?
   # FIXME also need when it logical element [radio, checkbox, select]  hot to use it?
-  # <span id="span-element" data-bind-model-from: 'title', data-bind-model-to='text'>
+  # <span id="span-element" data-bind-view-from: 'title', data-bind-view-to='text'>
   # when to text, then it inner text or value for input, #FIXME when it html, then use html for insert?
   # when it attribute need strategy
   #
