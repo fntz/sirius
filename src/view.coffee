@@ -111,73 +111,103 @@ class Sirius.View
 
 
   #
-  # when we have:
-  # ### 1 View to View relation with change text
-  #   view1.bind(view2)
-  # if view1 element have onchange event then we use this event
-  # if view1 element does not have onchange event we should use Dom level 3\4 events see #observer.coffee
+  # == bind
+  # This method bind current view and another view or model, or string.
   #
-  # ### 2 View to View relation with change attributes in View2
+  # === 1. View to View binding
   #
-  # for view1 we should use Dom level 3\4 events
-  # also we should know which attributes changed (filter), therefore
-  # view1.bind(view2, to: ["id"])
-  # when we change text in view1, then should changes in view2 id attribute
+  # We might bind two views, and when in first change some attribute (default is
+  # text content or value if it an input or textarea element), then changes the related
+  # attributes for second view.
   #
-  # ### 3 View to View relation change attributes in View1
+  # @example
+  #    // html source
+  #    <input type='text' id='v1' />
+  #    <input type='text' id='v2' data-bind-from='data-name' data-name='foo' />
+  #    <p id='v3'>text</p>
+  #    <span id='v4'></span>
+  #    <span id='v5' data-name=""></span>
   #
-  # view1.bind(view2, from: ["id"])
+  #    <span id='r1' data-bind-to='data-name'></span>
+  #    <span id='r2'></span>
+  #    <span id='r3'></span>
+  #    <textarea id='r4'></textarea>
+  #    <span id='r5'></span>
   #
-  # when change id in view1, we should change text in view2
+  #    # coffee
+  #    v1 = new Sirius.View('#v1')
+  #    v2 = new Sirius.View('#v2')
+  #    v3 = new Sirius.View('#v3')
+  #    v4 = new Sirius.View('#v4')
+  #    v5 = new Sirius.View('#v5')
   #
-  # ### 4 Combination of 3 and 4
-  # view1.bind(view2, from: ["id"], to: ["class"]
+  #    r1 = new Sirius.View('#v1')
+  #    r2 = new Sirius.View('#v2')
+  #    r3 = new Sirius.View('#v3')
+  #    r4 = new Sirius.View('#v4')
+  #    r5 = new Sirius.View('#v5')
   #
-  # ### 5 View Model relation
-  # when it's model, then need inspect element, and extract children from current element
+  #    # bind
+  #    v1.bind(r1)
+  #    v2.bind(r2)
+  #    v3.bind(r3)
+  #    v4.bind(r4)
+  #    v5.bind(r5, {from: 'data-name', to: 'data-name'}) # without create data-bind-* in html code
   #
-  # simple example, bind one element for one attribute:
-  #   <input id="title" type='text' />
+  #    # change some text or attribute
+  #    # change text in input, then:
+  #    $("#r1").data('name') # => user input
   #
-  #   view = Sirius.View("#title")
-  #   model = new MyModel()//model with attrs: [title, id, description]
-  #   # bind
-  #   view.bind(model, {to: 'title'})
-  #   # more ...
-  #   view.bind(model, {to: 'other-attribute'}) #error, because attribute not found
-  #   # or possible
-  #   <input id="title" type='text' data-bind-to='title' />
-  #   view.bind(model) #to extracted automatically
-  #   #or
-  #   <input id="title" type='text' name='title' />
-  #   # to = name in attributes
-  #   #or possible bind attribute
-  #   data-from='class'
-  #   or
-  #   view.bind(model, {to: 'title', from: 'class'})
+  #    # change attr in another input
+  #    $("#v2").data("bar")
+  #    $("#r2").data('name') # => bar
   #
+  #    # by default we bind text to text
+  #    $("#v3").text("new content")
+  #    $("#r3").text() # => new content
   #
-  #  more complex example
+  #    text to text
+  #    $("#v4").text("new content")
+  #    $("#r4").val() # => new content
   #
-  #   <div id="post">
-  #     <input type="text" data-bind-to='title' data-to='' />
-  #     <textarea data-bind='description' data-to='description'></textarea>
-  #   </div>
+  #    # attribute to attribute
+  #    $("#v5").data('name', "new name")
+  #    $("#r5").data('name') # => new name
   #
-  #   view.bind(model)
+  # You might bind text to text or text to attribute, or attribute to text, or attribute to attribute.
   #
-  # ### 6 View to any function relation
+  # === 2. View to Model
   #
+  # Change view attribute or text content will be change in model related attribute.
   #
-  # # TODO Also need strategy for change: swap, append, prepend or custom
-  # # TODO default value, when text: undefined
-  # # TODO back to after call callback, for example when user enter
-  # # input then with bind with model
-  # # after we return errors for view
-  # # is it possible?
-  # #
+  # You might bind html attribute or html content with any attribute in model.
+  #
+  #  @example
+  #     // html source code
+  #
+  #     <form id="form">
+  #       <input type='text' data-bind-to='title'>
+  #       <textarea data-bind-to='description'></textarea>
+  #     </form>
+  #
+  #     # coffee
+  #     view = new Sirius.View("#form")
+  #     my_model = new MyModel() # attributes: id, title, description
+  #     view.bind(my_model)
+  #
+  #     # When we enter input, then it change model attributes
+  #     my_model.title() # => user input
+  #     my_model.description() # => user input
+  #
+  # === 3. View to String
+  #
+  # When you pass into `bind` method string, then it create new `Sirius.View` for it string,
+  # and work as View to View.
+  #
+  # TODO: add strategies
   # @param [Any] - klass, another view\model\function
   # @param [Object] - hash with setting: [to, from]
+  # @return [Sirius.View]
   bind: (klass, object_setting = {}) ->
     `var c = function(m){console.log(m);};`
     adapter = Sirius.Application.adapter
@@ -204,25 +234,35 @@ class Sirius.View
 
         # before
         if count == 0
-          # then it single element and we need extract data-bind-to, data-bind-from and name
-          tmp_to   = adapter.get_attr(current, 'data-bind-to') || adapter.get_attr(current, 'name')
-          tmp_from = adapter.get_attr(current, 'data-bind-from')
+          # then it single element and we need extract data-bind-to, data-bind-from
+          tmp_to   = adapter.get_attr(current, 'data-bind-to')
+          tmp_from = adapter.get_attr(current, 'data-bind-from') || 'text'
 
           if to && tmp_to
-            c "You define `to` attribute twice"
+            new Error("Error: You define `to` attribute twice")
 
           if from && tmp_from
-            c "You define `from` attribute twice"
+            new Error("Error: You define `from` attribute twice")
 
           if !tmp_to && !to
-            c "Error# need pass `to` attribute into `.bind` method or define `data-bind-to` or `name` into html element code"
+            new Error("Error: need pass `to` attribute into `.bind` method or define `data-bind-to` into html element code")
 
-          to   = to is null ? tmp_to : to
-          from = from is null ? tmp_from : from
+          to   = if !to then tmp_to else to
+          from = if !from then tmp_from else from
+
+          clb = (result) =>
+            txt = result['text']
+            if txt && from == 'text'
+              klass.set(to, txt)
+            if from == result['attribute']
+              klass.set(to, txt)
+
+          new Sirius.Observer(@element, clb)
+
 
         else
           if to || from
-            c "Error, `to` or `from` which pass into `bind` method, not taken use `data-bind-to` or `name` and `data-bind-from`"
+            new  Error("Error: `to` or `from` which pass into `bind` method, not taken use `data-bind-to` or `name` and `data-bind-from`")
 
         # when only one element in collection need wrap his in array
         children = if count == 0
@@ -235,7 +275,7 @@ class Sirius.View
             data_bind_to = if count == 0
               to
             else
-              adapter.get_attr(child, 'data-bind-to') || adapter.get_attr(child, 'name')
+              adapter.get_attr(child, 'data-bind-to')
 
             if data_bind_to
               # check if attribute present into model class
@@ -258,8 +298,10 @@ class Sirius.View
                 new Sirius.Observer(child, clb)
 
     else
-      if Sirius.Utils.is_function(klass)
-        klass(@element)
+      if Sirius.Utils.is_string(klass)
+        @bind(new Sirius.View(klass))
+      else
+        new Error("Unsupported argument for `bind`. Need View, Model, or String.")
 
     @
 
