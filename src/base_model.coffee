@@ -625,7 +625,6 @@ class Sirius.BaseModel
   #
   bind: (view, object_setting = {}) ->
     throw new Error("`bind` only work with Sirius.View") if !(view.name && view.name() == "View")
-    `var c = function(m){console.log(m);};`
     to = object_setting['to'] || null
     from = object_setting['from'] || null
     callbacks = @callbacks

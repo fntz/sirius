@@ -247,25 +247,26 @@ Sirius.RouteSystem =
     redirect_to_hash   = setting["old"]
     push_state_support = setting["support"]
 
-    # context should be null for functions without controller
+    # wrap all controller actions
     wrapper = (fn) ->
       for key, value of Sirius.Application.controller_wrapper
         @[key] = value
 
       fn
-
+    
     # set routing by event
     for url, action of routes when @_event_route(url)
-      handler = if Sirius.Utils.is_function(action)
-        wrapper(action)
-      else
-        (e, params...) ->
-          (new Sirius.ControlFlow(action, wrapper)).handle_event(e, params)
+      do(url, action) ->
+        handler = if Sirius.Utils.is_function(action)
+          wrapper(action)
+        else
+          (e, params...) ->
+            (new Sirius.ControlFlow(action, wrapper)).handle_event(e, params)
 
-      z = url.match(/^([a-zA-Z:]+)(\s+)?(.*)?/)
-      event_name = z[1]
-      selector   = z[3] || document #when it a custom event: 'custom:event' for example
-      Sirius.Application.adapter.bind(document, selector, event_name, handler)
+        z = url.match(/^([a-zA-Z:]+)(\s+)?(.*)?/)
+        event_name = z[1]
+        selector   = z[3] || document #when it a custom event: 'custom:event' for example
+        Sirius.Application.adapter.bind(document, selector, event_name, handler)
 
     # for cache change obj[k, v] to array [[k,v]]
     array_of_routes = for url, action of routes when @_hash_route(url)
