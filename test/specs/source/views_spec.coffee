@@ -95,9 +95,10 @@ describe "View", ->
     describe "Event", ->
       element = "#content"
       view = new Sirius.View(element)
-      pp1 = pp2 = null
+      pp1 = null
+      pp2 = null
 
-      beforeEach () ->
+      beforeAll (done) ->
 
         Sirius.Application.run
           route :
@@ -109,9 +110,13 @@ describe "View", ->
         p1 = 1
         p2 = "abc"
 
-        view.on("click", "event:click", p1, p2)
-        $(element).trigger("click")
-
+        view.on(element, "click", "event:click", p1, p2)
+        setTimeout(
+          () ->
+            $(element).trigger("click")
+            done()
+          400
+        )
 
       it "should fire custom event and pass params", ->
         expect(pp1).toEqual(1)

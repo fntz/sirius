@@ -76,11 +76,15 @@ class Sirius.View
   #      "button:click": (custom_event, original_event, p1, p2, p3) ->
   #         # you code
   on: (selector, event_name, custom_event_name, params...) ->
+    selector = if selector == @element
+                 selector
+               else
+                 "#{@element} #{selector}"
     adapter = Sirius.Application.adapter
     handler = (e) ->
       adapter.fire.call(null, document, custom_event_name, e, params...)
 
-    adapter.bind(document, "#{@element} #{selector}", event_name, handler)
+    adapter.bind(document, selector, event_name, handler)
     null
 
 

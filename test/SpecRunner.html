@@ -61,7 +61,64 @@
   </div>
 </div>
 
+<div class="model2view">
+  <div class="attribute2text">
+    <div class="model-id" data-bind-view-from='id'></div>
+    <div class="model-title" data-bind-view-from='title'></div>
+    <div class="model-description" data-bind-view-from='description'></div>
+    <span></span>
+  </div>
 
+  <div class="attribute2attribute">
+    <div class="model-id" data-bind-view-from='id' data-bind-view-to='data-name'></div>
+    <div class="model-title" data-bind-view-from='title' data-bind-view-to='data-name'></div>
+    <div class="model-description" data-bind-view-from='description' data-bind-view-to='data-name'></div>
+    <span></span>
+  </div>
+
+  <div class="attribute2form">
+    <input type="text"  data-bind-view-from='title' />
+    <textarea  data-bind-view-from='description'></textarea>
+  </div>
+
+  <div class="forms">
+    <form class="simple">
+      <span class="title-attr" data-bind-view-from='title' data-bind-view-to='data-name'></span>
+      <span class='title-text' data-bind-view-from='title'></span>
+      <input type="text" data-bind-view-from='title' />
+    </form>
+
+    <hr/>
+
+    <form class="select">
+      <span></span>
+      <select class="select">
+        <option value="title1" data-bind-view-from='title'>title1</option>
+        <option value="title2" data-bind-view-from='title'>title2</option>
+        <option value="title3" data-bind-view-from='title'>title3</option>
+      </select>
+    </form>
+
+
+    <form class="check">
+      <span></span>
+
+      <input type="checkbox" data-bind-view-from='title' value="title1" />title1
+      <input type="checkbox" data-bind-view-from='title' value="title2" />title2
+      <input type="checkbox" data-bind-view-from='title' value="title3" />title3
+
+    </form>
+    <hr/>
+    <form class="radio">
+      <span></span>
+      <input type="radio" name="n" data-bind-view-from='title' value="title1" />title1
+      <input type="radio" name="n" data-bind-view-from='title' value="title2" />title2
+      <input type="radio" name="n" data-bind-view-from='title' value="title3" />title3
+
+    </form>
+  </div>
+
+</div>
 
 <script type="text/javascript" src="../vendor/jquery.js"></script>
 <script type="text/javascript" src="../vendor/bililiteRange.js"></script>
@@ -76,13 +133,14 @@
 <script type="text/javascript" src="fixtures.js"></script>
 <!-- include spec files here... -->
 <script type="text/javascript" src="specs/compile/base_model_spec.js"></script>
-<script type="text/javascript" src="specs/compile/binding_spec.js"></script>
+<script type="text/javascript" src="specs/compile/binding_view2view_spec.js"></script>
 <script type="text/javascript" src="specs/compile/collection_spec.js"></script>
 <script type="text/javascript" src="specs/compile/control_flow_spec.js"></script>
 <script type="text/javascript" src="specs/compile/form_spec.js"></script>
 <script type="text/javascript" src="specs/compile/routing_spec.js"></script>
 <script type="text/javascript" src="specs/compile/validation_spec.js"></script>
 <script type="text/javascript" src="specs/compile/views_spec.js"></script>
+<script type="text/javascript" src="specs/compile/model2view_spec.js"></script>
 
 </body>
 </html>

@@ -52,6 +52,9 @@ class JQueryAdapter extends Adapter
     else
       jQuery(element).data(attr.replace("data-", ""), value)
 
+  set_prop: (element, prop, value) ->
+    jQuery(element).prop(prop, value)
+
   append: (element, content) ->
     tag = @get_attr(element, 'tagName')
     if tag == "INPUT" || tag == "TEXTAREA"
