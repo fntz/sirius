@@ -305,4 +305,11 @@ class Sirius.View
 
     @
 
-  bind2: () ->
+  #
+  # bind2
+  # double-sided binding
+  # @param [Sirius.View|Sirius.Model] klass - Sirius.Model or Sirius.View
+  bind2: (klass) ->
+    @bind(klass)
+    if klass['bind'] && Sirius.Utils.is_function(klass['bind'])
+      klass.bind(@)

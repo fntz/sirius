@@ -689,9 +689,19 @@ class Sirius.BaseModel
 
       callbacks.push(clb)
 
-
-
-
+  #
+  # bind2
+  # double-sided binding
+  # @param [Sirius.View] klass - Sirius.View
+  bind2: (klass) ->
+    @bind(klass)
+    if klass.name && klass.name() == "View"
+      if klass['bind'] && Sirius.Utils.is_function(klass['bind'])
+        klass.bind(@)
+      else
+        new Error("For double-sided binding need bind method, but it not found in #{klass}")
+    else
+      new Error("BaseModel#bind2 work only with Sirius.View")
 
 
 
