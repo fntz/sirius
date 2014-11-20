@@ -43,6 +43,8 @@ class Adapter
 
   get_attr: (element, attr) ->
 
+
+  set_prop: (element, attr, value) ->
   # Change content into element
   # @param   [String] element - selector
   # @content [String] content - new content

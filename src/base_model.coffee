@@ -570,29 +570,65 @@ class Sirius.BaseModel
   #
   # bind
   #
-  # 1. model to view
+  # Method for bind model and view, all changes in model will be reflected in view.
   #
-  # view = Sirius.View("#span-element")
+  # @param [Sirius.View] - you view for binding
+  # @param [Object] - object setting, should contain params for element.
+  # Instead of object setting, when you want bind more then one attribute use
+  # `data-bind-view-from` for define attribute from model, which will be used for element.
+  # element attribute defined with `data-bind-view-to`.
+  # `data-bind-view-from` - for model attribute.
+  # `data-bind-view-to` - for view attribute. By default it `text` (or value for input)
   #
-  # model = new Model()
+  # @example
+  #   //html:
+  #   <input type='text' id='my-elem' />
   #
-  # model.bind(view, {from: 'model-attribute', to: 'view-attribute'})
-  # also `model-attribute` it might be a .errors?
-  # FIXME also need when it logical element [radio, checkbox, select]  hot to use it?
-  # <span id="span-element" data-bind-view-from: 'title', data-bind-view-to='text'>
-  # when to text, then it inner text or value for input, #FIXME when it html, then use html for insert?
-  # when it attribute need strategy
+  #   model = new Model({title: ""})
+  #   view = new Sirius.View("#my-elem")
+  #   model.bind(view, {from: 'title', to : 'text'})
+  #   # is equal
+  #   model.bind(view, {from: 'title'})  # because by default 'to' is 'text'
+  #   # then
+  #   model.title("new title") # change model attribute
+  #   # in view
+  #   $("#my-elem").val() # => new title
   #
-  # 2. model to model ? # TODO thinks about it
+  #   # for element attribute
+  #   model.bind(view, {from: 'title', to : 'data-title'})
+  #   # then
+  #   model.title("new title")
+  #   # in view
+  #   $("#my-elem").data('name') # => new title
   #
-  # 3. model to function ?
+  #   # For logical element like a checkbox, radio and select possible use
+  #
+  #   //html
+  #   <form id='my-form'>
+  #     <input type="checkbox" value="val1" data-bind-view-from='model_value' />
+  #     <input type="checkbox" value="val2" data-bind-view-from='model_value' />
+  #     <input type="checkbox" value="val3" data-bind-view-from='model_value' />
+  #   </form>
+  #
+  #   # you model is only Model with one attribute `model_value`
+  #   model = new Model()
+  #   view = new Sirius.View("#my-form")
+  #   model.bind(view)
+  #
+  #   # use it
+  #   model.model_value("val3")
+  #   # in element
+  #   $("#my-form input:checked").val() # => val3
+  #
+  #   The same for radio or select elements.
+  #
   #
   bind: (view, object_setting = {}) ->
     throw new Error("`bind` only work with Sirius.View") if !(view.name && view.name() == "View")
-
+    `var c = function(m){console.log(m);};`
     to = object_setting['to'] || null
     from = object_setting['from'] || null
-
+    callbacks = @callbacks
     adapter = Sirius.Application.adapter
     current = view.element
 
@@ -602,7 +638,7 @@ class Sirius.BaseModel
     if count == 0
       to = adapter.get_attr(view.element, 'data-bind-view-to') || to || 'text'
       from = adapter.get_attr(view.element, 'data-bind-view-from') || @attributes[0]
-
+      # when it one element use it without any logic, only set value or attribute
       clb = (attr, value) ->
         if attr is from
           if to == 'text'
@@ -610,29 +646,49 @@ class Sirius.BaseModel
           else
             view.render(value).swap(to)
 
-      @callbacks.push(clb)
+      callbacks.push(clb)
 
     else
       throw new Error("For element with children not use object setting") if to || from
-      callbacks = @callbacks
-      for child in children
-        do(child) ->
-          bind_to = adapter.get_attr(child, 'data-bind-view-to') || 'text'
-          bind_from = adapter.get_attr(child, 'data-bind-view-from')
 
-          if bind_from
-            sub_view = new Sirius.View(child)
-            clb = (attr, value) ->
-              if attr is bind_from
-                if bind_to == 'text'
-                  sub_view.render(value).swap()
-                else
-                  sub_view.render(value).swap(bind_to)
+      elements = []
 
-            callbacks.push(clb)
+      for child in children when adapter.get_attr(child, 'data-bind-view-from')
+        bind_to = adapter.get_attr(child, 'data-bind-view-to') || 'text'
+        bind_from = adapter.get_attr(child, 'data-bind-view-from')
 
+        tmp = {
+          to : bind_to,
+          from: bind_from,
+          element : child,
+          view : new Sirius.View(child)
+        }
+        elements.push tmp
 
+      # attr from model
+      # value new value for attr
+      clb = (attr, value) ->
+        for element in elements when element.from == attr
+          do(element) ->
+            # when it logical element
+            # we need mark is as checked or selected only when it have value (and attr is text of course)
+            if element.to is 'text'
+              tag = adapter.get_attr(element.element, 'tagName')
+              type = adapter.get_attr(element.element, 'type')
+              if type == 'checkbox' || type == 'radio'
+                current_value = adapter.get_attr(element.element, 'value')
+                if current_value == value
+                  adapter.set_prop(element.element, 'checked', true)
+              if tag == 'OPTION'
+                current_value = adapter.get_attr(element.element, 'value')
+                if current_value == value
+                  adapter.set_prop(element.element, 'selected', true)
+              else
+                element.view.render(value).swap(element.to)
+            else
+              element.view.render(value).swap(element.to)
 
+      callbacks.push(clb)
 
 
 

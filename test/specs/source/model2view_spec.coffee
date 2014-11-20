@@ -76,3 +76,36 @@ describe "Model2View", ->
     it "should have values as model attributes", ->
       expect($(title_element).val()).toEqual(title)
       expect($(desc_element).val()).toEqual(descrption)
+
+  describe "attribute to form for logical attributes", ->
+    element = "div.model2view div.forms"
+    model = new MyModel()
+
+    simpleForm = new Sirius.View("#{element} form.simple")
+    selectForm = new Sirius.View("#{element} form.select")
+    checkForm = new Sirius.View("#{element} form.check")
+    radioForm = new Sirius.View("#{element} form.radio")
+
+    model.bind(simpleForm)
+    model.bind(selectForm)
+    model.bind(checkForm)
+    model.bind(radioForm)
+
+    title = "title3"
+
+    beforeAll () ->
+      model.title(title)
+
+    it "should have correct attributes", ->
+      expect($("#{element} form.simple span.title-attr").data('name')).toEqual(title)
+      expect($("#{element} form.simple span.title-text").text()).toEqual(title)
+      expect($("#{element} form.simple input").val()).toEqual(title)
+
+      expect($("#{element} form.select").find(":selected").text()).toEqual(title)
+
+      expect($("#{element} form.check").find(":checked").val()).toEqual(title)
+
+      expect($("#{element} form.radio").find(":checked").val()).toEqual(title)
+
+
+
