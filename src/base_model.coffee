@@ -470,6 +470,10 @@ class Sirius.BaseModel
   # must be overridden in user model
   after_create: () ->
 
+  # method for clone current model and create new
+  clone: () ->
+    @constructor.from_json(@to_json())
+
 
   #
   # bind
