@@ -236,10 +236,11 @@ class Sirius.BaseModel
     normalize_name = Sirius.Utils.underscore(attribute)
     throw new Error("Method #{normalize_name} already exist") if Object.keys(@).indexOf(normalize_name) != -1
     @[normalize_name] = (value) =>
-      if value
+      if value?
         if when_has_attribute
           @["add_#{attribute}"](value)
         else
+          console.log("call set for #{attribute}")
           @set(attribute, value)
       else
         @get(attribute)
