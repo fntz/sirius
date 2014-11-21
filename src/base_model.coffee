@@ -13,16 +13,11 @@
 #
 #   class MyModel extends Sirius.BaseModel
 #     @attrs: ["id", {title: "default title"}, "description"]
-#     @to:
-#       id          : tag: "b", class: 'my-model-id'
-#       title       : tag: "span", class: "my-model-title"
 #
 #   class Person extends BaseModel
 #     @attrs: ["id", "name"]
 #
 #     @has_many: [Group]
-#
-#     @form_name: "person-model"
 #
 #     @guid_for: id
 #
@@ -33,11 +28,6 @@
 #       name:
 #         presence: true
 #         format: with: /^[A-Z].+/
-#
-#     @to:
-#       id          : tag: "b", class: 'person-id'
-#       name        : tag: "span", class: "person-name"
-#       group       : tag: "p", class: "group"
 #
 #     to_string: () ->
 #       "name: #{name}; id: #{id}, group count: #{@get('group').length}"
@@ -110,27 +100,6 @@ class Sirius.BaseModel
        group.get('person_id') // => 1
   ###
   @belongs_to: []
-
-  ###
-    object, which contain attributes names as keys, and values is a object, with properties for html element
-    @note when not set a `tag` for `attribute` default `tag` is a `div`
-    @example
-       class Person extends Sirius.BaseModel
-         @attrs: ["id", "name"]
-         @to :
-           id : tag: b, class: 'person-class'
-      (new Person({id: 1, name: "Abc"})).to_html() # => <b class='person-class'>1</b><div>Abc</div>
-  ###
-  @to: {}
-
-  ###
-    name for element, when you want convert html to Model
-    @note when it not define, then it's create from model name as: ModelName => model_name
-    @example
-       class Person extends
-         @form_name: 'a-b-c'
-  ###
-  @form_name: null
 
   ###
     attribute name, for which generate guid
@@ -445,45 +414,6 @@ class Sirius.BaseModel
     else
       JSON.stringify(z)
 
-  #
-  # Convert model into array of element instances
-  # @return [String]
-  #
-  # @example
-  #   var m = new MyModel({"id": 10, "title": "my title", "description": "text..."});
-  #   m.to_html() // => "<b class = 'my-model-id'>10</b><span class = 'my-model-title'>my title</span><div>text...</div>"
-  #
-  #   person.to_html() // =>
-  #   // "<b class='person-id'>1</b>
-  #   //  <span class='person-name'>Abc</span>
-  #   //    <p class = 'group'>
-  #   //      <span>group-0</span>
-  #   //      <div>1</div>
-  #   //      <span>group-1</span>
-  #   //      <div>1</div>
-  #   //    </p>
-  #
-  to_html: () ->
-    to = @constructor.to || {}
-
-    result = for key in @attributes
-      value = @get(key)
-      obj   = to[key]    || {}
-      tag   = obj["tag"] || "div"
-      attr  = for k, v of obj when k isnt "tag" then "#{k} = '#{v}'"
-      attr = if attr.length == 0 then "" else " #{attr.join(' ')}"
-
-      value = if @has_many().indexOf(key) > -1
-        for v in value then v.to_html()
-      else if @has_one().indexOf(key) > -1
-        value.to_html()
-      else
-        value
-
-      "<#{tag}#{attr}>#{value}</#{tag}>"
-
-    result.join("")
-
   # Create a new model instance from json structure.
   # @param json [JSON] - json object
   # @param models [Object] - object with model classes, see examples
@@ -529,32 +459,6 @@ class Sirius.BaseModel
           json[attr]
         m.set(attr, value || m.get(attr))
     m
-
-  #
-  # Generate a new model instance from form
-  # @param selector [String] - element selector, for find element, where model may be present in html
-  # @return [T < Sirius.BaseModel]
-  #
-  # @example
-  #   //html form
-  #   <form name="my_model" id="my-model-form">
-  #     <input type="hidden" name="id" class="my-id" value="1" />
-  #     <input type="text" name="title" class="title" value="new title" />
-  #     <textarea name="description">text...</textarea>
-  #   </form>
-  #
-  #   var m = MyModel.from_html("#my-model-form");
-  #   m.get("id")          // => 1
-  #   m.get("title")       // => new title
-  #   m.get("description") // => text...
-  #
-  #
-  @from_html: (selector) ->
-    #FIXME
-    form_name = selector || @.form_name || Sirius.Utils.underscore(@.name)
-
-    @.from_json(Sirius.Application.adapter.form_to_json(form_name))
-
 
   # usage for comparing models
   # When equal return true, otherwise return false
