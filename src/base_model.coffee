@@ -240,7 +240,6 @@ class Sirius.BaseModel
         if when_has_attribute
           @["add_#{attribute}"](value)
         else
-          console.log("call set for #{attribute}")
           @set(attribute, value)
       else
         @get(attribute)
