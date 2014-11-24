@@ -100,7 +100,7 @@ describe "Routing", ->
 
       j = new JQueryAdapter()
       Sirius.Application.adapter = j
-      ps = history.pushState? true : false
+      ps = history.pushState ? true : false
       setting =
         old: true
         top: true
