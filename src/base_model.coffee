@@ -141,6 +141,9 @@ class Sirius.BaseModel
     @constructor.attrs || []
 
   # @nodoc
+  __name: 'BaseModel' # because in IE not work construction like given_class.__super__.constructor.name
+
+  # @nodoc
   #normalize model name: UserModel => user_model
   normal_name: () ->
     Sirius.Utils.underscore(@constructor.name)

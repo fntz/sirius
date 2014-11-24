@@ -48,7 +48,8 @@ class Sirius.Collection
   # @param on_remove [Function] - callback, which will be call when remove model from collection
   # @param remote [Function] - callback, which will be call when synchronize collection, must be return json
   constructor: (klass, klasses = [], options = {every: 0, on_add: @on_add, on_remove: @on_remove, remote: null, on_push: @on_push}) ->
-    throw new Error("Collection must be used only with `BaseModel` inheritor") if klass.__super__.constructor.name isnt 'BaseModel'
+    if klass.__super__.__name isnt 'BaseModel'
+      throw new Error("Collection must be used only with `BaseModel` inheritor")
     @_array = []
     @_klasses = klasses
     @_klass = klass
