@@ -67,7 +67,7 @@ describe "View2View", ->
     value = "val3"
 
     beforeAll (done) ->
-      $(div).text(value)
+      $(div).html(value)
 
       setTimeout(
         () ->

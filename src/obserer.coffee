@@ -33,7 +33,6 @@ class Sirius.Observer
     # FIXME maybe save all needed attributes in hash ????
     handler = (e) ->
       #c e.type # TODO into log
-
       result = {text: null, attribute: null}
       if e.type == "input" || e.type == "childList" || e.type == "change" || e.type == "DOMNodeInserted"
         result['text'] = adapter.text(from)

@@ -204,6 +204,9 @@ class Sirius.View
   # When you pass into `bind` method string, then it create new `Sirius.View` for it string,
   # and work as View to View.
   #
+  #
+  # @note when you add text into element with jQuery#text method, it will not cause associated method. Use #html for it.
+  #
   # TODO: add strategies
   # @param [Any] - klass, another view\model\function
   # @param [Object] - hash with setting: [to, from]
