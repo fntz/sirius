@@ -76,5 +76,17 @@ task :minify => [:build] do
 end
 
 
+namespace :todo do
+  desc "TODOApp compile"
+  task :compile do
+    %x(coffee -c -b todomvc/js/app.coffee)
+  end
+
+  desc "Run TODO app"
+  task :run => ['todo:compile'] do
+    system("ruby todomvc/app.rb")
+  end
+end
+
 task :default => :build
 

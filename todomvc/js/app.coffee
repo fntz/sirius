@@ -1,23 +1,24 @@
 "use strict"
-Todos = []
+`var c = function(m){console.log(m);};`
 
-#----------- Models ------------------#
-
-Todos.find_by_id = (id) ->
-  for t in @ when t.get("id") is id then return t  
-
-class TodoList extends Sirius.BaseModel 
+class TodoList extends Sirius.BaseModel
   @attrs: ["title", {completed: false}, "id"]
-  @form_name : "#new-todo"
   @guid_for : "id"
   is_active: () ->
-    !@get("completed")  
+    !@completed()
   
   is_completed: () -> 
-    @get("completed")
+    @completed()
+
+Todos = new Sirius.Collection(TodoList, [])
+Todos.add(new TodoList({title : "Create a TodoMVC template", completed : true}))
+Todos.add(new TodoList(title: "Rule the web"))
+
 
 Renderer =
-  template: new EJS({url: 'js/todos.ejs'})  
+  template: new EJS({url: 'js/todos.ejs'})
+  todo_template: new EJS({url: 'js/todo.ejs'})
+  view: new Sirius.View("#todo-list")
   render: (data = []) ->
     todos = for t in data 
       klass =  if t.get("completed") 
@@ -30,113 +31,67 @@ Renderer =
     template = @template.render({todos: todos})
     $("#todo-list").html("").html(template) 
 
+  add: (todo) ->
+    template = @todo_template.render({todo: todo})
+    @view.render(template).append()
+    todo_view = new Sirius.View("div.view")
+    todo_view.bind(todo)
+
+
+
 #------------------ Controllers -----------------#
-UrlController =
+
+MainController =
   root: () ->
-    Renderer.render(Todos)
-    
+    c(1)
+
   active: () ->
-    todos = for t in Todos when t.is_active() then t
-    Renderer.render(todos)
+    Renderer.render(Todos.filter((t) -> t.is_active()))
   
   completed: () ->
-    todos = for t in Todos when t.is_completed() then t
-    Renderer.render(todos)
-    
+    Renderer.render(Todos.filter((t) -> t.is_completed()))
 
-EventController =
   start: () ->
-    Todos.push(new TodoList(
-      title      : "Create a TodoMVC template"
-      completed : true
-    ))
-    Todos.push(new TodoList(
-      title: "Rule the web"
-    ))
-    Renderer.render(Todos)
-    
+    view  = new Sirius.View("#todoapp")
+    model = new TodoList()
+    view.bind2(model)
+    view.on("#new-todo", "keypress", "todo:create", model)
 
-  destroy: (event, id) ->
-    todo = Todos.find_by_id(id)
-    index = null 
-    for t, i in Todos when t.get("id") == id then index = i 
-    
-    if index isnt null  
-      Todos.splice(index, 1)
-      $(event.target).parents("li").remove()
-    
-  mark: (event, id) ->
-    todo = Todos.find_by_id(id)
-    if todo.get("completed") then todo.set("completed", false) else todo.set("completed", true)
-    $(event.target).parents("li").toggleClass("completed")
-    
-  mark_all: (event, klass) ->
-    if klass == "marked"
-      for t in Todos then t.set("completed", true)
-    else 
-      for t in Todos then t.set("completed", false)
-    $(event.target).toggleClass("marked")
-    Renderer.render(Todos)
-  
-  is_enter: (event) ->
-    return true if event.which == 13
+  click: () ->
+    c(Todos.all())
+
+TodoController =
+  is_enter: (custom_event, original_event) ->
+    return true if original_event.which == 13
     false
-    
-  new_todo: (event) ->
-    new_todo = TodoList.from_html()
-    Todos.push new_todo
-    Renderer.render(Todos)
-    $("#new-todo").val('')
-  
-  update_footer: () ->
-    if Todos.length == 0
-      $("#footer").hide()
-      return 
-    else
-      $("#footer").show()  
-    
-    active    = (for _ in Todos when _.is_active() then _).length
-    completed = (for _ in Todos when _.is_completed() then _).length
-    
-    $("#todo-count strong").text(active)
 
-    if completed > 0
-      $("#clear-completed").show()
-      $("#clear-completed").text("Clear completed (#{completed})")
-    else
-      $("#clear-completed").hide()
+  create: (custom_event, original_event, model) ->
+    todo = model.clone()
+    Todos.add(todo)
+    model.title("")
+    Renderer.add(todo)
+    # todo bind with view
 
-  edit: (e) ->
-    $(e.target).parents("li").addClass("editing")
-    $(e.target).children(".edit").focus()
+  mark: () ->
+    c "mark"
 
-  update: (e, id) ->
-    trg = $(e.target)
-    todo = Todos.find_by_id(id)
-    todo.set("title", trg.val())
-    trg.val('')
-    trg.parents("li").toggleClass("editing")
-    Renderer.render(Todos)
-
-  clear: (e) ->
-    xs = for t, i in Todos when t.is_completed() then i 
-    for i in xs then Todos.splice(i, 1)
-    Renderer.render(Todos)
 
 # ----------------------- Routing ----------------- #
 
 routes = 
-  "#"               : {controller: UrlController, action: "root"}
-  "#/active"        : {controller: UrlController, action: "active"}
-  "#/completed"     : {controller: UrlController, action: "completed"}
-  "application:run" : {controller: EventController, action: "start"}
-  "click button.destroy"  : {controller: EventController, action: "destroy", after: "update_footer", data: "data-id"}
-  "click li input.toggle" : {controller: EventController, action: "mark", after: "update_footer", data: "data-id"}
-  "click #toggle-all"     : {controller: EventController, action: "mark_all", after: "update_footer", data: "class"} 
-  "keypress #new-todo"    : {controller: EventController, action: "new_todo", guard: "is_enter", after: "update_footer"}
-  "dblclick li": {controller: EventController, action: "edit"} 
-  "keypress input.edit": {controller: EventController, action: "update", data: "data-id", guard: "is_enter"}
-  "click #clear-completed": {controller: EventController, action: "clear", after: "update_footer"}
+  "/"               : {controller: MainController, action: "root"}
+  "/active"        :  {controller: MainController, action: "active"}
+  "/completed"     :  {controller: MainController, action: "completed"}
+  "application:run" : {controller: MainController, action: "start"}
+  "todo:create" :     {controller: TodoController, action: "create", guard: "is_enter"}
+  "click #btn" : {controller: MainController, action: "click"}
+ # "click button.destroy"  : {controller: EventController, action: "destroy", after: "update_footer", data: "data-id"}
+ # "click li input.toggle" : {controller: EventController, action: "mark", after: "update_footer", data: "data-id"}
+ # "click #toggle-all"     : {controller: EventController, action: "mark_all", after: "update_footer", data: "class"}
+ # "keypress #new-todo"    : {controller: EventController, action: "new_todo", guard: "is_enter", after: "update_footer"}
+ # "dblclick li": {controller: EventController, action: "edit"}
+ # "keypress input.edit": {controller: EventController, action: "update", data: "data-id", guard: "is_enter"}
+ # "click #clear-completed": {controller: EventController, action: "clear", after: "update_footer"}
 
 # ----------------------- Start -------------------- #
 
@@ -144,7 +99,6 @@ $ ->
   app = Sirius.Application.run
     route   : routes
     adapter : new JQueryAdapter()
-    start   : "#"
 
 
 

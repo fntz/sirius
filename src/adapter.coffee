@@ -79,3 +79,4 @@ class Adapter
   get: (selector) ->
     document.querySelector(selector)
 
+  state: (selector) ->

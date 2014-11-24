@@ -80,10 +80,13 @@ class JQueryAdapter extends Adapter
     type = @get_attr(element, 'type')
     if tag == "INPUT" || tag == "TEXTAREA"
       if type == "checkbox" || type == "radio"
-        jQuery("#{element}:checked").val()
+        jQuery(element).val()
       else
         jQuery(element).val()
     else if tag == "SELECT"
       jQuery("#{element} option:selected").val()
     else
       jQuery(element).text()
+
+  get_state: (element) ->
+    jQuery(element).prop('checked')

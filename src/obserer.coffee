@@ -7,7 +7,7 @@ class Sirius.Observer
 
   @_observers:   []
   @add_observer: (new_observer) ->
-    1
+    []
 
   MO = window.MutationObserver ||
        window.WebKitMutationObserver ||
@@ -23,7 +23,6 @@ class Sirius.Observer
   # BUG when reset input, bind element should reset the same
   # TODO add logger for events
   constructor: (@from_element, @clb = ->) ->
-    `var c = function(m){console.log(m);};`
     adapter = Sirius.Application.adapter
     logger  = Sirius.Application.logger
     clb  = @clb
@@ -38,6 +37,10 @@ class Sirius.Observer
       result = {text: null, attribute: null}
       if e.type == "input" || e.type == "childList" || e.type == "change" || e.type == "DOMNodeInserted"
         result['text'] = adapter.text(from)
+
+      if e.type == "change" # get a state for input enable or disable
+        result['state'] = adapter.get_state(from)
+
       if e.type == "attributes"
         attr_name = e.attributeName
         old_attr = e.oldValue || [] # FIXME remove this, because not used

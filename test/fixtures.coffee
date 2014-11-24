@@ -47,6 +47,16 @@ class UModel extends Sirius.BaseModel
   @attrs: ["id"]
   @guid_for : "id"
 
+
+class TodoList extends Sirius.BaseModel
+  @attrs: ["title", {completed: false}, "id"]
+  @guid_for : "id"
+  is_active: () ->
+    !@completed()
+
+  is_completed: () ->
+    @completed()
+
 #### controllers #######
 
 Controller0 =

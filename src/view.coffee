@@ -228,7 +228,7 @@ class Sirius.View
       else # then it's Sirius.Model
         to   = object_setting['to']
         from = object_setting['from']
-
+        `var c = function(m){console.log(m);};`
         children = adapter.all("#{current} *")
         count    = children.length
 
@@ -294,6 +294,8 @@ class Sirius.View
                     klass[data_bind_to](txt)
                   if data_bind_from == result['attribute']
                     klass[data_bind_to](txt)
+                  if data_bind_from == "checked"
+                    klass[data_bind_to](result['state'])
 
                 new Sirius.Observer(child, clb)
 
