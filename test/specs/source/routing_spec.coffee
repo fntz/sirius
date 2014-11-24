@@ -1,5 +1,7 @@
 describe "Routing", ->
   R = Sirius.RoutePart
+  j = new JQueryAdapter()
+  Sirius.Application.adapter = j
 
   describe "RoutePart", ->
     it "Hash Routing", ->
@@ -98,8 +100,6 @@ describe "Routing", ->
         "event:custom" : (e, p0) -> eventCustomValue = p0
         "click #my-div": {controller: Controller, action: "action", data: ["id", "class"]}
 
-      j = new JQueryAdapter()
-      Sirius.Application.adapter = j
       ps = history.pushState ? true : false
       setting =
         old: true
@@ -156,49 +156,49 @@ describe "Routing", ->
       expect(eventCustomValue).toEqual(0)
       done()
 
+  if history.pushState
+    describe "Routing and Controllers for Hash Routing", ->
+      emptyValue = postValue = titleValue = postXValue = staticValue = errorValue = null
 
-  describe "Routing and Controllers for Hash Routing", ->
-    emptyValue = postValue = titleValue = postXValue = staticValue = errorValue = null
+      beforeEach (done) ->
+        $("body").append("<div id='links'></div>")
+        arr = ["/", "/post/12", "/post/abc", "/post/x/a/b/c", "/static", "/error", "/"]
+        for a in arr
+          $('#links').append($("<a></a>").attr({'href':a}))
 
-    beforeEach (done) ->
-      $("body").append("<div id='links'></div>")
-      arr = ["/", "/post/12", "/post/abc", "/post/x/a/b/c", "/static", "/error", "/"]
-      for a in arr
-        $('#links').append($("<a></a>").attr({'href':a}))
+        Controller =
+          error: (current) -> errorValue = current
+          title: (title) -> titleValue = title
 
-      Controller =
-        error: (current) -> errorValue = current
-        title: (title) -> titleValue = title
+        r =
+          "/": () -> emptyValue = arguments.length
+          "/post/[0-9]+" : (id) -> postValue = id
+          "/post/:title" : {controller: Controller, action: "title"}
+          "/post/x/*": () -> postXValue = arguments.length
+          "/static" : () -> staticValue = arguments.length
+          404: {controller: Controller, action: "error"}
 
-      r =
-        "/": () -> emptyValue = arguments.length
-        "/post/[0-9]+" : (id) -> postValue = id
-        "/post/:title" : {controller: Controller, action: "title"}
-        "/post/x/*": () -> postXValue = arguments.length
-        "/static" : () -> staticValue = arguments.length
-        404: {controller: Controller, action: "error"}
+        Sirius.Application.run({
+          route: r,
+          adapter: j
+        })
 
-      Sirius.Application.run({
-        route: r,
-        adapter: new JQueryAdapter()
-      })
+        setTimeout(() ->
+          links = $("#links a")
+          for l in links
+            $(l).trigger("mousedown")
+          done()
+          2800
+        )
 
-      setTimeout(() ->
-        links = $("#links a")
-        for l in links
-          $(l).trigger("click")
+      it "test", (done) ->
+        expect(emptyValue).toEqual(0)
+        expect(postValue).toEqual("12")
+        expect(titleValue).toEqual("abc")
+        expect(errorValue).toEqual("/error")
+        expect(postXValue).toEqual(3)
+        expect(staticValue).toEqual(0)
         done()
-        2800
-      )
-
-    it "test", (done) ->
-      expect(emptyValue).toEqual(0)
-      expect(postValue).toEqual("12")
-      expect(titleValue).toEqual("abc")
-      expect(errorValue).toEqual("/error")
-      expect(postXValue).toEqual(3)
-      expect(staticValue).toEqual(0)
-      done()
 
 
 
