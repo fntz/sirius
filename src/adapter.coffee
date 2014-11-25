@@ -1,5 +1,5 @@
 ###!
-#  Sirius.js v0.4.7
+#  Sirius.js v0.5.0
 #  (c) 2014 fntzr
 #  license: MIT
 ###

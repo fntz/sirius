@@ -1,20 +1,20 @@
 ###!
-#  Sirius.js v0.4.7
+#  Sirius.js v0.5.0
 #  (c) 2014 fntzr
 #  license: MIT
 ###
 
 #
 # @author fntzr <fantazuor@gmail.com>
-# @version 0.4.7
+# @version 0.5.0
 # @mixin
 # A main module, which included methods and classes for work with application.
 Sirius =
-  VERSION: "0.4.7"
+  VERSION: "0.5.0"
 
 #
 # Redirect to given url.
-# @method .Sirius.redurect(url)
+# @method .Sirius.redirect(url)
 # @example
 #   var Controller = {
 #     action : function(params) {
