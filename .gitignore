@@ -6,3 +6,4 @@ test/fixtures.js
 doc/
 Gemfile.lock
 test/specs/compile
+app.rb

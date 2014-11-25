@@ -2,7 +2,7 @@
 # hacks for observer when property or text changed into DOM
 
 # #TODO not need create new observer, just subscribe for the currents
-#
+# @private
 class Sirius.Observer
 
   @_observers:   []
@@ -27,15 +27,24 @@ class Sirius.Observer
     logger  = Sirius.Application.logger
     clb  = @clb
     from = @from_element
-
     tag  = adapter.get_attr(from, 'tagName')
     type = adapter.get_attr(from, 'type')
+    current_value = null
+
     # FIXME maybe save all needed attributes in hash ????
     handler = (e) ->
       #c e.type # TODO into log
       result = {text: null, attribute: null}
-      if e.type == "input" || e.type == "childList" || e.type == "change" || e.type == "DOMNodeInserted"
-        result['text'] = adapter.text(from)
+
+      return if ['focusout', 'focusin'].indexOf(e.type) != -1
+
+      txt = adapter.text(from)
+
+      return if ["input", "selectionchange"].indexOf(e.type) != -1 && txt == current_value
+
+      if e.type == "input" || e.type == "childList" || e.type == "change" || e.type == "DOMNodeInserted" || e.type == "selectionchange"
+        result['text'] = txt
+        current_value = txt
 
       if e.type == "change" # get a state for input enable or disable
         result['state'] = adapter.get_state(from)
@@ -63,8 +72,12 @@ class Sirius.Observer
       if type == "checkbox" || type == "radio"
         adapter.bind(document, @from_element, 'change', handler)
       else
+        current_value = adapter.text(@from_element)
         adapter.bind(document, @from_element, 'input', handler)
-
+        #instead of using input event, which not work correctly in ie9
+        #use own implementation of input event for form
+        if Sirius.Utils.ie_version() == 9
+          adapter.bind(document, document, 'selectionchange', handler)
 
     else
       if MO

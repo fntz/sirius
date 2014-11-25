@@ -34,3 +34,20 @@ class Sirius.Utils
   #   Sirius.Utils.underscore("ModelName") // => model_name
   @underscore: (str) ->
     str.replace(/([A-Z])/g, '_$1').replace(/^_/,"").toLowerCase()
+
+  # return the version of IE
+  # from http://stackoverflow.com/a/21712356/1581531
+  @ie_version: () ->
+    ua = window.navigator.userAgent
+    msie = ua.indexOf("MSIE ")
+    trident = ua.indexOf("Trident/")
+
+    if msie > 0
+      return parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10)
+
+    if trident > 0
+      rv = ua.indexOf('rv:')
+      return parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10)
+
+    false
+

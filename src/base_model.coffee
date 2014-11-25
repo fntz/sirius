@@ -544,10 +544,10 @@ class Sirius.BaseModel
 
     children = adapter.all("#{current} *")
     count = children.length
-    #FIXME 
+    #FIXME
     if count == 0
       to = adapter.get_attr(view.element, 'data-bind-view-to') || to || 'text'
-      from = adapter.get_attr(view.element, 'data-bind-view-from') || @attributes[0]
+      from = adapter.get_attr(view.element, 'data-bind-view-from') || from || @attributes[0]
       # when it one element use it without any logic, only set value or attribute
       clb = (attr, value) ->
         if attr is from

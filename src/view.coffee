@@ -223,7 +223,7 @@ class Sirius.View
         # {text: null, attribute: null}
         clb = (result) ->
           txt = result['text']
-          if txt && !result['attribute'] # for change text
+          if txt? && !result['attribute'] # for change text
             klass.render(txt).swap(to)
           else
             klass.render(txt).swap(to)
@@ -231,7 +231,6 @@ class Sirius.View
       else # then it's Sirius.Model
         to   = object_setting['to']
         from = object_setting['from']
-        `var c = function(m){console.log(m);};`
         children = adapter.all("#{current} *")
         count    = children.length
 
@@ -255,7 +254,8 @@ class Sirius.View
 
           clb = (result) =>
             txt = result['text']
-            if txt && from == 'text'
+            if txt? && from == 'text'
+              #c("call #{to} with #{txt}")
               klass.set(to, txt)
             if from == result['attribute']
               klass.set(to, txt)
@@ -293,7 +293,7 @@ class Sirius.View
               if data_bind_to
                 clb = (result) ->
                   txt = result['text']
-                  if txt && !data_bind_from
+                  if txt? && !data_bind_from
                     klass[data_bind_to](txt)
                   if data_bind_from == result['attribute']
                     klass[data_bind_to](txt)
