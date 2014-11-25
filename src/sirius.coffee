@@ -223,6 +223,8 @@ class Sirius.ControlFlow
 # Object, for creating event listeners
 Sirius.RouteSystem =
 
+  _selector: "a:not([href^='#'])"
+
   _hash_route: (url) ->
     url.toString().indexOf("#") == 0
 
@@ -247,6 +249,22 @@ Sirius.RouteSystem =
     redirect_to_hash   = setting["old"]
     push_state_support = setting["support"]
 
+    if redirect_to_hash and !push_state_support
+      Sirius.Application.logger("Convert plain routing into hash routing")
+      # convert to new routing
+      urls = [] #save urls into array, for check collision
+      route = {}
+      for url, action of routes
+        urls.push(url) if @_hash_route(url)
+        if @_plain_route(url)
+          url = "\##{url}"
+          if urls.indexOf(url) != -1
+            Sirius.Application.logger("Warning! Routes already have '#{url}' url")
+        route[url] = action
+      routes = route
+
+
+    adapter = Sirius.Application.adapter
     # wrap all controller actions
     wrapper = (fn) ->
       for key, value of Sirius.Application.controller_wrapper
@@ -266,7 +284,7 @@ Sirius.RouteSystem =
         z = url.match(/^([a-zA-Z:]+)(\s+)?(.*)?/)
         event_name = z[1]
         selector   = z[3] || document #when it a custom event: 'custom:event' for example
-        Sirius.Application.adapter.bind(document, selector, event_name, handler)
+        adapter.bind(document, selector, event_name, handler)
 
     # for cache change obj[k, v] to array [[k,v]]
     array_of_routes = for url, action of routes when @_hash_route(url)
@@ -311,7 +329,7 @@ Sirius.RouteSystem =
         current = pathname
 
       Sirius.Application.logger("Url change to: #{current}")
-      Sirius.Application.adapter.fire(document, "application:urlchange", current, prev)
+      adapter.fire(document, "application:urlchange", current, prev)
 
       for part in route_array
         f = part[0]
@@ -327,7 +345,7 @@ Sirius.RouteSystem =
           return
 
       if !result
-        Sirius.Application.adapter.fire(document, "application:404", current, prev)
+        adapter.fire(document, "application:404", current, prev)
         r404 = routes['404'] || routes[404]
         if r404
           if Sirius.Utils.is_function(r404)
@@ -337,16 +355,27 @@ Sirius.RouteSystem =
 
       false
 
+    # need convert all plain url into hash based url
+    # convert only when
+    if redirect_to_hash && !push_state_support
+      links = adapter.all(@_selector)
+      Sirius.Application.logger("Found #{links.length} link. Convert href into hash based routing")
+      for link in links
+        href = link.getAttribute('href')
+        new_href = if href.indexOf("/") == 0
+          "\##{href}"
+        else
+          "\#/#{href}"
+        Sirius.Application.logger("Convert '#{href}' -> '#{new_href}'")
+        link.setAttribute('href', new_href)
 
     if plain_routes.length != 0
       # bind all <a> element with dispatch function, but bind only when href not contain "#"
-      selector  = "a:not([href^='#'])"
-
-      Sirius.Application.adapter.bind document, selector, "click", dispatcher
+      adapter.bind document, @_selector, "click", dispatcher
 
     window.onhashchange = dispatcher
     if push_state_support
-      Sirius.Application.adapter.bind window, null, "popstate", (e) ->
+      adapter.bind window, null, "popstate", (e) ->
         # should run only for plain routes, not for hash based!
         # history.state.href contain url which start from "#", when hash change
         #                    contain full address otherwise
@@ -415,7 +444,11 @@ Sirius.Application =
 
   ###
     when true, then all routing will be redefined with hash based routing
+    and convert all url href to hash based urls
     "/" => "#/"
+    <a href="/posts">posts</a>
+    to
+    <a href="#/posts">posts</a>
   ###
   use_hash_routing_for_old_browsers : true
 
@@ -424,7 +457,7 @@ Sirius.Application =
   # @param msg [String]
   logger: (msg) ->
     return if !@log
-    if window.console
+    if console && console.log
       console.log msg
     else
       alert "Not supported `console`. You should define own `logger` function for Sirius.Application"
@@ -442,37 +475,28 @@ Sirius.Application =
     for key, value of (options["controller_wrapper"] || {})
       @controller_wrapper[key] = value
 
-    @hash_always_on_top = options["hash_always_on_top"] || @hash_always_on_top
-    @use_hash_routing_for_old_browsers = options["use_hash_routing_for_old_browsers"] || @use_hash_routing_for_old_browsers
+    @hash_always_on_top = if options["hash_always_on_top"]?
+                            options["hash_always_on_top"]
+                          else
+                            @hash_always_on_top
+
+    @use_hash_routing_for_old_browsers = if options["use_hash_routing_for_old_browsers"]?
+                                           options["use_hash_routing_for_old_browsers"]
+                                         else
+                                           @use_hash_routing_for_old_browsers
+
     @logger("Logger enabled? #{@log}")
 
-    n = @adapter.constructor.name
-    @logger("Adapter: #{n}")
+    @logger("Adapter: #{@adapter.__name()}")
     @logger("Hash always on top: #{@hash_always_on_top}")
     @logger("Use hash routing for old browsers: #{@use_hash_routing_for_old_browsers}")
     @logger("Current browser: #{navigator.userAgent}")
 
-
     @push_state_support = if history.pushState then true else false
     @logger("History pushState support: #{@push_state_support}")
 
-    if !@push_state_support && !@use_hash_routing_for_old_browsers
+    if !@push_state_support && @use_hash_routing_for_old_browsers
       @logger("Warning! You browser not support pushState, and you disable hash routing for old browser")
-
-    R = Sirius.RouteSystem
-
-    if @use_hash_routing_for_old_browsers and !@push_state_support
-      # convert to new routing
-      urls = [] #save urls into array, for check collision
-      route = {}
-      for url, action of @route
-        urls.push(url) if R._hash_route(url)
-        if R._plain_route(url)
-          url = "\##{url}"
-          if urls.indexOf(url) != -1
-            @logger("Warning! Routes already have '#{url}' url")
-        route[url] = action
-      @route = route
 
     setting =
       old: @use_hash_routing_for_old_browsers
@@ -480,7 +504,7 @@ Sirius.Application =
       support: @push_state_support
 
     # start
-    R.create @route, setting, () => @adapter.fire(document, "application:run", new Date())
+    Sirius.RouteSystem.create @route, setting, () => @adapter.fire(document, "application:run", new Date())
 
     if @start
       Sirius.redirect(@start)

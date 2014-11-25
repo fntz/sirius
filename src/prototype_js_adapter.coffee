@@ -3,6 +3,9 @@
 #  For methods {@see Adapter}
 #
 class PrototypeAdapter extends Adapter
+
+  __name: () -> 'PrototypeAdapter'
+
   bind: (element, selector, event, fn) ->
     if selector == null
       $(element).on(event, fn)

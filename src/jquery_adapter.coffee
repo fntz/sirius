@@ -3,6 +3,9 @@
 #  For methods {@see Adapter}
 #
 class JQueryAdapter extends Adapter
+
+  __name: () -> 'JQueryAdapter'
+
   bind: (element, selector, event, fn) ->
     if selector == null
       jQuery(element).on(event, fn)
