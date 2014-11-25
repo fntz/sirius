@@ -20,12 +20,6 @@ class Adapter
   #
   bind: (element, selector, event, fn) ->
 
-  #   Convert element which find with 'selector' to json
-  #   @param [String] selector - selector, for find element
-  #   @return [JSON]
-  #
-  form_to_json: (selector) ->
-
   #   Call custom event with params
   #   @param [String] element - selector for event
   #   @param [String] event   - event name
