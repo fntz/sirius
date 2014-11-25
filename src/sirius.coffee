@@ -1,16 +1,16 @@
 ###!
-#  Sirius.js v0.5.0
+#  Sirius.js v0.5.1
 #  (c) 2014 fntzr
 #  license: MIT
 ###
 
 #
 # @author fntzr <fantazuor@gmail.com>
-# @version 0.5.0
+# @version 0.5.1
 # @mixin
 # A main module, which included methods and classes for work with application.
 Sirius =
-  VERSION: "0.5.0"
+  VERSION: "0.5.1"
 
 #
 # Redirect to given url.

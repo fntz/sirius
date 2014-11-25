@@ -13,13 +13,13 @@
   "files": ["sirius.min.js", "jquery_adapter.min.js", "prototypejs_adapter.min.js"],
   "devDependencies": {
     "codo": "2.0.9",
-    "coffee-script": "1.7.1"
+    "coffee-script": "1.8.1"
   },
   "scripts": {
     "doc": "cake doc"
   },
   "main"          : "sirius.min.js",
-  "version"       : "0.5.0",
+  "version"       : "0.5.1",
   "license"       : "MIT",
   "repository": {
     "type": "git",
