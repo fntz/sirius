@@ -1,0 +1,73 @@
+
+# @private
+#
+# This class should extract from element node all elements which contain information
+# about binding (data-bind-*)
+#
+# extracted info:
+# data-bind-from
+# data-bind-to
+# data-bind-strategy
+# data-bind-view
+# element selector
+class Sirius.BindHelper
+
+  # @param [String] - selector
+  # @param [Object] - contain information for extract (data-bind-*)
+  #                   and contain information from user
+  #                   and then merge extracted info and passed
+  #                   {to: 'data-bind-to', from: 'data-bind-from'
+  #                    strategy: 'data-bind-strategy'
+  #                    transform: 'data-bind-transform'
+  #                    }
+  constructor: (@element, @setting, @is_bind_view_to_model = true) ->
+    @adapter = Sirius.Application.adapter
+
+  #
+  #
+  # @param [Object] - `to` and `from` if present
+  #
+  extract: (user_setting = {}) ->
+    # need extract main element, and children
+    # fixme optimize this need extract only when element contain data-bind-*
+    elements = @adapter.all("#{@element}, #{@element} *")
+    # when it contain only one element (no children)
+    # it's a single mode
+    single = if elements.length == 1
+      true
+    else
+      false
+
+    to = @setting['to']
+    from = @setting['from']
+    strategy = @setting['strategy']
+    transform = @setting['transform']
+    default_from = @setting['default_from']
+    default_to = @setting['default_to']
+    adapter = @adapter
+    is_bind_view_to_model = @is_bind_view_to_model
+    result = []
+    #
+    # Extract all elements which contain data-bind-*
+    # with data-bind-strategy
+    # with data-bind-transform
+    # and selector
+    for element in elements
+      do(element) ->
+        tmp_to   = adapter.get_attr(element, to) || default_to
+        tmp_from = adapter.get_attr(element, from) || default_from
+        tmp_strategy = adapter.get_attr(element, strategy) || 'swap'
+        tmp_transform = adapter.get_attr(element, transform)
+        # for view to model, need tmp_to but for model to view need tmp_from
+        if is_bind_view_to_model
+          if tmp_to
+            r = {
+              to: tmp_to
+              from: tmp_from
+              strategy: tmp_strategy
+              transform: tmp_transform
+              element: element
+            }
+            result.push(r)
+
+    result
