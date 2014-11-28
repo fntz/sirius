@@ -174,6 +174,14 @@ class Sirius.View
   #    $("#v5").data('name', "new name")
   #    $("#r5").data('name') # => new name
   #
+  #
+  # ==== Strategies
+  #  When you use `bind` for view to view binding you might add strategy for it
+  #
+  #  @example
+  #    view1.bind(view2, {strategy: 'append'})
+  #  # then all text from view1 will be copy into view2 content.
+  #
   # You might bind text to text or text to attribute, or attribute to text, or attribute to attribute.
   #
   # === 2. View to Model
@@ -199,6 +207,27 @@ class Sirius.View
   #     my_model.title() # => user input
   #     my_model.description() # => user input
   #
+  # ==== Transform
+  #
+  # Sometimes need transform given value into other, for this you might use `transform` helper
+  #
+  #  @example
+  #     // html source code
+  #
+  #     <form id="form">
+  #       <input type='text' data-bind-to='title'>
+  #       <textarea data-bind-to='description'></textarea>
+  #     </form>
+  #
+  #     # coffee
+  #     view = new Sirius.View("#form")
+  #     my_model = new MyModel() # attributes: id, title, description
+  #     view.bind(my_model, {transform: { title_transformer: (title) -> "#{title}!!!" })
+  #
+  #     # When we enter input, then it change model attributes
+  #     my_model.title() # => user input!!!
+  #     my_model.description() # => user input
+  #
   # === 3. View to String
   #
   # When you pass into `bind` method string, then it create new `Sirius.View` for it string,
@@ -207,108 +236,78 @@ class Sirius.View
   #
   # @note when you add text into element with jQuery#text method, it will not cause associated method. Use #html for it.
   #
-  # TODO: add strategies
+  # @note strategy it only for view to view
+  # @note transform it only for view to model or model to view binding
   # @param [Any] - klass, another view\model\function
   # @param [Object] - hash with setting: [to, from]
   # @return [Sirius.View]
+  # TODO pass parameters with object_setting
   bind: (klass, object_setting = {}) ->
-    `var c = function(m){console.log(m);};`
-    adapter = Sirius.Application.adapter
-    current = @element
-
     if klass
       if klass.name && klass.name() == "View"
-        to   = object_setting['to']   || 'text'
-        from = object_setting['from'] || 'text'
-        # {text: null, attribute: null}
-        clb = (result) ->
-          txt = result['text']
-          if txt? && !result['attribute'] # for change text
-            klass.render(txt).swap(to)
-          else
-            klass.render(txt).swap(to)
-        new Sirius.Observer(current, clb)
+        @_bind_view(klass, object_setting)
+
+      else if Sirius.Utils.is_string(klass)
+        @bind(new Sirius.View(klass, object_setting))
+
       else # then it's Sirius.Model
-        to   = object_setting['to']
-        from = object_setting['from']
-        children = adapter.all("#{current} *")
-        count    = children.length
-
-        # before
-        if count == 0
-          # then it single element and we need extract data-bind-to, data-bind-from
-          tmp_to   = adapter.get_attr(current, 'data-bind-to')
-          tmp_from = adapter.get_attr(current, 'data-bind-from') || 'text'
-
-          if to && tmp_to
-            new Error("Error: You define `to` attribute twice")
-
-          if from && tmp_from
-            new Error("Error: You define `from` attribute twice")
-
-          if !tmp_to && !to
-            new Error("Error: need pass `to` attribute into `.bind` method or define `data-bind-to` into html element code")
-
-          to   = if !to then tmp_to else to
-          from = if !from then tmp_from else from
-
-          clb = (result) =>
-            txt = result['text']
-            if txt? && from == 'text'
-              #c("call #{to} with #{txt}")
-              klass.set(to, txt)
-            if from == result['attribute']
-              klass.set(to, txt)
-
-          new Sirius.Observer(@element, clb)
-
-
-        else
-          if to || from
-            new  Error("Error: `to` or `from` which pass into `bind` method, not taken use `data-bind-to` or `name` and `data-bind-from`")
-
-        # when only one element in collection need wrap his in array
-        children = if count == 0
-          [current]
-        else
-          children
-
-        for child in children
-          do(child) ->
-            data_bind_to = if count == 0
-              to
-            else
-              adapter.get_attr(child, 'data-bind-to')
-
-            if data_bind_to
-              # check if attribute present into model class
-              if klass.attributes.indexOf(data_bind_to) == -1
-                c "Error attribute #{to} not exist in model class #{klass}"
-
-              data_bind_from = if count == 0
-                from
-              else
-                adapter.get_attr(child, 'data-bind-from')
-
-              if data_bind_to
-                clb = (result) ->
-                  txt = result['text']
-                  if txt? && !data_bind_from
-                    klass[data_bind_to](txt)
-                  if data_bind_from == result['attribute']
-                    klass[data_bind_to](txt)
-                  if data_bind_from == "checked"
-                    klass[data_bind_to](result['state'])
-
-                new Sirius.Observer(child, clb)
-
-    else
-      if Sirius.Utils.is_string(klass)
-        @bind(new Sirius.View(klass))
-      else
-        new Error("Unsupported argument for `bind`. Need View, Model, or String.")
+        @_bind_model(klass, object_setting)
 
     @
+
+  # @private
+  # @nodoc
+  _bind_model: (model, setting) ->
+
+    setting['transform'] = if setting['transform']?
+      setting['transform']
+    else
+      (x) -> x
+
+    elements = new Sirius.BindHelper(@element, {
+      to: 'data-bind-to',
+      from: 'data-bind-from'
+      strategy: 'data-bind-strategy'
+      transform: 'data-bind-transform'
+      default_from : null
+    }).extract(setting)
+
+    model_name = Sirius.Utils.fn_name(model.constructor)
+    for element in elements
+      do(element) ->
+        if model.get_attributes().indexOf(element.to) == -1
+          throw new Error("Error attribute '#{element.to}' not exist in model class '#{model_name}'")
+
+        transform = Sirius.BindHelper.transform(element.transform, setting)
+
+        clb = (result) =>
+          if result['text']? && !element.from
+            model.set(element.to, transform(result['text']))
+          if element.from == result['attribute']
+            model.set(element.to, transform(result['text']))
+          if element.from == "checked" # FIXME maybe add array with boolean attributes
+            model(element.to, result['state'])
+
+        new Sirius.Observer(element.element, clb)
+
+
+  # @private
+  # @nodoc
+  _bind_view: (view, setting) ->
+    to   = setting['to']   || 'text'
+    from = setting['from'] || 'text'
+    strategy = setting['strategy'] || 'swap'
+    current = @element
+    # {text: null, attribute: null}
+    clb = (result) ->
+      txt = result['text']
+      if txt? && !result['attribute'] # for change text
+        view.render(txt)[strategy](to)
+      else
+        view.render(txt)[strategy](to)
+
+    new Sirius.Observer(current, clb)
+
 
   #
   # bind2

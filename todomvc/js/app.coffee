@@ -1,9 +1,14 @@
 "use strict"
 `var c = function(m){console.log(m);};`
 
+
 class TodoList extends Sirius.BaseModel
   @attrs: ["title", {completed: false}, "id"]
-  @guid_for : "id"
+
+  constructor: (obj = {}) ->
+    super(obj)
+    @_id = "todo-#{Math.random().toString(36).substring(7)}"
+
   is_active: () ->
     !@completed()
   
@@ -32,12 +37,18 @@ Renderer =
     $("#todo-list").html("").html(template) 
 
   add: (todo) ->
+    c("get id: #{todo.id()}")
     template = @todo_template.render({todo: todo})
     @view.render(template).append()
-    todo_view = new Sirius.View("div.view")
+    todo_view = new Sirius.View("li\##{todo.id()}")
     todo_view.bind(todo)
-
-
+    todo.bind(todo_view, {
+      transform: (t) ->
+        if t
+          "completed"
+        else
+          ""
+    })
 
 #------------------ Controllers -----------------#
 
@@ -59,6 +70,23 @@ MainController =
 
   click: () ->
     c(Todos.all())
+
+TodoController =
+  is_enter: (custom_event, original_event) ->
+    return true if original_event.which == 13
+    false
+
+  create: (custom_event, original_event, model) ->
+    todo = model.clone()
+    Todos.add(todo)
+    model.title("")
+    c("id: #{todo.id()} and #{model.id()}")
+    Renderer.add(todo)
+    # todo bind with view
+
+  mark: () ->
+    c "mark"
+
 
 TodoController =
   is_enter: (custom_event, original_event) ->

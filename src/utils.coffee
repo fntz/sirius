@@ -51,3 +51,12 @@ class Sirius.Utils
 
     false
 
+  #
+  # Return function name
+  # @param [Function]
+  # @return String
+  @fn_name: (fn) ->
+    if @is_function(fn)
+      fn.toString().match(/function ([^\(]+)/)[1]
+    else
+      throw new Error("Need function, given #{typeof fn}")

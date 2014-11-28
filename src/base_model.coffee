@@ -116,23 +116,23 @@ class Sirius.BaseModel
     @note validator object, it's a default Validators @see Sirius.Validator
     @example
        class ModelwithValidators extends Sirius.BaseModel
-       @attrs: ["id", {title: "t"}, "description"]
-       @validate :
-         id:
-           presence: true,
-           numericality: only_integers: true
-           inclusion: within: [1..10]
-           validate_with:  (value) ->
-             if not condition ....
-               @msg = .... #define a user friendly message
-             else
-               true
+         @attrs: ["id", {title: "t"}, "description"]
+         @validate :
+           id:
+             presence: true,
+             numericality: only_integers: true
+             inclusion: within: [1..10]
+             validate_with:  (value) ->
+               if not condition ....
+                 @msg = .... #define a user friendly message
+               else
+                 true
 
-         title:
-           presence: true
-           format: with: /^[A-Z].+/
-           length: min: 3, max: 7
-           exclusion: ["title"]
+           title:
+             presence: true
+             format: with: /^[A-Z].+/
+             length: min: 3, max: 7
+             exclusion: ["title"]
   ###
   @validate : {}
 
@@ -377,7 +377,7 @@ class Sirius.BaseModel
   # @return [JSON]
   #
   # @example
-  #   var m = new MyModel({"id": 10, "description", "text"});
+  #   m = new MyModel({"id": 10, "description", "text"});
   #   m.to_json() // => {"id":10,"title":"default title","description":"text"}
   #   m.to_json(true) // => {"my_model":{"id":10,"title":"default title","description":"text"}}
   #
@@ -423,17 +423,17 @@ class Sirius.BaseModel
   # @return [T < Sirius.BaseModel]
   #
   # @example
-  #   var json = JSON.stringify({"id": 10, "description": "text"});
-  #   var m = MyModel.from_json(j);
+  #   json = JSON.stringify({"id": 10, "description": "text"});
+  #   m = MyModel.from_json(j);
   #   m.get("id") // => 10
   #   m.get("description") // => "text"
   #   m.get("title") // => "default title"
   #
-  #   var json = JSON.stringify({"id":1,"group":[{"name":"group-0","person_id":1},{"name":"group-1","person_id":1}]})
-  #   var person = Person.from_json(json, {group: Group});
+  #   json = JSON.stringify({"id":1,"group":[{"name":"group-0","person_id":1},{"name":"group-1","person_id":1}]})
+  #   person = Person.from_json(json, {group: Group});
   #   person.get('group') // => [Group, Group]
   #
-  #   var person0 = Person.from_json(json)
+  #   person0 = Person.from_json(json)
   #   person.get('group') // => [{name: 'group-0', ... }, {name: 'group-1', ...}]
   #
   @from_json: (json, models = {}) ->
@@ -533,72 +533,65 @@ class Sirius.BaseModel
   #
   #   The same for radio or select elements.
   #
+  # Use data transformation and strategies
   #
+  # @example
+  #     <span data-bind-view-from='title' data-bind-view-transform='wrap' data-bind-view-strategy='append'></span>
+  #
+  # Then flow will be
+  # set new title in model -> transform with wrap method -> apply strategy -> result
+  #
+  # TODO pass parameters with object_setting
+  # TODO strategies
   bind: (view, object_setting = {}) ->
     throw new Error("`bind` only work with Sirius.View") if !(view.name && view.name() == "View")
-    to = object_setting['to'] || null
-    from = object_setting['from'] || null
+    object_setting['transform'] = if object_setting['transform']?
+      object_setting['transform']
+    else
+      (t) -> t
+
     callbacks = @callbacks
     adapter = Sirius.Application.adapter
     current = view.element
 
-    children = adapter.all("#{current} *")
-    count = children.length
-    #FIXME
-    if count == 0
-      to = adapter.get_attr(view.element, 'data-bind-view-to') || to || 'text'
-      from = adapter.get_attr(view.element, 'data-bind-view-from') || from || @attributes[0]
-      # when it one element use it without any logic, only set value or attribute
-      clb = (attr, value) ->
-        if attr is from
-          if to == 'text'
-            view.render(value).swap()
-          else
-            view.render(value).swap(to)
+    elements = new Sirius.BindHelper(current, {
+      to: 'data-bind-view-to',
+      from: 'data-bind-view-from'
+      strategy: 'data-bind-view-strategy'
+      transform: 'data-bind-view-transform'
+      default_from : null
+      default_to: 'text'
+    }, false).extract(object_setting)
 
-      callbacks.push(clb)
+    attributes = @attributes
+    model_name = Sirius.Utils.fn_name(@constructor)
+    for element in elements
+      do(element) ->
+        if attributes.indexOf(element.from) == -1
+          throw new Error("Attribute '#{element.from}' not found in '#{model_name}' attributes")
 
-    else
-      throw new Error("For element with children not use object setting") if to || from
+        element.view ?= new Sirius.View(element.element)
 
-      elements = []
+        transform = Sirius.BindHelper.transform(element.transform, object_setting)
 
-      for child in children when adapter.get_attr(child, 'data-bind-view-from')
-        bind_to = adapter.get_attr(child, 'data-bind-view-to') || 'text'
-        bind_from = adapter.get_attr(child, 'data-bind-view-from')
-
-        tmp = {
-          to : bind_to,
-          from: bind_from,
-          element : child,
-          view : new Sirius.View(child)
-        }
-        elements.push tmp
-
-      # attr from model
-      # value new value for attr
-      clb = (attr, value) ->
-        for element in elements when element.from == attr
-          do(element) ->
-            # when it logical element
-            # we need mark is as checked or selected only when it have value (and attr is text of course)
-            if element.to is 'text'
-              tag = adapter.get_attr(element.element, 'tagName')
-              type = adapter.get_attr(element.element, 'type')
-              if type == 'checkbox' || type == 'radio'
-                current_value = adapter.get_attr(element.element, 'value')
-                if current_value == value
-                  adapter.set_prop(element.element, 'checked', true)
-              if tag == 'OPTION'
-                current_value = adapter.get_attr(element.element, 'value')
-                if current_value == value
-                  adapter.set_prop(element.element, 'selected', true)
-              else
-                element.view.render(value).swap(element.to)
+        clb = (attr, value) ->
+          if element.to is 'text'
+            tag = adapter.get_attr(element.element, 'tagName')
+            type = adapter.get_attr(element.element, 'type')
+            if type == 'checkbox' || type == 'radio'
+              current_value = adapter.get_attr(element.element, 'value')
+              if current_value == value
+                adapter.set_prop(element.element, 'checked', true)
+            if tag == 'OPTION'
+              current_value = adapter.get_attr(element.element, 'value')
+              if current_value == value
+                adapter.set_prop(element.element, 'selected', true)
             else
-              element.view.render(value).swap(element.to)
+              element.view.render(transform(value)).swap(element.to)
+          else
+            element.view.render(transform(value)).swap(element.to)
 
-      callbacks.push(clb)
+        callbacks.push(clb)
 
   #
   # bind2

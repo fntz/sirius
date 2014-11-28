@@ -8,17 +8,19 @@ var MainController, Renderer, TodoController, TodoList, Todos, routes,
 TodoList = (function(_super) {
   __extends(TodoList, _super);
 
-  function TodoList() {
-    return TodoList.__super__.constructor.apply(this, arguments);
-  }
-
   TodoList.attrs = [
     "title", {
       completed: false
     }, "id"
   ];
 
-  TodoList.guid_for = "id";
+  function TodoList(obj) {
+    if (obj == null) {
+      obj = {};
+    }
+    TodoList.__super__.constructor.call(this, obj);
+    this._id = "todo-" + (Math.random().toString(36).substring(7));
+  }
 
   TodoList.prototype.is_active = function() {
     return !this.completed();
@@ -77,12 +79,22 @@ Renderer = {
   },
   add: function(todo) {
     var template, todo_view;
+    c("get id: " + (todo.id()));
     template = this.todo_template.render({
       todo: todo
     });
     this.view.render(template).append();
-    todo_view = new Sirius.View("div.view");
-    return todo_view.bind(todo);
+    todo_view = new Sirius.View("li\#" + (todo.id()));
+    todo_view.bind(todo);
+    return todo.bind(todo_view, {
+      transform: function(t) {
+        if (t) {
+          return "completed";
+        } else {
+          return "";
+        }
+      }
+    });
   }
 };
 
@@ -109,6 +121,26 @@ MainController = {
   },
   click: function() {
     return c(Todos.all());
+  }
+};
+
+TodoController = {
+  is_enter: function(custom_event, original_event) {
+    if (original_event.which === 13) {
+      return true;
+    }
+    return false;
+  },
+  create: function(custom_event, original_event, model) {
+    var todo;
+    todo = model.clone();
+    Todos.add(todo);
+    model.title("");
+    c("id: " + (todo.id()) + " and " + (model.id()));
+    return Renderer.add(todo);
+  },
+  mark: function() {
+    return c("mark");
   }
 };
 

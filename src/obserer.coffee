@@ -67,7 +67,7 @@ class Sirius.Observer
         result['previous'] = old_attr
 
       clb(result)
-
+    #FIXME need only when 'from text' expected
     if ONCHANGE_TAGS.indexOf(tag) != -1
       if type == "checkbox" || type == "radio"
         adapter.bind(document, @from_element, 'change', handler)
@@ -79,34 +79,34 @@ class Sirius.Observer
         if Sirius.Utils.ie_version() == 9
           adapter.bind(document, document, 'selectionchange', handler)
 
-    else
-      if MO
-        # TODO from element should not be input\textarea\select
-        observer = new MO( (mutations) ->
-          mutations.forEach handler
-        )
 
-        cnf =
-          childList: true
-          attributes: true
-          characterData: true
-          attributeOldValue: true
-          characterDataOldValue: true
-          subtree: false # FIXME subtree: true
+    if MO
+      # TODO from element should not be input\textarea\select
+      observer = new MO( (mutations) ->
+        mutations.forEach handler
+      )
 
-
-        if Sirius.Utils.is_string(from)
-          elements = adapter.get(from) # fixme : all
-          observer.observe(elements, cnf)
-        else
-          observer.observe(from, cnf)
+      cnf =
+        childList: true
+        attributes: true
+        characterData: true
+        attributeOldValue: true
+        characterDataOldValue: true
+        subtree: false # FIXME subtree: true
 
 
+      if Sirius.Utils.is_string(from)
+        elements = adapter.get(from) # fixme : all
+        observer.observe(elements, cnf)
+      else
+        observer.observe(from, cnf)
 
-      else # when null, need register event with routes
-        adapter.bind(document, @from_element, 'DOMNodeInserted', handler)
-        adapter.bind(document, @from_element, 'DOMNodeRemoved', handler)
-        adapter.bind(document, @from_element, 'DOMAttrModified', handler)
+
+
+    else # when null, need register event with routes
+      adapter.bind(document, @from_element, 'DOMNodeInserted', handler)
+      adapter.bind(document, @from_element, 'DOMNodeRemoved', handler)
+      adapter.bind(document, @from_element, 'DOMAttrModified', handler)
 
 
 

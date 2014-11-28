@@ -1,5 +1,5 @@
-<li>
-  <div class="view" id="<%= todo.id() %>">
+<li id="<%= todo.id() %>" data-bind-view-to="class" data-bind-view-from="completed" class="">
+  <div class="view">
     <input class="toggle" type="checkbox" data-bind-to="completed" data-bind-from="checked">
     <label><%= todo.title() %></label>
     <button class="destroy"></button>

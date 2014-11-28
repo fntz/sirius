@@ -76,6 +76,7 @@ task :minify => [:build] do
 end
 
 
+
 namespace :todo do
   desc "TODOApp compile"
   task :compile do
