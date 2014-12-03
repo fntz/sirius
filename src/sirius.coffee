@@ -183,12 +183,8 @@ class Sirius.ControlFlow
 
     @data = params['data'] || null
 
-<<<<<<< HEAD
 
   # @param e [EventObject|null] - event object if it's a mouse\key events, and `null` when it's url change event
-=======
-  # @param e [EventObject|null] - event object if it'pygments.css a mouse\key events, and `null` when it'pygments.css url change event
->>>>>>> project page
   # @param args [Array<Any>] - arguments, used only for url changes events
   #
   # @note if you have a guard function, then firstly called it, if `guard` is true, then will be called `before`, `action` and `after` methods
@@ -373,7 +369,6 @@ Sirius.RouteSystem =
           Sirius.Application.logger("Convert '#{href}' -> '#{new_href}'")
           link.setAttribute('href', new_href)
 
-<<<<<<< HEAD
       if plain_routes.length != 0
         # bind all <a> element with dispatch function, but bind only when href not contain "#"
         adapter.bind document, @_selector, "click", dispatcher
@@ -396,10 +391,6 @@ Sirius.RouteSystem =
 
 # @mixin
 # A main object, it's a start point all user applications
-=======
-#
-# A main object, it'pygments.css a start point all user applications
->>>>>>> project page
 # @example
 #   var routes = {
 #     "#/"                : { controller : Controller, action: "action" },
@@ -427,7 +418,6 @@ Sirius.Application =
     user routes
   ###
   route: {}
-<<<<<<< HEAD
   ###
     a root url for application
   ###
@@ -466,11 +456,6 @@ Sirius.Application =
   #
   # @method #logger(msg) - logger, default it's write message to console.log, may be redefined
   # @param msg [String]
-=======
-  # @property [String] - a root url for application
-  start : "#"
-  # @method #logger(msg) - logger, default it'pygments.css write message to console.log, may be redefined
->>>>>>> project page
   logger: (msg) ->
     return if !@log
     if console && console.log
