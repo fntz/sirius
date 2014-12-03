@@ -34,15 +34,17 @@
         </p>
       </nav>
       <div id='filecontents'>
-        <h1 id="are-you-sirius-">Are you sirius?</h1><p><a href="http://fntzr.github.com/sirius">Sirius.js</a> a light weight javascript MVC framework, written with <a href="http://coffeescript.org/">coffeescript</a>. It&#39;s give a simple integration with current javascript frameworks.</p><h3 id="features">Features</h3>
+        <h1 id="are-you-sirius-">Are you sirius?</h1><p><a href="http://fntzr.github.com/sirius">Sirius.js</a> a coffeescript MVC framework. It&#39;s give a simple integration with current javascript frameworks.</p><h3 id="features">Features</h3>
 <ul>
 <li>Template free — you may use any template engine or use any at all</li>
 <li>Controller free — you may use object as Controllers for you application or use only functions as controllers</li>
-<li>Model free — you may use a built in models, or use alternative model implementaion from <code>Backbone.js</code> or <code>Ember.Data</code> or use javascript objects as you models.</li>
+<li>Model free — you may use a built in models, or use alternative model implementation from <code>Backbone.js</code> or <code>Ember.Data</code> or use javascript objects as you models.</li>
 <li>Javascript framework free — you may create a Adapter for own framework or use for <code>jQuery</code> or <code>prototypejs</code> adapters.</li>
 <li>Routing - routing from hash changes, from events, from custom events</li>
+<li>Possible use plain routing, if browser not support plain routing, then <code>Sirius</code> automatically switch to hash-based routing</li>
+<li>Include MVVM Support</li>
 <li>Easy for understanding</li>
-</ul><p>You only need define Route for you application.</p><h1 id="install">Install</h1><p><code>npm install sirius</code> </p><p>or download manually <code>sirius.min.js</code> and <code>jquery_adapter.min.js</code> or <code>prototype_js_adapter.min.js</code> from repo.</p><h1 id="usage">Usage</h1>
+</ul><p>You only need define Route for you application.</p><h1 id="install">Install</h1><p><code>npm install sirius</code> </p><p>or download manually <a href="https://raw.githubusercontent.com/fntzr/sirius/master/sirius.min.js">sirius.min.js</a> and <a href="https://raw.githubusercontent.com/fntzr/sirius/master/jquery_adapter.min.js">jquery_adapter.min.js</a> or <a href="https://raw.githubusercontent.com/fntzr/sirius/master/prototypejs_adapter.min.js">prototype_js_adapter.min.js</a> from repo.</p><h1 id="usage">Usage</h1>
 <h3 id="1-define-controllers">1. Define controllers</h3>
 <pre><code class="lang-coffee">MyController = 
   action: (param) -&gt;
@@ -65,6 +67,7 @@
 <h3 id="2-define-routes">2. Define routes</h3>
 <pre><code class="lang-coffee">  routes = {
     &quot;application:run&quot;   : controller: MyController, action: &quot;action&quot;
+    &quot;/plain&quot;            : controller: MyController, action: &quot;plain&quot;
     &quot;#/:title&quot;          : controller: MyController, action: &quot;run&quot;
     &quot;click #my-element&quot; : controller: MyController, action: &quot;event_action&quot;, guard: &quot;guard_event&quot;, data: &quot;id&quot;  
   }
@@ -114,7 +117,7 @@ person.find(&quot;name&quot;, &quot;Joe&quot;).to_json() # =&gt; {&quot;id&quot;
 <li><a href="http://fntzr.github.io/sirius/todomvc/index.html">TodoMVC Application</a> and <a href="https://github.com/fntzr/sirius/blob/master/todomvc/js/app.coffee">source</a></li>
 <li><a href="http://fntzr.github.io/sirius/doc/index.html">Docs</a></li>
 </ul>
-<h1 id="tasks">Tasks</h1><p>Use <code>cake</code> or <code>rake</code> for run task. Before work run <code>rake or cake install</code> for installing dependencies.</p><p><code>rake install</code> - install all dependencies</p><p><code>rake doc</code> - generate project documentation</p><p><code>rake build</code> - compile coffeescript into javascript file</p><p><code>rake test</code> - complile fixtures for tests</p><p><code>rake minify</code> - use <a href="https://github.com/yui/yuicompressor">yuicompressor</a> for minify files</p><h1 id="contributing">Contributing</h1>
+<h1 id="tasks">Tasks</h1><p>Use <code>cake</code> or <code>rake</code> for run task. Before work run <code>rake or cake install</code> for installing dependencies.</p><p><code>rake install</code> - install all dependencies</p><p><code>rake doc</code> - generate project documentation</p><p><code>rake build</code> - compile coffeescript into javascript file</p><p><code>rake test</code> - complile fixtures for tests, and run server</p><p><code>rake minify</code> - use <a href="https://github.com/yui/yuicompressor">yuicompressor</a> for minify files</p><h1 id="contributing">Contributing</h1>
 <ol>
 <li>Fork it</li>
 <li>Create your feature branch (<code>git checkout -b my-new-feature</code>)</li>
@@ -122,13 +125,13 @@ person.find(&quot;name&quot;, &quot;Joe&quot;).to_json() # =&gt; {&quot;id&quot;
 <li>Push to the branch (<code>git push origin my-new-feature</code>)</li>
 <li>Create new Pull Request</li>
 </ol>
-<h1 id="license-mit">LICENSE : MIT</h1>
+<h3 id="license-mit">LICENSE : MIT</h3>
 <p align="center">
   <img src="http://makeameme.org/media/created/YEAH-I-AM-n5trg3.jpg?raw=true" alt="I am Sirius"/></p>
       </div>
     </div>
     <div id='footer'>
-  July 11, 14 21:33:44 by
+  December 03, 14 21:44:36 by
   <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
     Codo
   </a>

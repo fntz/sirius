@@ -61,23 +61,11 @@ It&#39;s a base class, which must be redefine for concrete javascript library: p
       <a href='#bind-dynamic'>
         #
 (Void)
-<b>bind</b><span>(selector, event, fn)</span>
+<b>bind</b><span>(element, selector, event, fn)</span>
       </a>
     </span>
     <span class='desc'>
       Attach event to element 
-    </span>
-  </li>
-  <li>
-    <span class='signature'>
-      <a href='#form_to_json-dynamic'>
-        #
-(JSON)
-<b>form_to_json</b><span>(selector)</span>
-      </a>
-    </span>
-    <span class='desc'>
-      Convert element which find with &#39;selector&#39; to json 
     </span>
   </li>
   <li>
@@ -104,6 +92,126 @@ It&#39;s a base class, which must be redefine for concrete javascript library: p
       Extract attribute from target element from event 
     </span>
   </li>
+  <li>
+    <span class='signature'>
+      <a href='#get_attr-dynamic'>
+        #
+(void)
+<b>get_attr</b><span>(element, attr)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#set_prop-dynamic'>
+        #
+(void)
+<b>set_prop</b><span>(element, attr, value)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#swap-dynamic'>
+        #
+(void)
+<b>swap</b><span>(element, content)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      Change content into element @content [String] content - new content
+
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#append-dynamic'>
+        #
+(void)
+<b>append</b><span>(element, content)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      Add in bottom @content [String] content - new content
+
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#prepend-dynamic'>
+        #
+(void)
+<b>prepend</b><span>(element, content)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      Add in top @content [String] content - new content
+
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#clear-dynamic'>
+        #
+(void)
+<b>clear</b><span>(element)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      Remove content from element 
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#set_attr-dynamic'>
+        #
+(void)
+<b>set_attr</b><span>(element, attr, value)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      set new attribute for element 
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#all-dynamic'>
+        #
+(void)
+<b>all</b><span>(selector)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      return all selectors 
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#get-dynamic'>
+        #
+(void)
+<b>get</b><span>(selector)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      first from selector 
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#state-dynamic'>
+        #
+(void)
+<b>state</b><span>(selector)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
 </ul>
       <h2>Instance Method Details</h2>
       <div class='methods'>
@@ -111,7 +219,7 @@ It&#39;s a base class, which must be redefine for concrete javascript library: p
     <p class='signature' id='bind-dynamic'>
       #
 (Void)
-<b>bind</b><span>(selector, event, fn)</span>
+<b>bind</b><span>(element, selector, event, fn)</span>
       <br>
     </p>
     <div class='docstring'>
@@ -120,6 +228,16 @@ It&#39;s a base class, which must be redefine for concrete javascript library: p
 <div class='tags'>
   <h3>Parameters:</h3>
   <ul class='param'>
+    <li>
+      <span class='name'>main</span>
+      <span class='type'>
+        (
+          <tt>String</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>element for bind </span>
+    </li>
     <li>
       <span class='name'>selector</span>
       <span class='type'>
@@ -162,41 +280,6 @@ It&#39;s a base class, which must be redefine for concrete javascript library: p
     <li>
       <span class='type'></span>
       <tt>Void</tt>
-    </li>
-  </ul>
-</div>
-  </div>
-  <div class='method_details'>
-    <p class='signature' id='form_to_json-dynamic'>
-      #
-(JSON)
-<b>form_to_json</b><span>(selector)</span>
-      <br>
-    </p>
-    <div class='docstring'>
-  <p>Convert element which find with &#39;selector&#39; to json</p>
-</div>
-<div class='tags'>
-  <h3>Parameters:</h3>
-  <ul class='param'>
-    <li>
-      <span class='name'>selector</span>
-      <span class='type'>
-        (
-          <tt>String</tt>
-        )
-      </span>
-      &mdash;
-      <span class='desc'><ul> selector, for find element
-</ul>
-</span>
-    </li>
-  </ul>
-  <h3>Returns:</h3>
-  <ul class='return'>
-    <li>
-      <span class='type'></span>
-      <tt>JSON</tt>
     </li>
   </ul>
 </div>
@@ -307,10 +390,224 @@ It&#39;s a base class, which must be redefine for concrete javascript library: p
   </ul>
 </div>
   </div>
+  <div class='method_details'>
+    <p class='signature' id='get_attr-dynamic'>
+      #
+(void)
+<b>get_attr</b><span>(element, attr)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='set_prop-dynamic'>
+      #
+(void)
+<b>set_prop</b><span>(element, attr, value)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='swap-dynamic'>
+      #
+(void)
+<b>swap</b><span>(element, content)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>Change content into element
+@content [String] content - new content</p>
+</div>
+<div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>element</span>
+      <span class='type'>
+        (
+          <tt>String</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'><ul> selector
+</ul>
+</span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='append-dynamic'>
+      #
+(void)
+<b>append</b><span>(element, content)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>Add in bottom
+@content [String] content - new content</p>
+</div>
+<div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>element</span>
+      <span class='type'>
+        (
+          <tt>String</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'><ul> selector
+</ul>
+</span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='prepend-dynamic'>
+      #
+(void)
+<b>prepend</b><span>(element, content)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>Add in top
+@content [String] content - new content</p>
+</div>
+<div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>element</span>
+      <span class='type'>
+        (
+          <tt>String</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'><ul> selector
+</ul>
+</span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='clear-dynamic'>
+      #
+(void)
+<b>clear</b><span>(element)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>Remove content from element</p>
+</div>
+<div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>element</span>
+      <span class='type'>
+        (
+          <tt>String</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'><ul> selector
+</ul>
+</span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='set_attr-dynamic'>
+      #
+(void)
+<b>set_attr</b><span>(element, attr, value)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>set new attribute for element</p>
+</div>
+<div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>-</span>
+      <span class='type'>
+        (
+          <tt>String</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>selector </span>
+    </li>
+    <li>
+      <span class='name'>-</span>
+      <span class='type'>
+        (
+          <tt>String</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>attribute </span>
+    </li>
+    <li>
+      <span class='name'>-</span>
+      <span class='type'>
+        (
+          <tt>String</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>new value for attribute </span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='all-dynamic'>
+      #
+(void)
+<b>all</b><span>(selector)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>return all selectors</p>
+</div>
+<div class='tags'>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='get-dynamic'>
+      #
+(void)
+<b>get</b><span>(selector)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>first from selector</p>
+</div>
+<div class='tags'>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='state-dynamic'>
+      #
+(void)
+<b>state</b><span>(selector)</span>
+      <br>
+    </p>
+    
+  </div>
 </div>
     </div>
     <div id='footer'>
-  July 11, 14 21:33:44 by
+  December 03, 14 21:44:36 by
   <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
     Codo
   </a>
