@@ -2,6 +2,8 @@ describe "Routing", ->
   R = Sirius.RoutePart
   j = new JQueryAdapter()
   Sirius.Application.adapter = j
+  Sirius.Application.logger = new Sirius.Logger(false, (m) -> console.log(m))
+
 
   describe "RoutePart", ->
     it "Hash Routing", ->

@@ -33,24 +33,27 @@ class Sirius.LengthValidator extends Sirius.Validator
   #
   # @return [Boolean]
   validate: (value, attributes) ->
-    max = attributes['max'] || Number.POSITIVE_INFINITY
-    min = attributes['min'] || Number.NEGATIVE_INFINITY
-    length  = attributes['length']
-    actual_length = value.length
+    if value?
+      max = attributes['max'] || Number.POSITIVE_INFINITY
+      min = attributes['min'] || Number.NEGATIVE_INFINITY
+      length  = attributes['length']
+      actual_length = value.length
 
-    if length
-      if actual_length == length
-        true
+      if length
+        if actual_length == length
+          true
+        else
+          @msg = "Required length: #{length}, given: #{actual_length}"
+          false
       else
-        @msg = "Required length: #{length}, given: #{actual_length}"
-        false
+        if ((actual_length >= min) && (actual_length <= max))
+          true
+        else
+          @msg = "Required length in range [#{min}..#{max}], given: #{actual_length}"
+          false
     else
-      if ((actual_length >= min) && (actual_length <= max))
-        true
-      else
-        @msg = "Required length in range [#{min}..#{max}], given: #{actual_length}"
-        false
-
+      @msg = "Given null for LengthValidator"
+      false
 
 
 # Class for validate value which excluded in range, which define with `within` option.
@@ -98,10 +101,14 @@ class Sirius.FormatValidator extends Sirius.Validator
   # @return [Boolean]
   validate: (value, attributes) ->
     format = attributes['with'] || throw new Error("format attribute required")
-    if format.test(value)
-      true
+    if value?
+      if format.test(value)
+        true
+      else
+        @msg = "Value #{value} not for current format"
+        false
     else
-      @msg = "Value #{value} not for current format"
+      @msg = "Given null for Format"
       false
 
 # Check if value is a number or integer number

@@ -291,8 +291,6 @@ class Sirius.View
 
           new Sirius.Observer(element.element, clb)
 
-
-
   # @private
   # @nodoc
   _bind_view: (view, setting) ->

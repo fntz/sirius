@@ -8,7 +8,7 @@ class MyModel extends Sirius.BaseModel
     @.get("id") == other.get("id")
 
 class ModelwithValidators extends Sirius.BaseModel
-  @attrs: ["id", {title: "t"}, "description"]
+  @attrs: ["id", "title", "description"]
   @validate :
     id:
       presence: true,
@@ -22,7 +22,16 @@ class ModelwithValidators extends Sirius.BaseModel
       presence: true
       format: with: /^[A-Z].+/
       length: min: 3, max: 7
-      exclusion: ["title"]
+      exclusion: within: ["Title"]
+
+    description:
+      validate_with: (desc) ->
+        if desc == "foo"
+          true
+        else
+          @msg = "Description must be foo"
+          false
+
 
 
 class Person extends Sirius.BaseModel

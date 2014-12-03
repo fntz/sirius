@@ -193,7 +193,7 @@ class Sirius.BaseModel
   # @note Method generate properties for `@has_many` and `@has_one` attributes.
   # @note Method generate add_x, where `x` it's a attribute from `@has_many` or `@has_one`
   constructor: (obj = {}) ->
-    @_isValid = false
+    @_is_valid = false
     @callbacks = []
     # object, which contain all errors, which registers after validation
     @errors = {}
@@ -307,6 +307,8 @@ class Sirius.BaseModel
 
     @["_#{attr}"] = value
 
+    @validate(attr)
+
     for clb in @callbacks
       clb.apply(null, [attr, value])
 
@@ -323,18 +325,27 @@ class Sirius.BaseModel
 
   # Check, if model instance valid
   # @return [Boolean] true, when is valid, otherwise false
-  valid: () ->
-    @_isValid
+  is_valid: () ->
+    @_is_valid
 
-  # @private
+  # Call when you want validate model
   # @nodoc
-  validate: () ->
-    @errors = {}
+  validate: (field = null) ->
+    @errors ?= {}
+    #FIXME work with relations
     vv = @validators()
-    for key, value of vv
+    Object.keys(vv).filter(
+      (key) =>
+        if field?
+          key == field
+        else
+          true
+    ).map((key) =>
       current_value = @get(key)
-      for validator, v of value
-        klass = switch validator
+      value = vv[key]
+      valid = true # check if current field is valid, and if it's field valid, then need remove errors for it
+      for validator_key, validator_value of value
+        klass = switch validator_key
           when "length"        then new Sirius.LengthValidator()
           when "exclusion"     then new Sirius.ExclusionValidator()
           when "inclusion"     then new Sirius.InclusionValidator()
@@ -343,20 +354,28 @@ class Sirius.BaseModel
           when "presence"      then new Sirius.PresenceValidator()
           when "validate_with"
             z = new Sirius.Validator()
-            z.validate = v
+            z.validate = validator_value
             z.msg = null
             z
 
-        r = klass.validate(current_value, v)
-        if !r
-          e = if typeof(v) is "object"
-                v["error"] || klass.error_message()
-              else
-                klass.error_message()
+        result = klass.validate(current_value, validator_value)
 
-          (@errors["#{key}"] ?= []).push("#{e}")
+        if !result
+          e = if typeof(validator_value) is "object"
+            validator_value["error"] || klass.error_message()
+          else
+            klass.error_message()
+          valid = false
+          (@errors[key] ?= []).push("#{e}")
 
-    @_isValid = Object.keys(@errors).length == 0 ? true : false
+      delete @errors[key] if valid
+    )
+
+    @_is_valid = Object.keys(@errors).length == 0 ? true : false
+
+  # @return [Object] - return object with errors for current model
+  get_errors: () ->
+    @errors
 
   # @note must be redefine in descendants
   # @param exception [Boolean] throw exception, when true and instance not valid,
@@ -366,8 +385,8 @@ class Sirius.BaseModel
   save: (exception = false) ->
     @validate()
     name = @constructor.name
-    throw new Error("#{name} model not valid!") if exception && !@_isValid
-    return false if @_isValid
+    throw new Error("#{name} model not valid!") if exception && !@_is_valid
+    return false if @_is_valid
     true
 
   #
@@ -552,6 +571,7 @@ class Sirius.BaseModel
 
     callbacks = @callbacks
 
+
     Sirius.Application.get_adapter().and_then (adapter) =>
       current = view.element
 
@@ -595,8 +615,6 @@ class Sirius.BaseModel
                 element.view.render(transform(value)).swap(element.to)
 
           callbacks.push(clb)
-
-
 
 
   #

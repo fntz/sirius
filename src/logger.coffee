@@ -7,10 +7,13 @@ class Sirius.Logger
 
   # @param [Boolean] - true, when log enabled
   # @param [Function] - logger function for application
-  constructor: (@log, @logger_function) ->
+  constructor: (log, logger_function) ->
     for l in Levels
       do(l) =>
-        @[l] = (msg) -> @logger_function("#{l.toUpperCase()}: #{msg}")
+        @[l] = (msg) ->
+          if log
+            logger_function("#{l.toUpperCase()}: #{msg}")
+
 
 
 
