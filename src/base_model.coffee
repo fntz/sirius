@@ -551,47 +551,51 @@ class Sirius.BaseModel
       (t) -> t
 
     callbacks = @callbacks
-    adapter = Sirius.Application.adapter
-    current = view.element
 
-    elements = new Sirius.BindHelper(current, {
-      to: 'data-bind-view-to',
-      from: 'data-bind-view-from'
-      strategy: 'data-bind-view-strategy'
-      transform: 'data-bind-view-transform'
-      default_from : null
-      default_to: 'text'
-    }, false).extract(object_setting)
+    Sirius.Application.get_adapter((adapter) =>
+      current = view.element
 
-    attributes = @attributes
-    model_name = Sirius.Utils.fn_name(@constructor)
-    for element in elements
-      do(element) ->
-        if attributes.indexOf(element.from) == -1
-          throw new Error("Attribute '#{element.from}' not found in '#{model_name}' attributes")
+      elements = new Sirius.BindHelper(current, {
+        to: 'data-bind-view-to',
+        from: 'data-bind-view-from'
+        strategy: 'data-bind-view-strategy'
+        transform: 'data-bind-view-transform'
+        default_from : null
+        default_to: 'text'
+      }, false).extract(object_setting)
 
-        element.view ?= new Sirius.View(element.element)
+      attributes = @attributes
 
-        transform = Sirius.BindHelper.transform(element.transform, object_setting)
+      model_name = Sirius.Utils.fn_name(@constructor)
+      for element in elements
+        do(element) ->
+          if attributes.indexOf(element.from) == -1
+            throw new Error("Attribute '#{element.from}' not found in '#{model_name}' attributes")
 
-        clb = (attr, value) ->
-          if element.to is 'text'
-            tag = adapter.get_attr(element.element, 'tagName')
-            type = adapter.get_attr(element.element, 'type')
-            if type == 'checkbox' || type == 'radio'
-              current_value = adapter.get_attr(element.element, 'value')
-              if current_value == value
-                adapter.set_prop(element.element, 'checked', true)
-            if tag == 'OPTION'
-              current_value = adapter.get_attr(element.element, 'value')
-              if current_value == value
-                adapter.set_prop(element.element, 'selected', true)
+          element.view ?= new Sirius.View(element.element)
+
+          transform = Sirius.BindHelper.transform(element.transform, object_setting)
+
+          clb = (attr, value) ->
+            if element.to is 'text'
+              tag = adapter.get_attr(element.element, 'tagName')
+              type = adapter.get_attr(element.element, 'type')
+              if type == 'checkbox' || type == 'radio'
+                current_value = adapter.get_attr(element.element, 'value')
+                if current_value == value
+                  adapter.set_prop(element.element, 'checked', true)
+              if tag == 'OPTION'
+                current_value = adapter.get_attr(element.element, 'value')
+                if current_value == value
+                  adapter.set_prop(element.element, 'selected', true)
+              else
+                element.view.render(transform(value)).swap(element.to)
             else
               element.view.render(transform(value)).swap(element.to)
-          else
-            element.view.render(transform(value)).swap(element.to)
 
-        callbacks.push(clb)
+          callbacks.push(clb)
+    )
+
 
   #
   # bind2

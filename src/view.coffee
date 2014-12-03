@@ -80,20 +80,21 @@ class Sirius.View
                  selector
                else
                  "#{@element} #{selector}"
-    adapter = Sirius.Application.adapter
     handler = (e) ->
-      adapter.fire.call(null, document, custom_event_name, e, params...)
+      Sirius.Application.get_adapter().and_then((adapter) =>
+        adapter.fire.call(null, document, custom_event_name, e, params...)
+      )
 
-    adapter.bind(document, selector, event_name, handler)
+    Sirius.Application.get_adapter().and_then((adapter) => adapter.bind(document, selector, event_name, handler))
     null
 
 
   # @nodoc
   _apply_strategy: (object = {attributes: [], name: 'swap', transform: (old, result) -> "#{result}" }) ->
-    adapter = Sirius.Application.adapter
-    if object.attributes.length == 0
-      adapter[object.name](@element, @_result)
-    else
+    Sirius.Application.get_adapter().and_then((adapter) =>
+      if object.attributes.length == 0
+        adapter[object.name](@element, @_result)
+      else
       for attr in object.attributes
         do(attr) =>
           if attr == 'text'
@@ -101,12 +102,13 @@ class Sirius.View
           else
             old_val = adapter.get_attr(@element, attr)
             adapter.set_attr(@element, attr, object.transform(old_val, @_result))
+    )
     null
 
 
   # clear element content
   clear: () ->
-    Sirius.Application.adapter.clear(@element)
+    Sirius.Application.get_adapter().and_then((adapter) => adapter.clear(@element))
     @
 
 
@@ -258,37 +260,37 @@ class Sirius.View
   # @private
   # @nodoc
   _bind_model: (model, setting) ->
+    Sirius.Application.get_adapter().and_then (adapter) =>
+      setting['transform'] = if setting['transform']?
+        setting['transform']
+      else
+        (x) -> x
+      elements = new Sirius.BindHelper(@element, {
+        to: 'data-bind-to',
+        from: 'data-bind-from'
+        strategy: 'data-bind-strategy'
+        transform: 'data-bind-transform'
+        default_from : null
+      }).extract(adapter, setting)
 
-    setting['transform'] = if setting['transform']?
-      setting['transform']
-    else
-      (x) -> x
+      model_name = Sirius.Utils.fn_name(model.constructor)
+      for element in elements
+        do(element) ->
+          if model.get_attributes().indexOf(element.to) == -1
+            throw new Error("Error attribute '#{element.to}' not exist in model class '#{model_name}'")
 
-    elements = new Sirius.BindHelper(@element, {
-      to: 'data-bind-to',
-      from: 'data-bind-from'
-      strategy: 'data-bind-strategy'
-      transform: 'data-bind-transform'
-      default_from : null
-    }).extract(setting)
+          transform = Sirius.BindHelper.transform(element.transform, setting)
 
-    model_name = Sirius.Utils.fn_name(model.constructor)
-    for element in elements
-      do(element) ->
-        if model.get_attributes().indexOf(element.to) == -1
-          throw new Error("Error attribute '#{element.to}' not exist in model class '#{model_name}'")
+          clb = (result) =>
+            if result['text']? && !element.from
+              model.set(element.to, transform(result['text']))
+            if element.from == result['attribute']
+              model.set(element.to, transform(result['text']))
+            if element.from == "checked" # FIXME maybe add array with boolean attributes
+              model.set(element.to, result['state'])
 
-        transform = Sirius.BindHelper.transform(element.transform, setting)
+          new Sirius.Observer(element.element, clb)
 
-        clb = (result) =>
-          if result['text']? && !element.from
-            model.set(element.to, transform(result['text']))
-          if element.from == result['attribute']
-            model.set(element.to, transform(result['text']))
-          if element.from == "checked" # FIXME maybe add array with boolean attributes
-            model(element.to, result['state'])
-
-        new Sirius.Observer(element.element, clb)
 
 
   # @private

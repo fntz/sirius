@@ -21,16 +21,15 @@ class Sirius.BindHelper
   #                    transform: 'data-bind-transform'
   #                    }
   constructor: (@element, @setting, @is_bind_view_to_model = true) ->
-    @adapter = Sirius.Application.adapter
 
   #
   #
   # @param [Object] - `to` and `from` if present
   #
-  extract: (user_setting = {}) ->
+  extract: (adapter, user_setting = {}) ->
     # need extract main element, and children
     # fixme optimize this need extract only when element contain data-bind-*
-    elements = @adapter.all("#{@element}, #{@element} *")
+    elements = adapter.all("#{@element}, #{@element} *")
     # when it contain only one element (no children)
     # it's a single mode
 
@@ -40,7 +39,6 @@ class Sirius.BindHelper
     transform = @setting['transform']
     default_from = @setting['default_from']
     default_to = @setting['default_to']
-    adapter = @adapter
     is_bind_view_to_model = @is_bind_view_to_model
     result = []
 
@@ -71,6 +69,9 @@ class Sirius.BindHelper
             result.push(r)
 
     result
+
+
+
 
   # @throw [Error] when transform method not defined
   # @param [String] - function name

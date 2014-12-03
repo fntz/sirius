@@ -193,7 +193,7 @@ class Sirius.ControlFlow
     #when e defined it's a Event, otherwise it's call from url_routes
     if e
       data   = if Sirius.Utils.is_array(@data) then @data else if @data then [@data] else []
-      data   = Sirius.Application.adapter.get_property(e, data)
+      data   = Sirius.Application.adapter.get_property(e, data) #FIXME use Promise
       merge  = [].concat([], [e], data)
       # fix bug#4 when event is a custom event we should get an args for this event
       merge  = [].concat([], merge, args...)
@@ -249,143 +249,144 @@ Sirius.RouteSystem =
     redirect_to_hash   = setting["old"]
     push_state_support = setting["support"]
 
-    if redirect_to_hash and !push_state_support
-      Sirius.Application.logger("Convert plain routing into hash routing")
-      # convert to new routing
-      urls = [] #save urls into array, for check collision
-      route = {}
-      for url, action of routes
-        urls.push(url) if @_hash_route(url)
-        if @_plain_route(url)
-          url = "\##{url}"
-          if urls.indexOf(url) != -1
-            Sirius.Application.logger("Warning! Routes already have '#{url}' url")
-        route[url] = action
-      routes = route
+    Sirius.Application.get_adapter().and_then (adapter) =>
+      if redirect_to_hash and !push_state_support
+        Sirius.Application.logger("Convert plain routing into hash routing")
+        # convert to new routing
+        urls = [] #save urls into array, for check collision
+        route = {}
+        for url, action of routes
+          urls.push(url) if @_hash_route(url)
+          if @_plain_route(url)
+            url = "\##{url}"
+            if urls.indexOf(url) != -1
+              Sirius.Application.logger("Warning! Routes already have '#{url}' url")
+          route[url] = action
+        routes = route
 
 
-    adapter = Sirius.Application.adapter
-    # wrap all controller actions
-    wrapper = (fn) ->
-      for key, value of Sirius.Application.controller_wrapper
-        @[key] = value
+      # wrap all controller actions
+      wrapper = (fn) ->
+        for key, value of Sirius.Application.controller_wrapper
+          @[key] = value
 
-      fn
-    
-    # set routing by event
-    for url, action of routes when @_event_route(url)
-      do(url, action) ->
-        handler = if Sirius.Utils.is_function(action)
-          wrapper(action)
-        else
-          (e, params...) ->
-            (new Sirius.ControlFlow(action, wrapper)).handle_event(e, params)
+        fn
 
-        z = url.match(/^([a-zA-Z:]+)(\s+)?(.*)?/)
-        event_name = z[1]
-        selector   = z[3] || document #when it a custom event: 'custom:event' for example
-        adapter.bind(document, selector, event_name, handler)
-
-    # for cache change obj[k, v] to array [[k,v]]
-    array_of_routes = for url, action of routes when @_hash_route(url)
-      url    = new Sirius.RoutePart(url)
-      action = if Sirius.Utils.is_function(action)
-                 wrapper(action)
-               else
-                 new Sirius.ControlFlow(action, wrapper)
-      [url, action]
-
-    plain_routes = for url, action of routes when @_plain_route(url)
-      url    = new Sirius.RoutePart(url)
-      action = if Sirius.Utils.is_function(action)
-                 wrapper(action)
-               else
-                 new Sirius.ControlFlow(action, wrapper)
-      [url, action]
-
-    dispatcher = (e) ->
-      prev        = current
-      route_array = null
-      result      = false
-
-      if e.type == "hashchange"
-        # hashchange
-        route_array = array_of_routes
-        current = window.location.hash
-        if hash_on_top and push_state_support
-          origin = window.location.origin
-          history.replaceState({href: current}, "#{current}", "#{origin}/#{current}")
-      else
-        # plain
-        route_array = plain_routes
-        href = e.target.href # TODO the same for hashchange
-        history.pushState({href: href}, "#{href}", href) if push_state_support
-        pathname = window.location.pathname
-        pathname = "/" if pathname == ""
-        if (e.preventDefault)
-          e.preventDefault()
-        else
-          e.returnValue = false
-        current = pathname
-
-      Sirius.Application.logger("Url change to: #{current}")
-      adapter.fire(document, "application:urlchange", current, prev)
-
-      for part in route_array
-        f = part[0]
-        r = f.match(current)
-        if r && !result
-          result = true
-          flow = part[1]
-
-          if flow.handle_event
-            flow.handle_event(null, f.args)
+      # set routing by event
+      for url, action of routes when @_event_route(url)
+        do(url, action) ->
+          handler = if Sirius.Utils.is_function(action)
+            wrapper(action)
           else
-            flow.apply(null, f.args)
-          return
+            (e, params...) ->
+              (new Sirius.ControlFlow(action, wrapper)).handle_event(e, params)
 
-      if !result
-        adapter.fire(document, "application:404", current, prev)
-        r404 = routes['404'] || routes[404]
-        if r404
-          if Sirius.Utils.is_function(r404)
-            wrapper(r404)(current)
-          else
-            (new Sirius.ControlFlow(r404, wrapper)).handle_event(null, current)
+          z = url.match(/^([a-zA-Z:]+)(\s+)?(.*)?/)
+          event_name = z[1]
+          selector   = z[3] || document #when it a custom event: 'custom:event' for example
+          adapter.bind(document, selector, event_name, handler)
 
-      false
+      # for cache change obj[k, v] to array [[k,v]]
+      array_of_routes = for url, action of routes when @_hash_route(url)
+        url    = new Sirius.RoutePart(url)
+        action = if Sirius.Utils.is_function(action)
+                   wrapper(action)
+                 else
+                   new Sirius.ControlFlow(action, wrapper)
+        [url, action]
 
-    # need convert all plain url into hash based url
-    # convert only when
-    if redirect_to_hash && !push_state_support
-      links = adapter.all(@_selector)
-      Sirius.Application.logger("Found #{links.length} link. Convert href into hash based routing")
-      for link in links
-        href = link.getAttribute('href')
-        new_href = if href.indexOf("/") == 0
-          "\##{href}"
+      plain_routes = for url, action of routes when @_plain_route(url)
+        url    = new Sirius.RoutePart(url)
+        action = if Sirius.Utils.is_function(action)
+                   wrapper(action)
+                 else
+                   new Sirius.ControlFlow(action, wrapper)
+        [url, action]
+
+      dispatcher = (e) ->
+        prev        = current
+        route_array = null
+        result      = false
+
+        if e.type == "hashchange"
+          # hashchange
+          route_array = array_of_routes
+          current = window.location.hash
+          if hash_on_top and push_state_support
+            origin = window.location.origin
+            history.replaceState({href: current}, "#{current}", "#{origin}/#{current}")
         else
-          "\#/#{href}"
-        Sirius.Application.logger("Convert '#{href}' -> '#{new_href}'")
-        link.setAttribute('href', new_href)
+          # plain
+          route_array = plain_routes
+          href = e.target.href # TODO the same for hashchange
+          history.pushState({href: href}, "#{href}", href) if push_state_support
+          pathname = window.location.pathname
+          pathname = "/" if pathname == ""
+          if (e.preventDefault)
+            e.preventDefault()
+          else
+            e.returnValue = false
+          current = pathname
 
-    if plain_routes.length != 0
-      # bind all <a> element with dispatch function, but bind only when href not contain "#"
-      adapter.bind document, @_selector, "click", dispatcher
+        Sirius.Application.logger("Url change to: #{current}")
+        adapter.fire(document, "application:urlchange", current, prev)
 
-    window.onhashchange = dispatcher
-    if push_state_support
-      adapter.bind window, null, "popstate", (e) ->
-        # should run only for plain routes, not for hash based!
-        # history.state.href contain url which start from "#", when hash change
-        #                    contain full address otherwise
-        # also when we visit from plain url to hash, then history.state is null
-        if history && history.state && (history.state == null || history.state['href'].indexOf("#") != 0)
-          dispatcher(e)
+        for part in route_array
+          f = part[0]
+          r = f.match(current)
+          if r && !result
+            result = true
+            flow = part[1]
+
+            if flow.handle_event
+              flow.handle_event(null, f.args)
+            else
+              flow.apply(null, f.args)
+            return
+
+        if !result
+          adapter.fire(document, "application:404", current, prev)
+          r404 = routes['404'] || routes[404]
+          if r404
+            if Sirius.Utils.is_function(r404)
+              wrapper(r404)(current)
+            else
+              (new Sirius.ControlFlow(r404, wrapper)).handle_event(null, current)
+
+        false
+
+      # need convert all plain url into hash based url
+      # convert only when
+      if redirect_to_hash && !push_state_support
+        links = adapter.all(@_selector)
+        Sirius.Application.logger("Found #{links.length} link. Convert href into hash based routing")
+        for link in links
+          href = link.getAttribute('href')
+          new_href = if href.indexOf("/") == 0
+            "\##{href}"
+          else
+            "\#/#{href}"
+          Sirius.Application.logger("Convert '#{href}' -> '#{new_href}'")
+          link.setAttribute('href', new_href)
+
+      if plain_routes.length != 0
+        # bind all <a> element with dispatch function, but bind only when href not contain "#"
+        adapter.bind document, @_selector, "click", dispatcher
+
+      window.onhashchange = dispatcher
+      if push_state_support
+        adapter.bind window, null, "popstate", (e) ->
+          # should run only for plain routes, not for hash based!
+          # history.state.href contain url which start from "#", when hash change
+          #                    contain full address otherwise
+          # also when we visit from plain url to hash, then history.state is null
+          if history && history.state && (history.state == null || history.state['href'].indexOf("#") != 0)
+            dispatcher(e)
 
 
 
-    fn()
+      fn()
+
 
 
 # @mixin
@@ -461,6 +462,22 @@ Sirius.Application =
       console.log msg
     else
       alert "Not supported `console`. You should define own `logger` function for Sirius.Application"
+
+  # @private
+  _wait: []
+
+  #
+  # @return [Function] - promise, when adapter not null then it function will be called
+  get_adapter: () ->
+    if !@adapter?
+      p = new Sirius.Promise()
+      @_wait.push(p)
+      p
+    else
+      new Sirius.Promise(@adapter)
+
+
+
   #
   # @method #run(options)
   # @param options [Object] - base options for application
@@ -504,7 +521,10 @@ Sirius.Application =
       support: @push_state_support
 
     # start
-    Sirius.RouteSystem.create @route, setting, () => @adapter.fire(document, "application:run", new Date())
+    Sirius.RouteSystem.create @route, setting, () =>
+      for p in @_wait
+        p.set_value(@adapter)
+      @adapter.fire(document, "application:run", new Date())
 
     if @start
       Sirius.redirect(@start)

@@ -23,7 +23,12 @@ class Sirius.Observer
   # BUG when reset input, bind element should reset the same
   # TODO add logger for events
   constructor: (@from_element, @clb = ->) ->
-    adapter = Sirius.Application.adapter
+    adapter = Sirius.Application.get_adapter()
+    adapter.and_then(@_create)
+
+  # @nodoc
+  # @private
+  _create: (adapter) =>
     logger  = Sirius.Application.logger
     clb  = @clb
     from = @from_element

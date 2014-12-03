@@ -9,7 +9,7 @@
 #
 #   myCollection = new Sirius.Collection(MyModel, [], {
 #     every: 1000,
-#     on_remove: () ->
+#     on_remote: () ->
 #       json = ... # ajax call
 #       return json
 #

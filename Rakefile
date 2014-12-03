@@ -4,35 +4,64 @@ require 'uri'
 require 'openssl'
 require "open-uri"
 
-desc "Install dependencies"
-task :install do
-  vendor = "vendor"
-  deps = [
-           "https://ajax.googleapis.com/ajax/libs/prototype/1.7.2.0/prototype.js",
-           "https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.js",
-           "https://github.com/yui/yuicompressor/releases/download/v2.4.8/yuicompressor-2.4.8.jar"
-         ]
+
+def download_and_save(arr, path)
   begin
-    if !File.directory?(vendor)
-      FileUtils.mkdir(vendor)
-      puts "Create a #{vendor} directory"
+    if !File.directory?(path)
+      FileUtils.mkdir_p(path)
+      puts "Create a #{path} directory"
     end
 
-    deps.each do |lib|
+    arr.each do |lib|
       name = lib.split("/").last
-      if !File.exist?("#{vendor}/#{name}")
+      if !File.exist?("#{path}/#{name}")
         puts "download: #{name}"
 
         response = URI.parse("#{lib}").read
-        File.open("#{vendor}/#{name}", "w") do |f|
+        File.open("#{path}/#{name}", "w") do |f|
           f.write(response)
         end
       end
     end
 
   rescue Exception => e
-    puts e
+    puts "Exception: #{e}"
   end
+end
+
+desc "Install dependencies"
+
+task :jasmine_install do
+  deps = %w{
+    https://raw.githubusercontent.com/jasmine/jasmine/master/lib/jasmine-core/boot/boot.js
+    https://raw.githubusercontent.com/jasmine/jasmine/master/lib/jasmine-core/jasmine.js
+    https://raw.githubusercontent.com/jasmine/jasmine/master/lib/jasmine-core/jasmine.css
+    https://raw.githubusercontent.com/jasmine/jasmine/master/lib/jasmine-core/jasmine-html.js
+    https://raw.githubusercontent.com/jasmine/jasmine/master/images/jasmine_favicon.png
+    https://raw.githubusercontent.com/jasmine/jasmine/master/MIT.LICENSE
+  }
+
+
+  path = "test/jasmine/lib"
+
+  download_and_save(deps, path)
+end
+
+task :vendor_install do
+  vendor = "vendor"
+  deps = [
+           "https://ajax.googleapis.com/ajax/libs/prototype/1.7.2.0/prototype.js",
+           "http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js",
+           "https://raw.githubusercontent.com/dwachss/bililiteRange/master/bililiteRange.js",
+           "https://raw.githubusercontent.com/dwachss/bililiteRange/master/jquery.sendkeys.js",
+           "https://github.com/yui/yuicompressor/releases/download/v2.4.8/yuicompressor-2.4.8.jar"
+         ]
+  download_and_save(deps, vendor)
+end
+
+desc "Install vendor dependencies and jasmine 2.0"
+task :install => [:vendor_install, :jasmine_install] do
+
 end
 
 desc "Compile test sources"
