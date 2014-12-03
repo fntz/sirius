@@ -1,16 +1,16 @@
 ###!
-#  Sirius.js v0.5.4
+#  Sirius.js v0.5.5
 #  (c) 2014 fntzr
 #  license: MIT
 ###
 
 #
 # @author fntzr <fantazuor@gmail.com>
-# @version 0.5.4
+# @version 0.5.5
 # @mixin
 # A main module, which included methods and classes for work with application.
 Sirius =
-  VERSION: "0.5.4"
+  VERSION: "0.5.5"
 
 #
 # Redirect to given url.
@@ -26,7 +26,7 @@ Sirius =
 #
 Sirius.redirect = (url) ->
   app = Sirius.Application
-
+  app.logger.info("Redirect to #{url}")
   if url.indexOf("#") == 0
     if app.hash_always_on_top && app.push_state_support
       origin = window.location.origin
@@ -251,7 +251,7 @@ Sirius.RouteSystem =
 
     Sirius.Application.get_adapter().and_then (adapter) =>
       if redirect_to_hash and !push_state_support
-        Sirius.Application.logger("Convert plain routing into hash routing")
+        Sirius.Application.logger.info("Convert plain routing into hash routing")
         # convert to new routing
         urls = [] #save urls into array, for check collision
         route = {}
@@ -260,7 +260,7 @@ Sirius.RouteSystem =
           if @_plain_route(url)
             url = "\##{url}"
             if urls.indexOf(url) != -1
-              Sirius.Application.logger("Warning! Routes already have '#{url}' url")
+              Sirius.Application.logger.warn("Routes already have '#{url}' url")
           route[url] = action
         routes = route
 
@@ -328,7 +328,7 @@ Sirius.RouteSystem =
             e.returnValue = false
           current = pathname
 
-        Sirius.Application.logger("Url change to: #{current}")
+        Sirius.Application.logger.info("Url change to: #{current}")
         adapter.fire(document, "application:urlchange", current, prev)
 
         for part in route_array
@@ -486,7 +486,7 @@ Sirius.Application =
     @log     = options["log"]     || @log
     @adapter = options["adapter"] || throw new Error("Specify adapter")
     @route   = options["route"]   || @route
-    @logger  = options["logger"]  || @logger
+    @logger  = new Sirius.Logger(@log, options['logger'] || @logger)
     @start   = options["start"]   || @start
 
     for key, value of (options["controller_wrapper"] || {})
@@ -502,18 +502,18 @@ Sirius.Application =
                                          else
                                            @use_hash_routing_for_old_browsers
 
-    @logger("Logger enabled? #{@log}")
+    @logger.info("Logger enabled? #{@log}")
 
-    @logger("Adapter: #{@adapter.__name()}")
-    @logger("Hash always on top: #{@hash_always_on_top}")
-    @logger("Use hash routing for old browsers: #{@use_hash_routing_for_old_browsers}")
-    @logger("Current browser: #{navigator.userAgent}")
+    @logger.info("Adapter: #{@adapter.__name()}")
+    @logger.info("Hash always on top: #{@hash_always_on_top}")
+    @logger.info("Use hash routing for old browsers: #{@use_hash_routing_for_old_browsers}")
+    @logger.info("Current browser: #{navigator.userAgent}")
 
     @push_state_support = if history.pushState then true else false
-    @logger("History pushState support: #{@push_state_support}")
+    @logger.info("History pushState support: #{@push_state_support}")
 
     if !@push_state_support && @use_hash_routing_for_old_browsers
-      @logger("Warning! You browser not support pushState, and you disable hash routing for old browser")
+      @logger.warn("Warning! You browser not support pushState, and you disable hash routing for old browser")
 
     setting =
       old: @use_hash_routing_for_old_browsers

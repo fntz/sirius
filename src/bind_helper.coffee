@@ -23,7 +23,7 @@ class Sirius.BindHelper
   constructor: (@element, @setting, @is_bind_view_to_model = true) ->
 
   #
-  #
+  # @param [T < Adapter] - current application adapter
   # @param [Object] - `to` and `from` if present
   #
   extract: (adapter, user_setting = {}) ->

@@ -81,15 +81,20 @@ end
 
 desc "Compile to javascript"
 task :build do
+  path = "lib"
+  if !File.directory?(path)
+    FileUtils.mkdir_p(path)
+    puts "Create a #{path} directory"
+  end
   files = Dir["src/*.coffee"]
   without_adapter = files.find_all{|f| !f.include?("adapter") }
 
   output0 = without_adapter.join(" ")
   output_jquery = "src/adapter.coffee src/jquery_adapter.coffee"
   output_prototype = "src/adapter.coffee src/prototype_js_adapter.coffee"
-  %x(coffee -b -j sirius.js -o lib/ -c #{output0})
-  %x(coffee -b -j jquery_adapter.js -o lib/ -c #{output_jquery})
-  %x(coffee -b -j prototypejs_adapter.js -o lib/ -c #{output_prototype})
+  system("cat #{output0} | coffee -c -b --stdio > lib/sirius.js")
+  system("cat #{output_prototype} | coffee -c -b --stdio > lib/prototypejs_adapter.js")
+  system("cat #{output_jquery} | coffee -c -b --stdio > lib/jquery_adapter.js")
 end
 
 desc "Create doc"

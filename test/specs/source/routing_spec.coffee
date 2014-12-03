@@ -144,7 +144,6 @@ describe "Routing", ->
 
 
     it "test", (done)->
-
       expect(postValue).toEqual("12")
       expect(actionId).toEqual("my-div")
       expect(actionClass).toEqual("abc")
@@ -156,22 +155,24 @@ describe "Routing", ->
       expect(eventCustomValue).toEqual(0)
       done()
 
-  if history.pushState
-    describe "Routing and Controllers for Hash Routing", ->
+
+  describe "Routing and Controllers for Hash Routing", ->
+    if history.pushState
       emptyValue = postValue = titleValue = postXValue = staticValue = errorValue = null
 
       beforeEach (done) ->
         $("body").append("<div id='links'></div>")
         arr = ["/", "/post/12", "/post/abc", "/post/x/a/b/c", "/static", "/error", "/"]
         for a in arr
-          $('#links').append($("<a></a>").attr({'href':a}))
+          $('#links').append($("<a></a>").attr({'href':a}).text(a))
 
         Controller =
           error: (current) -> errorValue = current
           title: (title) -> titleValue = title
 
         r =
-          "/": () -> emptyValue = arguments.length
+          "/": () ->
+            emptyValue = arguments.length
           "/post/[0-9]+" : (id) -> postValue = id
           "/post/:title" : {controller: Controller, action: "title"}
           "/post/x/*": () -> postXValue = arguments.length
@@ -183,13 +184,10 @@ describe "Routing", ->
           adapter: j
         })
 
-        setTimeout(() ->
-          links = $("#links a")
-          for l in links
-            $(l).trigger("mousedown")
-          done()
-          2800
-        )
+        links = $("#links a")
+        for l in links
+          $(l).trigger("click")
+        done()
 
       it "test", (done) ->
         expect(emptyValue).toEqual(0)

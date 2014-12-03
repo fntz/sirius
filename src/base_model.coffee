@@ -552,7 +552,7 @@ class Sirius.BaseModel
 
     callbacks = @callbacks
 
-    Sirius.Application.get_adapter((adapter) =>
+    Sirius.Application.get_adapter().and_then (adapter) =>
       current = view.element
 
       elements = new Sirius.BindHelper(current, {
@@ -562,7 +562,7 @@ class Sirius.BaseModel
         transform: 'data-bind-view-transform'
         default_from : null
         default_to: 'text'
-      }, false).extract(object_setting)
+      }, false).extract(adapter, object_setting)
 
       attributes = @attributes
 
@@ -577,24 +577,26 @@ class Sirius.BaseModel
           transform = Sirius.BindHelper.transform(element.transform, object_setting)
 
           clb = (attr, value) ->
-            if element.to is 'text'
-              tag = adapter.get_attr(element.element, 'tagName')
-              type = adapter.get_attr(element.element, 'type')
-              if type == 'checkbox' || type == 'radio'
-                current_value = adapter.get_attr(element.element, 'value')
-                if current_value == value
-                  adapter.set_prop(element.element, 'checked', true)
-              if tag == 'OPTION'
-                current_value = adapter.get_attr(element.element, 'value')
-                if current_value == value
-                  adapter.set_prop(element.element, 'selected', true)
+            if attr is element.from
+              if element.to is 'text'
+                tag = adapter.get_attr(element.element, 'tagName')
+                type = adapter.get_attr(element.element, 'type')
+                if type == 'checkbox' || type == 'radio'
+                  current_value = adapter.get_attr(element.element, 'value')
+                  if current_value == value
+                    adapter.set_prop(element.element, 'checked', true)
+                if tag == 'OPTION'
+                  current_value = adapter.get_attr(element.element, 'value')
+                  if current_value == value
+                    adapter.set_prop(element.element, 'selected', true)
+                else
+                  element.view.render(transform(value)).swap(element.to)
               else
                 element.view.render(transform(value)).swap(element.to)
-            else
-              element.view.render(transform(value)).swap(element.to)
 
           callbacks.push(clb)
-    )
+
+
 
 
   #
