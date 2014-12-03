@@ -51,16 +51,11 @@ Supported features: + to json\html convert + create from json\html + validation 
     <pre><code class='coffeescript'>
 class MyModel extends Sirius.BaseModel
   @attrs: [&quot;id&quot;, {title: &quot;default title&quot;}, &quot;description&quot;]
-  @to:
-    id          : tag: &quot;b&quot;, class: &#39;my-model-id&#39;
-    title       : tag: &quot;span&quot;, class: &quot;my-model-title&quot;
 
 class Person extends BaseModel
   @attrs: [&quot;id&quot;, &quot;name&quot;]
 
   @has_many: [Group]
-
-  @form_name: &quot;person-model&quot;
 
   @guid_for: id
 
@@ -71,11 +66,6 @@ class Person extends BaseModel
     name:
       presence: true
       format: with: &#47;^[A-Z].+&#47;
-
-  @to:
-    id          : tag: &quot;b&quot;, class: &#39;person-id&#39;
-    name        : tag: &quot;span&quot;, class: &quot;person-name&quot;
-    group       : tag: &quot;p&quot;, class: &quot;group&quot;
 
   to_string: () -&gt;
     &quot;name: #{name}; id: #{id}, group count: #{@get(&#39;group&#39;).length}&quot;
@@ -181,13 +171,13 @@ my_model.add_other_model(new OtherModel())</code></pre>
     <strong>Note:</strong>
     for use need to add into <code>@attrs</code> the next attribute: <code>model_back</code>, see example @example 
   </div>
-  <p>take a object <code>model</code> as model for association, and <code>back</code> as an <code>attributes</code> from <code>has_*</code> model</p><pre><code> class Person extends Sirius.BaseModel
+  <p>take a object <code>model</code> as model for association, and <code>back</code> as an <code>attributes</code> from <code>has_*</code> model, key will be created with <code>compose</code> function, by default <code>compose</code> is a <code>(model, back) -&gt; &quot;#{model}_#{back}&quot;</code></p><pre><code> class Person extends Sirius.BaseModel
    @attrs: [&quot;id&quot;]
    @has_many: [&quot;group&quot;]
 
  class Group extends Sirius.BaseModel
    @attrs: [&quot;person_id&quot;]
-   @belongs_to [{model: &quot;person&quot;, back: &quot;id&quot;}]
+   @belongs_to [{model: &quot;person&quot;, back: &quot;id&quot;, compose: (model, back) -&gt; &quot;#{model}_#{back}&quot;}]
 
  person = new Person({id: 1})
  group  = new Group()
@@ -195,57 +185,6 @@ my_model.add_other_model(new OtherModel())</code></pre>
 
  group.get(&#39;person_id&#39;) // =&gt; 1
 </code></pre>
-</div>
-<div class='tags'>
-</div>
-  </dd>
-  <dt id='to-variable'>
-    to
-    =
-  </dt>
-  <dd>
-    <pre><code class='coffeescript'>{}</code></pre>
-    <div class='docstring'>
-  <div class='note'>
-    <strong>Note:</strong>
-    when not set a <code>tag</code> for <code>attribute</code> default <code>tag</code> is a <code>div</code> 
-  </div>
-  <p>object, which contain attributes names as keys, and values is a object, with properties for html element</p>
-  <div class='examples'>
-    <h3>Examples:</h3>
-    <h4>
-      
-    </h4>
-    <pre><code class='coffeescript'> class Person extends Sirius.BaseModel
-   @attrs: [&quot;id&quot;, &quot;name&quot;]
-   @to :
-     id : tag: b, class: &#39;person-class&#39;
-(new Person({id: 1, name: &quot;Abc&quot;})).to_html() # =&gt; &lt;b class=&#39;person-class&#39;&gt;1&lt;&#47;b&gt;&lt;div&gt;Abc&lt;&#47;div&gt;</code></pre>
-  </div>
-</div>
-<div class='tags'>
-</div>
-  </dd>
-  <dt id='form_name-variable'>
-    form_name
-    =
-  </dt>
-  <dd>
-    <pre><code class='coffeescript'>null</code></pre>
-    <div class='docstring'>
-  <div class='note'>
-    <strong>Note:</strong>
-    when it not define, then it&#39;s create from model name as: ModelName =&gt; model_name 
-  </div>
-  <p>name for element, when you want convert html to Model</p>
-  <div class='examples'>
-    <h3>Examples:</h3>
-    <h4>
-      
-    </h4>
-    <pre><code class='coffeescript'> class Person extends
-   @form_name: &#39;a-b-c&#39;</code></pre>
-  </div>
 </div>
 <div class='tags'>
 </div>
@@ -289,23 +228,23 @@ my_model.add_other_model(new OtherModel())</code></pre>
       
     </h4>
     <pre><code class='coffeescript'> class ModelwithValidators extends Sirius.BaseModel
- @attrs: [&quot;id&quot;, {title: &quot;t&quot;}, &quot;description&quot;]
- @validate :
-   id:
-     presence: true,
-     numericality: only_integers: true
-     inclusion: within: [1..10]
-     validate_with:  (value) -&gt;
-       if not condition ....
-         @msg = .... #define a user friendly message
-       else
-         true
+   @attrs: [&quot;id&quot;, {title: &quot;t&quot;}, &quot;description&quot;]
+   @validate :
+     id:
+       presence: true,
+       numericality: only_integers: true
+       inclusion: within: [1..10]
+       validate_with:  (value) -&gt;
+         if not condition ....
+           @msg = .... #define a user friendly message
+         else
+           true
 
-   title:
-     presence: true
-     format: with: &#47;^[A-Z].+&#47;
-     length: min: 3, max: 7
-     exclusion: [&quot;title&quot;]</code></pre>
+     title:
+       presence: true
+       format: with: &#47;^[A-Z].+&#47;
+       length: min: 3, max: 7
+       exclusion: [&quot;title&quot;]</code></pre>
   </div>
 </div>
 <div class='tags'>
@@ -326,21 +265,20 @@ my_model.add_other_model(new OtherModel())</code></pre>
       Create a new model instance from json structure. 
     </span>
   </li>
-  <li>
-    <span class='signature'>
-      <a href='#from_html-static'>
-        .
-(T &lt; Sirius.BaseModel)
-<b>from_html</b><span>(selector)</span>
-      </a>
-    </span>
-    <span class='desc'>
-      Generate a new model instance from form 
-    </span>
-  </li>
 </ul>
       <h2>Instance Method Summary</h2>
       <ul class='summary'>
+  <li>
+    <span class='signature'>
+      <a href='#get_attributes-dynamic'>
+        #
+(Array)
+<b>get_attributes</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
   <li>
     <span class='signature'>
       <a href='#set-dynamic'>
@@ -367,14 +305,25 @@ my_model.add_other_model(new OtherModel())</code></pre>
   </li>
   <li>
     <span class='signature'>
-      <a href='#valid-dynamic'>
+      <a href='#is_valid-dynamic'>
         #
 (Boolean)
-<b>valid</b><span>()</span>
+<b>is_valid</b><span>()</span>
       </a>
     </span>
     <span class='desc'>
       Check, if model instance valid 
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#get_errors-dynamic'>
+        #
+(Object)
+<b>get_errors</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
     </span>
   </li>
   <li>
@@ -404,18 +353,6 @@ my_model.add_other_model(new OtherModel())</code></pre>
   </li>
   <li>
     <span class='signature'>
-      <a href='#to_html-dynamic'>
-        #
-(String)
-<b>to_html</b><span>()</span>
-      </a>
-    </span>
-    <span class='desc'>
-      Convert model into array of element instances 
-    </span>
-  </li>
-  <li>
-    <span class='signature'>
       <a href='#compare-dynamic'>
         #
 (void)
@@ -440,6 +377,43 @@ my_model.add_other_model(new OtherModel())</code></pre>
 
     </span>
   </li>
+  <li>
+    <span class='signature'>
+      <a href='#clone-dynamic'>
+        #
+(void)
+<b>clone</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+      method for clone current model and create new 
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#bind-dynamic'>
+        #
+(void)
+<b>bind</b><span>(view, object_setting = {})</span>
+      </a>
+    </span>
+    <span class='desc'>
+      bind <p>Method for bind model and view, all changes in model will be reflected in view.</p>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#bind2-dynamic'>
+        #
+(void)
+<b>bind2</b><span>(klass)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      bind2 double-sided binding
+
+    </span>
+  </li>
 </ul>
       <h2>Class Method Details</h2>
       <div class='methods'>
@@ -457,17 +431,17 @@ my_model.add_other_model(new OtherModel())</code></pre>
     <h4>
       
     </h4>
-    <pre><code class='coffeescript'>var json = JSON.stringify({&quot;id&quot;: 10, &quot;description&quot;: &quot;text&quot;});
-var m = MyModel.from_json(j);
+    <pre><code class='coffeescript'>json = JSON.stringify({&quot;id&quot;: 10, &quot;description&quot;: &quot;text&quot;});
+m = MyModel.from_json(j);
 m.get(&quot;id&quot;) &#47;&#47; =&gt; 10
 m.get(&quot;description&quot;) &#47;&#47; =&gt; &quot;text&quot;
 m.get(&quot;title&quot;) &#47;&#47; =&gt; &quot;default title&quot;
 
-var json = JSON.stringify({&quot;id&quot;:1,&quot;group&quot;:[{&quot;name&quot;:&quot;group-0&quot;,&quot;person_id&quot;:1},{&quot;name&quot;:&quot;group-1&quot;,&quot;person_id&quot;:1}]})
-var person = Person.from_json(json, {group: Group});
+json = JSON.stringify({&quot;id&quot;:1,&quot;group&quot;:[{&quot;name&quot;:&quot;group-0&quot;,&quot;person_id&quot;:1},{&quot;name&quot;:&quot;group-1&quot;,&quot;person_id&quot;:1}]})
+person = Person.from_json(json, {group: Group});
 person.get(&#39;group&#39;) &#47;&#47; =&gt; [Group, Group]
 
-var person0 = Person.from_json(json)
+person0 = Person.from_json(json)
 person.get(&#39;group&#39;) &#47;&#47; =&gt; [{name: &#39;group-0&#39;, ... }, {name: &#39;group-1&#39;, ...}]</code></pre>
   </div>
 </div>
@@ -495,58 +469,6 @@ person.get(&#39;group&#39;) &#47;&#47; =&gt; [{name: &#39;group-0&#39;, ... }, {
       </span>
       &mdash;
       <span class='desc'><ul> object with model classes, see examples
-</ul>
-</span>
-    </li>
-  </ul>
-  <h3>Returns:</h3>
-  <ul class='return'>
-    <li>
-      <span class='type'></span>
-      <tt>T &lt; Sirius.BaseModel</tt>
-    </li>
-  </ul>
-</div>
-  </div>
-  <div class='method_details'>
-    <p class='signature' id='from_html-static'>
-      .
-(T &lt; Sirius.BaseModel)
-<b>from_html</b><span>(selector)</span>
-      <br>
-    </p>
-    <div class='docstring'>
-  <p>Generate a new model instance from form</p>
-  <div class='examples'>
-    <h3>Examples:</h3>
-    <h4>
-      
-    </h4>
-    <pre><code class='coffeescript'>&#47;&#47;html form
-&lt;form name=&quot;my_model&quot; id=&quot;my-model-form&quot;&gt;
-  &lt;input type=&quot;hidden&quot; name=&quot;id&quot; class=&quot;my-id&quot; value=&quot;1&quot; &#47;&gt;
-  &lt;input type=&quot;text&quot; name=&quot;title&quot; class=&quot;title&quot; value=&quot;new title&quot; &#47;&gt;
-  &lt;textarea name=&quot;description&quot;&gt;text...&lt;&#47;textarea&gt;
-&lt;&#47;form&gt;
-
-var m = MyModel.from_html(&quot;#my-model-form&quot;);
-m.get(&quot;id&quot;)          &#47;&#47; =&gt; 1
-m.get(&quot;title&quot;)       &#47;&#47; =&gt; new title
-m.get(&quot;description&quot;) &#47;&#47; =&gt; text...</code></pre>
-  </div>
-</div>
-<div class='tags'>
-  <h3>Parameters:</h3>
-  <ul class='param'>
-    <li>
-      <span class='name'>selector</span>
-      <span class='type'>
-        (
-          <tt>String</tt>
-        )
-      </span>
-      &mdash;
-      <span class='desc'><ul> element selector, for find element, where model may be present in html
 </ul>
 </span>
     </li>
@@ -617,6 +539,29 @@ my_model.get(&quot;name&quot;) # =&gt; Abc</code></pre>
 </div>
       <h2>Instance Method Details</h2>
       <div class='methods'>
+  <div class='method_details'>
+    <p class='signature' id='get_attributes-dynamic'>
+      #
+(Array)
+<b>get_attributes</b><span>()</span>
+      <br>
+    </p>
+    <div class='tags'>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt>Array</tt>
+      )
+      &mdash;
+      <span class='desc'><ul> return all attributes for current model
+</ul>
+</span>
+    </li>
+  </ul>
+</div>
+  </div>
   <div class='method_details'>
     <p class='signature' id='set-dynamic'>
       #
@@ -722,10 +667,10 @@ my_model.get(&quot;name&quot;) # =&gt; Abc</code></pre>
 </div>
   </div>
   <div class='method_details'>
-    <p class='signature' id='valid-dynamic'>
+    <p class='signature' id='is_valid-dynamic'>
       #
 (Boolean)
-<b>valid</b><span>()</span>
+<b>is_valid</b><span>()</span>
       <br>
     </p>
     <div class='docstring'>
@@ -741,6 +686,29 @@ my_model.get(&quot;name&quot;) # =&gt; Abc</code></pre>
       )
       &mdash;
       <span class='desc'>true, when is valid, otherwise false </span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='get_errors-dynamic'>
+      #
+(Object)
+<b>get_errors</b><span>()</span>
+      <br>
+    </p>
+    <div class='tags'>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt>Object</tt>
+      )
+      &mdash;
+      <span class='desc'><ul> return object with errors for current model
+</ul>
+</span>
     </li>
   </ul>
 </div>
@@ -808,7 +776,7 @@ otherwise as { attrs }</p>
     <h4>
       
     </h4>
-    <pre><code class='coffeescript'>var m = new MyModel({&quot;id&quot;: 10, &quot;description&quot;, &quot;text&quot;});
+    <pre><code class='coffeescript'>m = new MyModel({&quot;id&quot;: 10, &quot;description&quot;, &quot;text&quot;});
 m.to_json() &#47;&#47; =&gt; {&quot;id&quot;:10,&quot;title&quot;:&quot;default title&quot;,&quot;description&quot;:&quot;text&quot;}
 m.to_json(true) &#47;&#47; =&gt; {&quot;my_model&quot;:{&quot;id&quot;:10,&quot;title&quot;:&quot;default title&quot;,&quot;description&quot;:&quot;text&quot;}}
 
@@ -848,44 +816,6 @@ person.to_json() &#47;&#47; =&gt;
     <li>
       <span class='type'></span>
       <tt>JSON</tt>
-    </li>
-  </ul>
-</div>
-  </div>
-  <div class='method_details'>
-    <p class='signature' id='to_html-dynamic'>
-      #
-(String)
-<b>to_html</b><span>()</span>
-      <br>
-    </p>
-    <div class='docstring'>
-  <p>Convert model into array of element instances</p>
-  <div class='examples'>
-    <h3>Examples:</h3>
-    <h4>
-      
-    </h4>
-    <pre><code class='coffeescript'>var m = new MyModel({&quot;id&quot;: 10, &quot;title&quot;: &quot;my title&quot;, &quot;description&quot;: &quot;text...&quot;});
-m.to_html() &#47;&#47; =&gt; &quot;&lt;b class = &#39;my-model-id&#39;&gt;10&lt;&#47;b&gt;&lt;span class = &#39;my-model-title&#39;&gt;my title&lt;&#47;span&gt;&lt;div&gt;text...&lt;&#47;div&gt;&quot;
-
-person.to_html() &#47;&#47; =&gt;
-&#47;&#47; &quot;&lt;b class=&#39;person-id&#39;&gt;1&lt;&#47;b&gt;
-&#47;&#47;  &lt;span class=&#39;person-name&#39;&gt;Abc&lt;&#47;span&gt;
-&#47;&#47;    &lt;p class = &#39;group&#39;&gt;
-&#47;&#47;      &lt;span&gt;group-0&lt;&#47;span&gt;
-&#47;&#47;      &lt;div&gt;1&lt;&#47;div&gt;
-&#47;&#47;      &lt;span&gt;group-1&lt;&#47;span&gt;
-&#47;&#47;      &lt;div&gt;1&lt;&#47;div&gt;
-&#47;&#47;    &lt;&#47;p&gt;</code></pre>
-  </div>
-</div>
-<div class='tags'>
-  <h3>Returns:</h3>
-  <ul class='return'>
-    <li>
-      <span class='type'></span>
-      <tt>String</tt>
     </li>
   </ul>
 </div>
@@ -933,10 +863,144 @@ must be overridden in user model</p>
 <div class='tags'>
 </div>
   </div>
+  <div class='method_details'>
+    <p class='signature' id='clone-dynamic'>
+      #
+(void)
+<b>clone</b><span>()</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>method for clone current model and create new</p>
+</div>
+<div class='tags'>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='bind-dynamic'>
+      #
+(void)
+<b>bind</b><span>(view, object_setting = {})</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>bind</p><p>Method for bind model and view, all changes in model will be reflected in view.</p><p>Instead of object setting, when you want bind more then one attribute use
+<code>data-bind-view-from</code> for define attribute from model, which will be used for element.
+element attribute defined with <code>data-bind-view-to</code>.
+<code>data-bind-view-from</code> - for model attribute.
+<code>data-bind-view-to</code> - for view attribute. By default it <code>text</code> (or value for input)</p><p>Use data transformation and strategies</p><p>Then flow will be
+set new title in model -&gt; transform with wrap method -&gt; apply strategy -&gt; result</p><p>TODO pass parameters with object_setting
+TODO strategies</p>
+  <div class='examples'>
+    <h3>Examples:</h3>
+    <h4>
+      
+    </h4>
+    <pre><code class='coffeescript'>&#47;&#47;html:
+&lt;input type=&#39;text&#39; id=&#39;my-elem&#39; &#47;&gt;
+
+model = new Model({title: &quot;&quot;})
+view = new Sirius.View(&quot;#my-elem&quot;)
+model.bind(view, {from: &#39;title&#39;, to : &#39;text&#39;})
+# is equal
+model.bind(view, {from: &#39;title&#39;})  # because by default &#39;to&#39; is &#39;text&#39;
+# then
+model.title(&quot;new title&quot;) # change model attribute
+# in view
+$(&quot;#my-elem&quot;).val() # =&gt; new title
+
+# for element attribute
+model.bind(view, {from: &#39;title&#39;, to : &#39;data-title&#39;})
+# then
+model.title(&quot;new title&quot;)
+# in view
+$(&quot;#my-elem&quot;).data(&#39;name&#39;) # =&gt; new title
+
+# For logical element like a checkbox, radio and select possible use
+
+&#47;&#47;html
+&lt;form id=&#39;my-form&#39;&gt;
+  &lt;input type=&quot;checkbox&quot; value=&quot;val1&quot; data-bind-view-from=&#39;model_value&#39; &#47;&gt;
+  &lt;input type=&quot;checkbox&quot; value=&quot;val2&quot; data-bind-view-from=&#39;model_value&#39; &#47;&gt;
+  &lt;input type=&quot;checkbox&quot; value=&quot;val3&quot; data-bind-view-from=&#39;model_value&#39; &#47;&gt;
+&lt;&#47;form&gt;
+
+# you model is only Model with one attribute `model_value`
+model = new Model()
+view = new Sirius.View(&quot;#my-form&quot;)
+model.bind(view)
+
+# use it
+model.model_value(&quot;val3&quot;)
+# in element
+$(&quot;#my-form input:checked&quot;).val() # =&gt; val3
+
+The same for radio or select elements.</code></pre>
+    <h4>
+      
+    </h4>
+    <pre><code class='coffeescript'>  &lt;span data-bind-view-from=&#39;title&#39; data-bind-view-transform=&#39;wrap&#39; data-bind-view-strategy=&#39;append&#39;&gt;&lt;&#47;span&gt;</code></pre>
+  </div>
+</div>
+<div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>-</span>
+      <span class='type'>
+        (
+          <tt><a href='../../class/Sirius/View.html'>Sirius.View</a></tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>you view for binding </span>
+    </li>
+    <li>
+      <span class='name'>-</span>
+      <span class='type'>
+        (
+          <tt>Object</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>object setting, should contain params for element. </span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='bind2-dynamic'>
+      #
+(void)
+<b>bind2</b><span>(klass)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>bind2
+double-sided binding</p>
+</div>
+<div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>klass</span>
+      <span class='type'>
+        (
+          <tt><a href='../../class/Sirius/View.html'>Sirius.View</a></tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'><ul> Sirius.View
+</ul>
+</span>
+    </li>
+  </ul>
+</div>
+  </div>
 </div>
     </div>
     <div id='footer'>
-  July 11, 14 21:33:44 by
+  December 03, 14 21:44:36 by
   <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
     Codo
   </a>

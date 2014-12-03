@@ -59,7 +59,7 @@ class MyModel extends Sirius.BaseModel
 
 myCollection = new Sirius.Collection(MyModel, [], {
   every: 1000,
-  on_remove: () -&gt;
+  on_remote: () -&gt;
     json = ... # ajax call
     return json
 
@@ -110,7 +110,7 @@ myCollection = new Sirius.Collection(MyModel, [], {
       </a>
     </span>
     <span class='desc'>
-      add model in collection 
+      push model in collection 
     </span>
   </li>
   <li>
@@ -122,7 +122,7 @@ myCollection = new Sirius.Collection(MyModel, [], {
       </a>
     </span>
     <span class='desc'>
-      alias for push 
+      add model into collection 
     </span>
   </li>
   <li>
@@ -235,14 +235,48 @@ myCollection = new Sirius.Collection(MyModel, [], {
   </li>
   <li>
     <span class='signature'>
-      <a href='#size-dynamic'>
+      <a href='#clear-dynamic'>
         #
 (void)
+<b>clear</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+      Clear the collection 
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#size-dynamic'>
+        #
+(Numeric)
 <b>size</b><span>()</span>
       </a>
     </span>
     <span class='desc'>
-      return size of collection 
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#from_json-dynamic'>
+        #
+(void)
+<b>from_json</b><span>(json)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#to_json-dynamic'>
+        #
+(JSON)
+<b>to_json</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+      convert collection to json 
     </span>
   </li>
 </ul>
@@ -397,7 +431,7 @@ myCollection = new Sirius.Collection(MyModel, [], {
       <br>
     </p>
     <div class='docstring'>
-  <p>add model in collection</p>
+  <p>push model in collection</p>
 </div>
 <div class='tags'>
   <h3>Parameters:</h3>
@@ -421,9 +455,20 @@ myCollection = new Sirius.Collection(MyModel, [], {
       <br>
     </p>
     <div class='docstring'>
-  <p>alias for push</p>
+  <p>add model into collection</p>
 </div>
 <div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>model</span>
+      <span class='type'>
+        (
+          <tt>T &lt;: Sirius.BaseModel</tt>
+        )
+      </span>
+    </li>
+  </ul>
 </div>
   </div>
   <div class='method_details'>
@@ -680,22 +725,72 @@ myCollection = new Sirius.Collection(MyModel, [], {
 </div>
   </div>
   <div class='method_details'>
-    <p class='signature' id='size-dynamic'>
+    <p class='signature' id='clear-dynamic'>
       #
 (void)
-<b>size</b><span>()</span>
+<b>clear</b><span>()</span>
       <br>
     </p>
     <div class='docstring'>
-  <p>return size of collection</p>
+  <p>Clear the collection</p>
 </div>
 <div class='tags'>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='size-dynamic'>
+      #
+(Numeric)
+<b>size</b><span>()</span>
+      <br>
+    </p>
+    <div class='tags'>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt>Numeric</tt>
+      )
+      &mdash;
+      <span class='desc'>size of collection </span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='from_json-dynamic'>
+      #
+(void)
+<b>from_json</b><span>(json)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='to_json-dynamic'>
+      #
+(JSON)
+<b>to_json</b><span>()</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>convert collection to json</p>
+</div>
+<div class='tags'>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      <tt>JSON</tt>
+    </li>
+  </ul>
 </div>
   </div>
 </div>
     </div>
     <div id='footer'>
-  July 11, 14 21:33:44 by
+  December 03, 14 21:44:36 by
   <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
     Codo
   </a>
