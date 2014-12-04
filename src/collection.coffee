@@ -47,7 +47,7 @@ class Sirius.Collection
   # @param on_add [Function] - callback, which will be call when add new instance to collection
   # @param on_remove [Function] - callback, which will be call when remove model from collection
   # @param remote [Function] - callback, which will be call when synchronize collection, must be return json
-  constructor: (klass, klasses = [], options = {every: 0, on_add: @on_add, on_remove: @on_remove, remote: null, on_push: @on_push}) ->
+  constructor: (klass, klasses = [], options = {}) -> # every: 0, on_add: (x) -> x, on_remove: (x) -> x, remote: null, on_push:
     if klass.__super__.__name isnt 'BaseModel'
       throw new Error("Collection must be used only with `BaseModel` inheritor")
     @_array = []
@@ -55,9 +55,11 @@ class Sirius.Collection
     @_klass = klass
     @_type  = @_klass.name
 
-    @on_add = options.on_add || @on_add 
-    @on_push = options.on_push || @on_push
-    @on_remove = options.on_push || @on_remove
+    clb = (x) -> x
+
+    @on_add = options.on_add || clb
+    @on_push = options.on_push || clb
+    @on_remove = options.on_push || clb
 
     if options.remote
       @remote = =>
@@ -106,8 +108,8 @@ class Sirius.Collection
 
   # @nodoc  
   _add: (model) ->
-    type = model.constructor.name
-    throw new Error("Require `#{@_type}`, but given `#{model.constructor.name}`") if @_type isnt type
+    type = Sirius.Utils.fn_name(model.constructor)
+    throw new Error("Require `#{@_type}`, but given `#{type}`") if @_type isnt type
     @_array.push(model) #maybe it's a hash ? because hash have a keys, and simple remove, but need a unique id
      
 
@@ -194,12 +196,5 @@ class Sirius.Collection
     z = for e in @_array then e.to_json()
     JSON.parse(JSON.stringify(z))
 
-  # @nodoc
-  on_remove: (model) ->
 
-  # @nodoc
-  on_add: (model) ->
-
-  # @nodoc
-  on_push: (model) ->  
 

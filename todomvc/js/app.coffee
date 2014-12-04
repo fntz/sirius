@@ -1,6 +1,35 @@
 "use strict"
 `var c = function(m){console.log(m);};`
 
+Renderer =
+  template: new EJS({url: 'js/todos.ejs'})
+  todo_template: new EJS({url: 'js/todo.ejs'})
+  view: new Sirius.View("#todo-list")
+  render: (data = []) ->
+    todos = for t in data
+      klass =  if t.get("completed")
+        "completed"
+      else
+        ""
+      {"class_name": klass, "title": t.get("title"), id: t.get("id")}
+
+
+    template = @template.render({todos: todos})
+    $("#todo-list").html("").html(template)
+
+  add: (todo) ->
+    template = @todo_template.render({todo: todo})
+    @view.render(template).append()
+    todo_view = new Sirius.View("li\##{todo.id()}")
+    todo_view.bind(todo)
+    todo.bind(todo_view, {
+      transform: (t) ->
+        if t
+          "completed"
+        else
+          ""
+    })
+
 
 class TodoList extends Sirius.BaseModel
   @attrs: ["title", {completed: false}, "id"]
@@ -15,46 +44,22 @@ class TodoList extends Sirius.BaseModel
   is_completed: () -> 
     @completed()
 
-Todos = new Sirius.Collection(TodoList, [])
-Todos.add(new TodoList({title : "Create a TodoMVC template", completed : true}))
-Todos.add(new TodoList(title: "Rule the web"))
+Todos = new Sirius.Collection(TodoList, [], {
+  on_add: (todo) ->
+    Renderer.add(todo)
+    Sirius.Application.get_adapter().and_then((adapter) -> adapter.fire(document, "length:changed"))
+
+})
 
 
-Renderer =
-  template: new EJS({url: 'js/todos.ejs'})
-  todo_template: new EJS({url: 'js/todo.ejs'})
-  view: new Sirius.View("#todo-list")
-  render: (data = []) ->
-    todos = for t in data 
-      klass =  if t.get("completed") 
-                  "completed" 
-                else 
-                  ""
-      {"class_name": klass, "title": t.get("title"), id: t.get("id")}
-    
 
-    template = @template.render({todos: todos})
-    $("#todo-list").html("").html(template) 
 
-  add: (todo) ->
-    c("get id: #{todo.id()}")
-    template = @todo_template.render({todo: todo})
-    @view.render(template).append()
-    todo_view = new Sirius.View("li\##{todo.id()}")
-    todo_view.bind(todo)
-    todo.bind(todo_view, {
-      transform: (t) ->
-        if t
-          "completed"
-        else
-          ""
-    })
 
 #------------------ Controllers -----------------#
 
 MainController =
   root: () ->
-    c(1)
+    c("root")
 
   active: () ->
     Renderer.render(Todos.filter((t) -> t.is_active()))
@@ -67,6 +72,9 @@ MainController =
     model = new TodoList()
     view.bind2(model)
     view.on("#new-todo", "keypress", "todo:create", model)
+
+    Todos.add(new TodoList({title : "Create a TodoMVC template", completed : true}))
+    Todos.add(new TodoList(title: "Rule the web"))
 
   click: () ->
     c(Todos.all())
@@ -81,7 +89,7 @@ TodoController =
     Todos.add(todo)
     model.title("")
     c("id: #{todo.id()} and #{model.id()}")
-    Renderer.add(todo)
+
     # todo bind with view
 
   mark: () ->
@@ -97,11 +105,20 @@ TodoController =
     todo = model.clone()
     Todos.add(todo)
     model.title("")
-    Renderer.add(todo)
+    #Renderer.add(todo)
     # todo bind with view
 
   mark: () ->
     c "mark"
+
+LengthController =
+  length_changed: () ->
+    view = new Sirius.View("#todo-count", (t) -> "#{t} item left")
+    view.render(Todos.size()).swap()
+
+  completed_changed: () ->
+    count = Todos.filter((t) -> t.is_completed()).length
+    view = new Sirius.View("#clear-completed", (t) -> "Clear completed (#{count})")
 
 
 # ----------------------- Routing ----------------- #
@@ -113,6 +130,7 @@ routes =
   "application:run" : {controller: MainController, action: "start"}
   "todo:create" :     {controller: TodoController, action: "create", guard: "is_enter"}
   "click #btn" : {controller: MainController, action: "click"}
+  "length:changed" : {controller: LengthController, action: "length_changed"}
  # "click button.destroy"  : {controller: EventController, action: "destroy", after: "update_footer", data: "data-id"}
  # "click li input.toggle" : {controller: EventController, action: "mark", after: "update_footer", data: "data-id"}
  # "click #toggle-all"     : {controller: EventController, action: "mark_all", after: "update_footer", data: "class"}

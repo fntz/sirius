@@ -13,7 +13,7 @@ class JQueryAdapter extends Adapter
       jQuery(element).on(event, selector, fn)
 
   fire: (element, event, params...) ->
-    jQuery(element).trigger(event, params)
+    jQuery(document).trigger(event, params)
 
   get_property: (event, properties) ->
     for p in properties then jQuery(event.target).attr(p)
