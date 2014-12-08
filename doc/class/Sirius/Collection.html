@@ -47,7 +47,8 @@ You might use it as alternative standard javascript arrays.</p><p> myModel = new
  myCollection.filter( (model) -&gt; model.get(&quot;id&quot;) &gt; 2 ) # =&gt; [ MyModel Instances ]
  myCollection.first() # =&gt; first MyModel instance
  myCollection.last()  # =&gt; last MyModel instance</p><p> myCollection.unsycn() # stop synchronization with server
- myCollection.sync(3000)   # start sync every 3 second</p><p> myCollection.size() # =&gt; 3</p>
+ myCollection.sync(3000)   # start sync every 3 second</p><p> myCollection.size() # =&gt; 3
+ myCollection.length # =&gt; 3 // as property</p>
   <div class='examples'>
     <h3>Examples:</h3>
     <h4>
@@ -81,7 +82,7 @@ myCollection = new Sirius.Collection(MyModel, [], {
     <span class='signature'>
       <a href='#unsync-dynamic'>
         #
-(void)
+(Void)
 <b>unsync</b><span>()</span>
       </a>
     </span>
@@ -105,19 +106,19 @@ myCollection = new Sirius.Collection(MyModel, [], {
     <span class='signature'>
       <a href='#push-dynamic'>
         #
-(void)
+(Void)
 <b>push</b><span>(model)</span>
       </a>
     </span>
     <span class='desc'>
-      push model in collection 
+      alias for #add 
     </span>
   </li>
   <li>
     <span class='signature'>
       <a href='#add-dynamic'>
         #
-(void)
+(Void)
 <b>add</b><span>(model)</span>
       </a>
     </span>
@@ -129,12 +130,13 @@ myCollection = new Sirius.Collection(MyModel, [], {
     <span class='signature'>
       <a href='#remove-dynamic'>
         #
-(void)
+(Void)
 <b>remove</b><span>(other)</span>
       </a>
     </span>
     <span class='desc'>
-      remove model from collection 
+      remove model from collection @param [T &lt;: Sirius.Model]
+
     </span>
   </li>
   <li>
@@ -286,10 +288,16 @@ myCollection = new Sirius.Collection(MyModel, [], {
     <p class='signature' id='constructor-dynamic'>
       #
 (void)
-<b>constructor</b><span>(klass, klasses = [], options)</span>
+<b>constructor</b><span>(klass, args...)</span>
       <br>
     </p>
-    <div class='tags'>
+    <div class='docstring'>
+  <p>@attr every [Numberic] - ms for remote call
+@attr on_add [Function] - callback, which will be call when add new instance to collection
+@attr on_remove [Function] - callback, which will be call when remove model from collection
+@attr remote [Function] - callback, which will be call when synchronize collection, must be return json</p>
+</div>
+<div class='tags'>
   <h3>Parameters:</h3>
   <ul class='param'>
     <li>
@@ -328,54 +336,6 @@ myCollection = new Sirius.Collection(MyModel, [], {
 </ul>
 </span>
     </li>
-    <li>
-      <span class='name'>every</span>
-      <span class='type'>
-        (
-          <tt>Numberic</tt>
-        )
-      </span>
-      &mdash;
-      <span class='desc'><ul> ms for remote call
-</ul>
-</span>
-    </li>
-    <li>
-      <span class='name'>on_add</span>
-      <span class='type'>
-        (
-          <tt>Function</tt>
-        )
-      </span>
-      &mdash;
-      <span class='desc'><ul> callback, which will be call when add new instance to collection
-</ul>
-</span>
-    </li>
-    <li>
-      <span class='name'>on_remove</span>
-      <span class='type'>
-        (
-          <tt>Function</tt>
-        )
-      </span>
-      &mdash;
-      <span class='desc'><ul> callback, which will be call when remove model from collection
-</ul>
-</span>
-    </li>
-    <li>
-      <span class='name'>remote</span>
-      <span class='type'>
-        (
-          <tt>Function</tt>
-        )
-      </span>
-      &mdash;
-      <span class='desc'><ul> callback, which will be call when synchronize collection, must be return json
-</ul>
-</span>
-    </li>
   </ul>
 </div>
   </div>
@@ -385,7 +345,7 @@ myCollection = new Sirius.Collection(MyModel, [], {
   <div class='method_details'>
     <p class='signature' id='unsync-dynamic'>
       #
-(void)
+(Void)
 <b>unsync</b><span>()</span>
       <br>
     </p>
@@ -393,6 +353,13 @@ myCollection = new Sirius.Collection(MyModel, [], {
   <p>stop synchronization</p>
 </div>
 <div class='tags'>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      <tt>Void</tt>
+    </li>
+  </ul>
 </div>
   </div>
   <div class='method_details'>
@@ -426,12 +393,12 @@ myCollection = new Sirius.Collection(MyModel, [], {
   <div class='method_details'>
     <p class='signature' id='push-dynamic'>
       #
-(void)
+(Void)
 <b>push</b><span>(model)</span>
       <br>
     </p>
     <div class='docstring'>
-  <p>push model in collection</p>
+  <p>alias for #add</p>
 </div>
 <div class='tags'>
   <h3>Parameters:</h3>
@@ -445,12 +412,19 @@ myCollection = new Sirius.Collection(MyModel, [], {
       </span>
     </li>
   </ul>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      <tt>Void</tt>
+    </li>
+  </ul>
 </div>
   </div>
   <div class='method_details'>
     <p class='signature' id='add-dynamic'>
       #
-(void)
+(Void)
 <b>add</b><span>(model)</span>
       <br>
     </p>
@@ -469,19 +443,34 @@ myCollection = new Sirius.Collection(MyModel, [], {
       </span>
     </li>
   </ul>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      <tt>Void</tt>
+    </li>
+  </ul>
 </div>
   </div>
   <div class='method_details'>
     <p class='signature' id='remove-dynamic'>
       #
-(void)
+(Void)
 <b>remove</b><span>(other)</span>
       <br>
     </p>
     <div class='docstring'>
-  <p>remove model from collection</p>
+  <p>remove model from collection
+@param [T &lt;: Sirius.Model]</p>
 </div>
 <div class='tags'>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      <tt>Void</tt>
+    </li>
+  </ul>
 </div>
   </div>
   <div class='method_details'>
@@ -790,7 +779,7 @@ myCollection = new Sirius.Collection(MyModel, [], {
 </div>
     </div>
     <div id='footer'>
-  December 03, 14 21:44:36 by
+  December 08, 14 14:31:24 by
   <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
     Codo
   </a>

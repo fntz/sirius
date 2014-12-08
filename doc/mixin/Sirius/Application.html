@@ -50,7 +50,7 @@
 }
 my_logger = function(msg) { console.log(&quot;Log: &quot; + msg); }
 
-Sirius.Application({ route : routes, logger: my_logger, log: true, start: &quot;#&#47;&quot; });</code></pre>
+Sirius.Application.run({ route : routes, logger: my_logger, log: true, start: &quot;#&#47;&quot; });</code></pre>
   </div>
 </div>
 <div class='tags'>
@@ -59,10 +59,32 @@ Sirius.Application({ route : routes, logger: my_logger, log: true, start: &quot;
       <ul class='summary'>
   <li>
     <span class='signature'>
-      <a href='#logger-'>
+      <a href='#default_log_function-'>
         ~
 (void)
-<b>logger</b><span>(msg)</span>
+<b>default_log_function</b><span>(msg)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#get_logger-'>
+        ~
+(Object)
+<b>get_logger</b><span>()</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#get_adapter-'>
+        ~
+(Function)
+<b>get_adapter</b><span>()</span>
       </a>
     </span>
     <span class='desc'>
@@ -83,10 +105,10 @@ Sirius.Application({ route : routes, logger: my_logger, log: true, start: &quot;
       <h2>Method Details</h2>
       <div class='methods'>
   <div class='method_details'>
-    <p class='signature' id='logger-'>
+    <p class='signature' id='default_log_function-'>
       ~
 (void)
-<b>logger</b><span>(msg)</span>
+<b>default_log_function</b><span>(msg)</span>
       <br>
     </p>
     <div class='tags'>
@@ -99,6 +121,52 @@ Sirius.Application({ route : routes, logger: my_logger, log: true, start: &quot;
           <tt>String</tt>
         )
       </span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='get_logger-'>
+      ~
+(Object)
+<b>get_logger</b><span>()</span>
+      <br>
+    </p>
+    <div class='tags'>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt>Object</tt>
+      )
+      &mdash;
+      <span class='desc'><ul> promise, which will be use for log information
+</ul>
+</span>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='get_adapter-'>
+      ~
+(Function)
+<b>get_adapter</b><span>()</span>
+      <br>
+    </p>
+    <div class='tags'>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      (
+        <tt>Function</tt>
+      )
+      &mdash;
+      <span class='desc'><ul> promise, when adapter not null then it function will be called
+</ul>
+</span>
     </li>
   </ul>
 </div>
@@ -131,7 +199,7 @@ Sirius.Application({ route : routes, logger: my_logger, log: true, start: &quot;
 </div>
     </div>
     <div id='footer'>
-  July 11, 14 21:33:44 by
+  December 08, 14 14:31:24 by
   <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
     Codo
   </a>

@@ -69,7 +69,9 @@
     <p class='signature' id='constructor-dynamic'>
       #
 (void)
-<b>constructor</b><span>(params)</span>
+<b>constructor</b><span>(params, wrapper = function(x) {
+  return x;
+})</span>
       <br>
     </p>
     <div class='docstring'>
@@ -115,6 +117,18 @@
       </span>
       &mdash;
       <span class='desc'><ul> object from route
+</ul>
+</span>
+    </li>
+    <li>
+      <span class='name'>wrapper</span>
+      <span class='type'>
+        (
+          <tt>Function</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'><ul> wrap action in this function, used for shared helpers between all controllers
 </ul>
 </span>
     </li>
@@ -171,7 +185,7 @@
 </div>
     </div>
     <div id='footer'>
-  July 11, 14 21:33:44 by
+  December 08, 14 14:31:24 by
   <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
     Codo
   </a>
