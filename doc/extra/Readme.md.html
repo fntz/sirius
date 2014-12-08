@@ -37,13 +37,11 @@
         <h1 id="are-you-sirius-">Are you sirius?</h1><p><a href="http://fntzr.github.com/sirius">Sirius.js</a> a coffeescript MVC framework. It&#39;s give a simple integration with current javascript frameworks.</p><h3 id="features">Features</h3>
 <ul>
 <li>Template free — you may use any template engine or use any at all</li>
-<li>Controller free — you may use object as Controllers for you application or use only functions as controllers</li>
-<li>Model free — you may use a built in models, or use alternative model implementation from <code>Backbone.js</code> or <code>Ember.Data</code> or use javascript objects as you models.</li>
-<li>Javascript framework free — you may create a Adapter for own framework or use for <code>jQuery</code> or <code>prototypejs</code> adapters.</li>
-<li>Routing - routing from hash changes, from events, from custom events</li>
-<li>Possible use plain routing, if browser not support plain routing, then <code>Sirius</code> automatically switch to hash-based routing</li>
-<li>Include MVVM Support</li>
-<li>Easy for understanding</li>
+<li>MVC style</li>
+<li>MVVM binding</li>
+<li>Build-in Collections, Validators</li>
+<li>Adapters for jQuery and Prototype.js</li>
+<li>Support html5 routing, and converters to html5 routing</li>
 </ul><p>You only need define Route for you application.</p><h1 id="install">Install</h1><p><code>npm install sirius</code> </p><p>or download manually <a href="https://raw.githubusercontent.com/fntzr/sirius/master/sirius.min.js">sirius.min.js</a> and <a href="https://raw.githubusercontent.com/fntzr/sirius/master/jquery_adapter.min.js">jquery_adapter.min.js</a> or <a href="https://raw.githubusercontent.com/fntzr/sirius/master/prototypejs_adapter.min.js">prototype_js_adapter.min.js</a> from repo.</p><h1 id="usage">Usage</h1>
 <h3 id="1-define-controllers">1. Define controllers</h3>
 <pre><code class="lang-coffee">MyController = 
@@ -65,12 +63,11 @@
     # ...
 </code></pre>
 <h3 id="2-define-routes">2. Define routes</h3>
-<pre><code class="lang-coffee">  routes = {
+<pre><code class="lang-coffee">  routes =
     &quot;application:run&quot;   : controller: MyController, action: &quot;action&quot;
     &quot;/plain&quot;            : controller: MyController, action: &quot;plain&quot;
     &quot;#/:title&quot;          : controller: MyController, action: &quot;run&quot;
-    &quot;click #my-element&quot; : controller: MyController, action: &quot;event_action&quot;, guard: &quot;guard_event&quot;, data: &quot;id&quot;  
-  }
+    &quot;click #my-element&quot; : controller: MyController, action: &quot;event_action&quot;, guard: &quot;guard_event&quot;, data: &quot;id&quot;
 </code></pre>
 <h3 id="3-define-models">3. Define models</h3>
 <pre><code class="lang-coffee">
@@ -80,7 +77,7 @@
      @form_name: &quot;my-person-form&quot;
 </code></pre>
 <h3 id="4-run-application">4. Run Application</h3>
-<pre><code class="lang-coffee">  Sirius.Application({routes: routes})
+<pre><code class="lang-coffee">  Sirius.Application({route: routes})
 </code></pre>
 <h4 id="5-use-validators">5. Use Validators</h4>
 <pre><code class="lang-coffee">  class Person extends Sirius.BaseModel
@@ -94,7 +91,48 @@
         length: min: 3, max: 7
         exclusion: [&quot;title&quot;]
 </code></pre>
-<h4 id="6-use-collections">6. Use collections</h4>
+<h5 id="5-1-define-custom-validator">5.1 Define custom Validator</h5>
+<pre><code class="lang-coffee">  class MyValidator extends Sirius.Validator
+    validate: (value, attrs) -&gt;
+      if value.length == 3
+        @msg = &quot;Error, value should have length 3&quot;
+        false
+      else
+        true
+
+# register validator
+Sirius.BaseModel.register_validator(&quot;my_validator&quot;, MyValidator)
+
+# and use
+  class MyModel extends Sirius.BaseModel
+    @attrs: [&quot;title&quot;]
+    @validate:
+      title:
+        my_validator: some_attribute: true
+</code></pre>
+<h4 id="6-views">6. Views</h4><p>In Sirius, views is an any element on page. You might bind view and other view, or model, or javascript object property.</p><pre><code class="lang-coffee">  view = new Sirius.View(&quot;#id&quot;, (x) -&gt; &quot;#{x}!!!&quot;)
+  view.render(&quot;new content&quot;).swap()
+  # then in html &lt;element id=&#39;id&#39;&gt;new content!!!&lt;/element&gt;
+</code></pre><p><code>swap</code> - this strategy, how work with content. Support: <code>swap</code>, <code>append</code>, <code>prepend</code> stretegies.</p><p>Define own strategy:</p><pre><code class="lang-coffee"> Sirius.View.register_strategy(&#39;html&#39;,
+    transform: (oldvalue, newvalue) -&gt; &quot;&lt;b&gt;#{newvalue}&lt;b&gt;&quot;
+    render: (adapter, element, result, attribute) -&gt;
+      if attribute == &#39;text&#39;
+        $(element).html(result)
+      else
+        throw new Error(&quot;Html strategy work only for text, not for #{attribute}&quot;)
+ )
+
+# use it
+
+view = new Sirius.View(&quot;#element&quot;)
+view.render(&quot;some text&quot;).html()
+
+# then in html
+
+&lt;span id=&#39;element&#39;&gt;&lt;b&gt;some text&lt;/b&gt;&lt;/span&gt;
+</code></pre><p>Also you might swap content for any attribute:</p><pre><code class="lang-coffee">view.render(&quot;active&quot;).swap(&#39;class&#39;)
+</code></pre>
+<h4 id="7-use-collections">7. Use collections</h4>
 <pre><code class="lang-coffee">persons = new Sirius.Collection(Person, [], {
   every : 5000,
   remote: () -&gt; #ajax call
@@ -111,13 +149,76 @@ persons.add(joe)
 
 person.find(&quot;name&quot;, &quot;Joe&quot;).to_json() # =&gt; {&quot;id&quot; : &quot;g-u-i-d&quot;, &quot;name&quot; : &quot;Joe&quot;, &quot;age&quot; : 25}
 </code></pre>
+<h4 id="8-binding">8. Binding</h4><p>Support binding: view to model, view to view, view to model, view to javascript object property
+and model to view. And it support all strategies or transform methods.</p><pre><code># view to view
+ # html
+ &lt;input type=&#39;text&#39; id=&#39;v1&#39; /&gt;
+ &lt;span id=&#39;r1&#39; data-bind-to=&#39;data-name&#39;&gt;&lt;/span&gt;
+
+ # coffee
+ view1 = new Sirius.View(&#39;#v1&#39;)
+ view2 = new Sirius.View(&#39;#r1&#39;)
+ v1.bind(r1)
+
+ # when we enter some text into input
+ # then
+ $(&quot;#r1&quot;).data(&#39;name&#39;) # =&gt; equal to our input
+</code></pre><pre><code># view to model
+  # html
+  &lt;form id=&quot;form&quot;&gt;
+    &lt;input type=&#39;text&#39; data-bind-to=&#39;title&#39;&gt;
+    &lt;textarea data-bind-to=&#39;description&#39;&gt;&lt;/textarea&gt;
+  &lt;/form&gt;
+
+  # coffee
+  view = new Sirius.View(&quot;#form&quot;)
+  my_model = new MyModel()
+  view.bind(my_model)
+
+  # When we enter input, then
+  my_model.title() # =&gt; user input
+  my_model.description() # =&gt; user input
+</code></pre><pre><code># view to object property
+//html
+ &lt;span&gt;&lt;/span&gt;
+
+ my_collection = new Sirius.Collection(MyModel)
+ view = new Sirius.View(&quot;span&quot;)
+ view.bind(my_collection.length)
+
+ my_collection.push(new MyModel())
+ # then in html
+ &lt;span&gt;1&lt;/span&gt;
+</code></pre><pre><code># model to view
+&lt;form id=&#39;my-form&#39;&gt;
+  &lt;input type=&quot;checkbox&quot; value=&quot;val1&quot; data-bind-view-from=&#39;model_value&#39; /&gt;
+  &lt;input type=&quot;checkbox&quot; value=&quot;val2&quot; data-bind-view-from=&#39;model_value&#39; /&gt;
+  &lt;input type=&quot;checkbox&quot; value=&quot;val3&quot; data-bind-view-from=&#39;model_value&#39; /&gt;
+&lt;/form&gt;
+
+# you model is only Model with one attribute `model_value`
+model = new Model()
+view = new Sirius.View(&quot;#my-form&quot;)
+model.bind(view)
+
+# use it
+model.model_value(&quot;val3&quot;)
+# in element
+$(&quot;#my-form input:checked&quot;).val() # =&gt; val3
+</code></pre><p>Strategies and transform for binding</p><pre><code class="lang-html">  &lt;span data-bind-view-from=&#39;title&#39; data-bind-view-transform=&#39;wrap&#39; data-bind-view-strategy=&#39;append&#39;&gt;&lt;/span&gt;
+</code></pre>
+<h5 id="double-sided-binding">double-sided binding</h5>
+<pre><code class="lang-coffee">view.bind2(model)
+# or
+model.bind2(view)
+</code></pre>
 <h1 id="more-info">More info</h1>
 <ul>
 <li><a href="http://fntzr.github.io/sirius">Project page</a></li>
 <li><a href="http://fntzr.github.io/sirius/todomvc/index.html">TodoMVC Application</a> and <a href="https://github.com/fntzr/sirius/blob/master/todomvc/js/app.coffee">source</a></li>
 <li><a href="http://fntzr.github.io/sirius/doc/index.html">Docs</a></li>
 </ul>
-<h1 id="tasks">Tasks</h1><p>Use <code>cake</code> or <code>rake</code> for run task. Before work run <code>rake or cake install</code> for installing dependencies.</p><p><code>rake install</code> - install all dependencies</p><p><code>rake doc</code> - generate project documentation</p><p><code>rake build</code> - compile coffeescript into javascript file</p><p><code>rake test</code> - complile fixtures for tests, and run server</p><p><code>rake minify</code> - use <a href="https://github.com/yui/yuicompressor">yuicompressor</a> for minify files</p><h1 id="contributing">Contributing</h1>
+<h1 id="tasks">Tasks</h1><p>Use <code>rake</code> for run task. Before work run <code>rake install</code> for installing dependencies.</p><p><code>rake install</code> - install all dependencies</p><p><code>rake doc</code> - generate project documentation</p><p><code>rake build</code> - compile coffeescript into javascript file</p><p><code>rake test</code> - complile fixtures for tests, and run server</p><p><code>rake minify</code> - use <a href="https://github.com/yui/yuicompressor">yuicompressor</a> for minify files</p><h1 id="contributing">Contributing</h1>
 <ol>
 <li>Fork it</li>
 <li>Create your feature branch (<code>git checkout -b my-new-feature</code>)</li>
@@ -131,7 +232,7 @@ person.find(&quot;name&quot;, &quot;Joe&quot;).to_json() # =&gt; {&quot;id&quot;
       </div>
     </div>
     <div id='footer'>
-  December 03, 14 21:44:36 by
+  December 08, 14 14:31:24 by
   <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
     Codo
   </a>

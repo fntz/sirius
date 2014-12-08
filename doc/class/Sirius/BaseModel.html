@@ -42,7 +42,7 @@
     Callback support 
   </div>
   <p>A top level class for all models in application.
-Supported features: + to json\html convert + create from json\html + validation + generate guid + attributes support + base relation support (<code>has_many</code>, <code>has_one</code>, <code>belongs_to</code>)</p>
+Supported features: + to json + create from json + validation + generate guid + attributes support + base relation support (<code>has_many</code>, <code>has_one</code>, <code>belongs_to</code>)</p>
   <div class='examples'>
     <h3>Examples:</h3>
     <h4>
@@ -80,6 +80,18 @@ class Group extends BaseModel
 </div>
       <h2>Variables Summary</h2>
       <dl class='constants'>
+  <dt id='_Validators-variable'>
+    _Validators
+    =
+  </dt>
+  <dd>
+    <pre><code class='coffeescript'>[]</code></pre>
+    <div class='docstring'>
+  <p>Contain all validator pairs.</p>
+</div>
+<div class='tags'>
+</div>
+  </dd>
   <dt id='attrs-variable'>
     attrs
     =
@@ -265,6 +277,18 @@ my_model.add_other_model(new OtherModel())</code></pre>
       Create a new model instance from json structure. 
     </span>
   </li>
+  <li>
+    <span class='signature'>
+      <a href='#register_validator-static'>
+        .
+(Void)
+<b>register_validator</b><span>(name, klass)</span>
+      </a>
+    </span>
+    <span class='desc'>
+      Register pair - name and class for validate 
+    </span>
+  </li>
 </ul>
       <h2>Instance Method Summary</h2>
       <ul class='summary'>
@@ -319,11 +343,12 @@ my_model.add_other_model(new OtherModel())</code></pre>
     <span class='signature'>
       <a href='#get_errors-dynamic'>
         #
-(Object)
-<b>get_errors</b><span>()</span>
+(Object|Array)
+<b>get_errors</b><span>(attr = null)</span>
       </a>
     </span>
     <span class='desc'>
+      otherwise return array with errors for give field 
     </span>
   </li>
   <li>
@@ -478,6 +503,72 @@ person.get(&#39;group&#39;) &#47;&#47; =&gt; [{name: &#39;group-0&#39;, ... }, {
     <li>
       <span class='type'></span>
       <tt>T &lt; Sirius.BaseModel</tt>
+    </li>
+  </ul>
+</div>
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='register_validator-static'>
+      .
+(Void)
+<b>register_validator</b><span>(name, klass)</span>
+      <br>
+    </p>
+    <div class='docstring'>
+  <p>Register pair - name and class for validate</p>
+  <div class='examples'>
+    <h3>Examples:</h3>
+    <h4>
+      
+    </h4>
+    <pre><code class='coffeescript'>
+class MyValidator extends Sirius.Validator
+  validate: (value, attributes) -&gt;
+    if value.length != 3
+      @msg = &quot;Error, #{value} must be have length 3, #{value.length} given&quot;
+      false
+    else
+      true
+
+Sirius.BaseModel.register_validator(&#39;my_validator&#39; MyValidator)
+
+# then in you model
+class MyModel extends Sirius.BaseModel
+  @attrs: [&#39;name&#39;]
+  @validate:
+    name:
+      my_validator : true</code></pre>
+  </div>
+</div>
+<div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>-</span>
+      <span class='type'>
+        (
+          <tt>String</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>validator name </span>
+    </li>
+    <li>
+      <span class='name'>-</span>
+      <span class='type'>
+        (
+          <tt>T &lt;: Sirius.Validator</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>class which extend Sirius.Validator </span>
+    </li>
+  </ul>
+  <h3>Returns:</h3>
+  <ul class='return'>
+    <li>
+      <span class='type'></span>
+      <tt>Void</tt>
     </li>
   </ul>
 </div>
@@ -693,17 +784,33 @@ my_model.get(&quot;name&quot;) # =&gt; Abc</code></pre>
   <div class='method_details'>
     <p class='signature' id='get_errors-dynamic'>
       #
-(Object)
-<b>get_errors</b><span>()</span>
+(Object|Array)
+<b>get_errors</b><span>(attr = null)</span>
       <br>
     </p>
-    <div class='tags'>
+    <div class='docstring'>
+  <p>otherwise return array with errors for give field</p>
+</div>
+<div class='tags'>
+  <h3>Parameters:</h3>
+  <ul class='param'>
+    <li>
+      <span class='name'>-</span>
+      <span class='type'>
+        (
+          <tt>String</tt>
+        )
+      </span>
+      &mdash;
+      <span class='desc'>attr name, if attr not given then return <code>errors</code> object, </span>
+    </li>
+  </ul>
   <h3>Returns:</h3>
   <ul class='return'>
     <li>
       <span class='type'></span>
       (
-        <tt>Object</tt>
+        <tt>Object|Array</tt>
       )
       &mdash;
       <span class='desc'><ul> return object with errors for current model
@@ -889,8 +996,7 @@ must be overridden in user model</p>
 element attribute defined with <code>data-bind-view-to</code>.
 <code>data-bind-view-from</code> - for model attribute.
 <code>data-bind-view-to</code> - for view attribute. By default it <code>text</code> (or value for input)</p><p>Use data transformation and strategies</p><p>Then flow will be
-set new title in model -&gt; transform with wrap method -&gt; apply strategy -&gt; result</p><p>TODO pass parameters with object_setting
-TODO strategies</p>
+set new title in model -&gt; transform with wrap method -&gt; apply strategy -&gt; result</p><p>TODO pass parameters with object_setting</p>
   <div class='examples'>
     <h3>Examples:</h3>
     <h4>
@@ -1000,7 +1106,7 @@ double-sided binding</p>
 </div>
     </div>
     <div id='footer'>
-  December 03, 14 21:44:36 by
+  December 08, 14 14:31:24 by
   <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
     Codo
   </a>

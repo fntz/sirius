@@ -46,26 +46,110 @@
       <ul class='summary'>
   <li>
     <span class='signature'>
-      <a href='#create-'>
+      <a href='#_hash_route-'>
         ~
 (void)
-<b>create</b><span>(routes, fn = function() {})</span>
+<b>_hash_route</b><span>(url)</span>
       </a>
     </span>
     <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#_404_route-'>
+        ~
+(void)
+<b>_404_route</b><span>(url)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#_plain_route-'>
+        ~
+(void)
+<b>_plain_route</b><span>(url)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#_event_route-'>
+        ~
+(void)
+<b>_event_route</b><span>(url)</span>
+      </a>
+    </span>
+    <span class='desc'>
+    </span>
+  </li>
+  <li>
+    <span class='signature'>
+      <a href='#create-'>
+        ~
+(void)
+<b>create</b><span>(routes, setting, fn = function() {})</span>
+      </a>
+    </span>
+    <span class='desc'>
+      setting : old, top, support 
     </span>
   </li>
 </ul>
       <h2>Method Details</h2>
       <div class='methods'>
   <div class='method_details'>
+    <p class='signature' id='_hash_route-'>
+      ~
+(void)
+<b>_hash_route</b><span>(url)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='_404_route-'>
+      ~
+(void)
+<b>_404_route</b><span>(url)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='_plain_route-'>
+      ~
+(void)
+<b>_plain_route</b><span>(url)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
+    <p class='signature' id='_event_route-'>
+      ~
+(void)
+<b>_event_route</b><span>(url)</span>
+      <br>
+    </p>
+    
+  </div>
+  <div class='method_details'>
     <p class='signature' id='create-'>
       ~
 (void)
-<b>create</b><span>(routes, fn = function() {})</span>
+<b>create</b><span>(routes, setting, fn = function() {})</span>
       <br>
     </p>
-    <div class='tags'>
+    <div class='docstring'>
+  <p>setting : old, top, support</p>
+</div>
+<div class='tags'>
   <h3>Parameters:</h3>
   <ul class='param'>
     <li>
@@ -93,7 +177,7 @@
     <h3>Events:</h3>
     <div class='event'>
       <p class='signature'>
-        application:hashchange
+        application:urlchange
       </p>
       <div class='docstring'>
   <ul>
@@ -136,7 +220,7 @@
 </div>
     </div>
     <div id='footer'>
-  July 11, 14 21:33:44 by
+  December 08, 14 14:31:24 by
   <a href='https://github.com/coffeedoc/codo' title='CoffeeScript API documentation generator'>
     Codo
   </a>
