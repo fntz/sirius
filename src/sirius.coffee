@@ -23,7 +23,7 @@ Sirius.redirect = (url) ->
 # @private
 # Class for map urls.
 #
-# Also it's class contain extracted parts from url.
+# Also it'pygments.css class contain extracted parts from url.
 # ### Url syntax:
 # ```coffee
 # #/:param1/:param2   => extract param1, param2 ...
@@ -180,8 +180,12 @@ class Sirius.ControlFlow
   # @note if you have a guard function, then firstly called it, if `guard` is true, then will be called `before`, `action` and `after` methods
   #
   handle_event: (e, args...) ->
+<<<<<<< HEAD
     #when e defined it's a Event, otherwise it's call from url_routes
     @logger.info("ControlFlow: Start event processing")
+=======
+    #when e defined it'pygments.css a Event, otherwise it'pygments.css call from url_routes
+>>>>>>> 0f57182c76640edbf8d78e1d7ee57e3992373515
     if e
       data   = if Sirius.Utils.is_array(@data) then @data else if @data then [@data] else []
       data   = Sirius.Application.adapter.get_property(e, data) #FIXME use Promise

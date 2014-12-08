@@ -82,6 +82,7 @@ MainController =
 TodoController =
   is_enter: (custom_event, original_event) ->
     return true if original_event.which == 13
+
     false
 
   create: (custom_event, original_event, model) ->

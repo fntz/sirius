@@ -5,6 +5,50 @@ var LengthController, MainController, Renderer, TodoController, TodoList, Todos,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
+<<<<<<< HEAD
+=======
+TodoList = (function(_super) {
+  __extends(TodoList, _super);
+
+  TodoList.attrs = [
+    "title", {
+      completed: false
+    }, "id"
+  ];
+
+  function TodoList(obj) {
+    if (obj == null) {
+      obj = {};
+    }
+    TodoList.__super__.constructor.call(this, obj);
+    this._id = "todo-" + (Math.random().toString(36).substring(7));
+  }
+
+  TodoList.prototype.is_active = function() {
+    return !this.completed();
+  };
+
+  TodoList.prototype.is_completed = function() {
+    return this.completed();
+  };
+
+<<<<<<< HEAD
+  return TodoList;
+
+})(Sirius.BaseModel);
+
+Todos = new Sirius.Collection(TodoList, []);
+
+Todos.add(new TodoList({
+  title: "Create a TodoMVC template",
+  completed: true
+}));
+
+Todos.add(new TodoList({
+  title: "Rule the web"
+}));
+
+>>>>>>> 0f57182c76640edbf8d78e1d7ee57e3992373515
 Renderer = {
   template: new EJS({
     url: 'js/todos.ejs'
