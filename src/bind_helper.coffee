@@ -21,7 +21,7 @@ class Sirius.BindHelper
   #                    transform: 'data-bind-transform'
   #                    }
   constructor: (@element, @setting, @is_bind_view_to_model = true) ->
-
+    @logger = Sirius.Application.get_logger()
   #
   # @param [T < Adapter] - current application adapter
   # @param [Object] - `to` and `from` if present
@@ -41,6 +41,11 @@ class Sirius.BindHelper
     default_to = @setting['default_to']
     is_bind_view_to_model = @is_bind_view_to_model
     result = []
+    @logger.info("BindHelper: to: #{to}, from: #{from}")
+    @logger.info("BindHelper: strategy: #{strategy}")
+    @logger.info("BindHelper: transform: #{transform}")
+    @logger.info("BindHelper: default from: #{default_from}")
+    @logger.info("BindHelper: default to: #{default_to}")
 
     #
     # Extract all elements which contain data-bind-*
@@ -79,14 +84,19 @@ class Sirius.BindHelper
   # @return [Function] - return transform function from setting
   @transform: (name, setting = {}) ->
     error = (name) -> "Transform method '#{name}' not found in setting"
+    logger = Sirius.Application.get_logger()
     if Sirius.Utils.is_function(setting.transform)
       if name
-        throw new Error(error(name))
+        msg = error(name)
+        logger.error("BindHelper: #{msg}")
+        throw new Error(msg)
       else
         setting.transform
     else #when it object need extract necessary method
       if setting.transform[name]?
         setting.transform[name]
       else
-        throw new Error(error(name))
+        msg = error(name)
+        logger.error("BindHelper: #{msg}")
+        throw new Error(msg)
 

@@ -25,6 +25,7 @@ class Sirius.Utils
   #
   # @example
   #   Sirius.Utils.camelize("abc") // => Abc
+  # @return [String]
   @camelize: (str) ->
     str.charAt(0).toUpperCase() + str.slice(1)
 
@@ -32,11 +33,13 @@ class Sirius.Utils
   # Underline before upper case
   # @example
   #   Sirius.Utils.underscore("ModelName") // => model_name
+  # @return [String]
   @underscore: (str) ->
     str.replace(/([A-Z])/g, '_$1').replace(/^_/,"").toLowerCase()
 
   # return the version of IE
   # from http://stackoverflow.com/a/21712356/1581531
+  # @return [Numeric]
   @ie_version: () ->
     ua = window.navigator.userAgent
     msie = ua.indexOf("MSIE ")
@@ -49,12 +52,12 @@ class Sirius.Utils
       rv = ua.indexOf('rv:')
       return parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10)
 
-    false
+    0
 
   #
   # Return function name
   # @param [Function]
-  # @return String
+  # @return [String]
   @fn_name: (fn) ->
     if @is_function(fn)
       fn.toString().match(/function ([^\(]+)/)[1]

@@ -1,18 +1,3 @@
-###!
-#  Sirius.js v0.5.6
-#  (c) 2014 fntzr
-#  license: MIT
-###
-
-#
-# @author fntzr <fantazuor@gmail.com>
-# @version 0.5.6
-# @mixin
-# A main module, which included methods and classes for work with application.
-Sirius =
-  VERSION: "0.5.6"
-
-#
 # Redirect to given url.
 # @method .Sirius.redirect(url)
 # @example
@@ -139,6 +124,7 @@ class Sirius.ControlFlow
   # @note you might create in controller method with name: `before_x`, where `x` you action, then you may not specify `before` into params, it automatically find and assigned as `before` method, the same for `after` and `guard`
   # @note `data` must be a string, or array of string
   constructor: (params, wrapper = (x) -> x) ->
+    @logger = Sirius.Application.get_logger()
     controller = params['controller'] || throw new Error("Params must contain a Controller")
 
     act = params['action']
@@ -148,9 +134,13 @@ class Sirius.ControlFlow
               else if Sirius.Utils.is_function(act)
                 act
               else
-                throw new Error("Action must be string or function");
-
-    throw new Error("action #{act} not found in controller #{controller}") if !action
+                msg = "Action must be string or function"
+                @logger.error("ControlFlow: #{msg}")
+                throw new Error(msg)
+    if !action
+      msg = "action #{act} not found in controller #{controller}"
+      @logger.error("ControlFlow: #{msg}")
+      throw new Error(msg)
 
     @action = wrapper(action)
 
@@ -191,6 +181,7 @@ class Sirius.ControlFlow
   #
   handle_event: (e, args...) ->
     #when e defined it's a Event, otherwise it's call from url_routes
+    @logger.info("ControlFlow: Start event processing")
     if e
       data   = if Sirius.Utils.is_array(@data) then @data else if @data then [@data] else []
       data   = Sirius.Application.adapter.get_property(e, data) #FIXME use Promise
@@ -244,6 +235,7 @@ Sirius.RouteSystem =
   # @event application:run - generate, after application running
   # setting : old, top, support
   create: (routes, setting, fn = ->) ->
+    logger = Sirius.Application.get_logger()
     current = prev = window.location.hash
     hash_on_top        = setting["top"]
     redirect_to_hash   = setting["old"]
@@ -251,7 +243,7 @@ Sirius.RouteSystem =
 
     Sirius.Application.get_adapter().and_then (adapter) =>
       if redirect_to_hash and !push_state_support
-        Sirius.Application.logger.info("Convert plain routing into hash routing")
+        logger.info("RouteSystem: Convert plain routing into hash routing")
         # convert to new routing
         urls = [] #save urls into array, for check collision
         route = {}
@@ -260,7 +252,7 @@ Sirius.RouteSystem =
           if @_plain_route(url)
             url = "\##{url}"
             if urls.indexOf(url) != -1
-              Sirius.Application.logger.warn("Routes already have '#{url}' url")
+              logger.warn("RouteSystem: Routes already have '#{url}' url")
           route[url] = action
         routes = route
 
@@ -285,9 +277,11 @@ Sirius.RouteSystem =
           event_name = z[1]
           selector   = z[3] || document #when it a custom event: 'custom:event' for example
           adapter.bind(document, selector, event_name, handler)
+          logger.info("RouteSystem: define event route: '#{event_name}' for '#{selector}'")
 
       # for cache change obj[k, v] to array [[k,v]]
       array_of_routes = for url, action of routes when @_hash_route(url)
+        logger.info("RouteSystem: define hash route: '#{url}'")
         url    = new Sirius.RoutePart(url)
         action = if Sirius.Utils.is_function(action)
                    wrapper(action)
@@ -296,6 +290,7 @@ Sirius.RouteSystem =
         [url, action]
 
       plain_routes = for url, action of routes when @_plain_route(url)
+        logger.info("RouteSystem: define route: '#{url}'")
         url    = new Sirius.RoutePart(url)
         action = if Sirius.Utils.is_function(action)
                    wrapper(action)
@@ -307,7 +302,7 @@ Sirius.RouteSystem =
         prev        = current
         route_array = null
         result      = false
-
+        logger.info("RouteSystem: start processing route: '#{current}'")
         if e.type == "hashchange"
           # hashchange
           route_array = array_of_routes
@@ -328,7 +323,7 @@ Sirius.RouteSystem =
             e.returnValue = false
           current = pathname
 
-        Sirius.Application.logger.info("Url change to: #{current}")
+        logger.info("RouteSystem: Url change to: #{current}")
         adapter.fire(document, "application:urlchange", current, prev)
 
         for part in route_array
@@ -345,6 +340,7 @@ Sirius.RouteSystem =
             return
 
         if !result
+          logger.warn("RouteSystem: route '#{current}' not found. Generate 404 event")
           adapter.fire(document, "application:404", current, prev)
           r404 = routes['404'] || routes[404]
           if r404
@@ -359,14 +355,14 @@ Sirius.RouteSystem =
       # convert only when
       if redirect_to_hash && !push_state_support
         links = adapter.all(@_selector)
-        Sirius.Application.logger("Found #{links.length} link. Convert href into hash based routing")
+        @logger("RouteSystem: Found #{links.length} link. Convert href into hash based routing")
         for link in links
           href = link.getAttribute('href')
           new_href = if href.indexOf("/") == 0
             "\##{href}"
           else
             "\#/#{href}"
-          Sirius.Application.logger("Convert '#{href}' -> '#{new_href}'")
+          @logger("RouteSystem: Convert '#{href}' -> '#{new_href}'")
           link.setAttribute('href', new_href)
 
       if plain_routes.length != 0
@@ -382,7 +378,6 @@ Sirius.RouteSystem =
           # also when we visit from plain url to hash, then history.state is null
           if history && history.state && (history.state == null || history.state['href'].indexOf("#") != 0)
             dispatcher(e)
-
 
 
       fn()
@@ -456,8 +451,7 @@ Sirius.Application =
   #
   # @method #logger(msg) - logger, default it's write message to console.log, may be redefined
   # @param msg [String]
-  logger: (msg) ->
-    return if !@log
+  default_log_function: (msg) ->
     if console && console.log
       console.log msg
     else
@@ -465,6 +459,21 @@ Sirius.Application =
 
   # @private
   _wait: []
+
+  _messages_queue: []
+  #
+  # @return [Object] - promise, which will be use for log information
+  get_logger: () ->
+    if !@logger
+      lvls = Sirius.Logger.Levels
+      o = {}
+      q = @_messages_queue
+      for l in lvls
+        do(l) ->
+          o[l] = (msg) -> q.push([l, msg])
+      o
+    else
+      @logger
 
   #
   # @return [Function] - promise, when adapter not null then it function will be called
@@ -486,7 +495,7 @@ Sirius.Application =
     @log     = options["log"]     || @log
     @adapter = options["adapter"] || throw new Error("Specify adapter")
     @route   = options["route"]   || @route
-    @logger  = new Sirius.Logger(@log, options['logger'] || @logger)
+    @logger  = new Sirius.Logger(@log, options['logger'] || @default_log_function)
     @start   = options["start"]   || @start
 
     for key, value of (options["controller_wrapper"] || {})
@@ -502,18 +511,18 @@ Sirius.Application =
                                          else
                                            @use_hash_routing_for_old_browsers
 
-    @logger.info("Logger enabled? #{@log}")
+    @logger.info("Application: Logger enabled? #{@log}")
 
-    @logger.info("Adapter: #{@adapter.__name()}")
-    @logger.info("Hash always on top: #{@hash_always_on_top}")
-    @logger.info("Use hash routing for old browsers: #{@use_hash_routing_for_old_browsers}")
-    @logger.info("Current browser: #{navigator.userAgent}")
+    @logger.info("Application: Adapter: #{@adapter.__name()}")
+    @logger.info("Application: Hash always on top: #{@hash_always_on_top}")
+    @logger.info("Application: Use hash routing for old browsers: #{@use_hash_routing_for_old_browsers}")
+    @logger.info("Application: Current browser: #{navigator.userAgent}")
 
     @push_state_support = if history.pushState then true else false
-    @logger.info("History pushState support: #{@push_state_support}")
+    @logger.info("Application: History pushState support: #{@push_state_support}")
 
     if !@push_state_support && @use_hash_routing_for_old_browsers
-      @logger.warn("Warning! You browser not support pushState, and you disable hash routing for old browser")
+      @logger.warn("Application: You browser not support pushState, and you disable hash routing for old browser")
 
     setting =
       old: @use_hash_routing_for_old_browsers
@@ -525,6 +534,8 @@ Sirius.Application =
       for p in @_wait
         p.set_value(@adapter)
       @adapter.fire(document, "application:run", new Date())
+      for message in @_messages_queue
+        @logger[message[0]].call(null, message[1])
 
     if @start
       Sirius.redirect(@start)

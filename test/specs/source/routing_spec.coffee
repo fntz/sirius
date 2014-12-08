@@ -2,7 +2,6 @@ describe "Routing", ->
   R = Sirius.RoutePart
   j = new JQueryAdapter()
   Sirius.Application.adapter = j
-  Sirius.Application.logger = new Sirius.Logger(false, (m) -> console.log(m))
 
 
   describe "RoutePart", ->
@@ -158,7 +157,7 @@ describe "Routing", ->
       done()
 
 
-  describe "Routing and Controllers for Hash Routing", ->
+  describe "Routing and Controllers for Plain Routing", ->
     if history.pushState
       emptyValue = postValue = titleValue = postXValue = staticValue = errorValue = null
 

@@ -7,6 +7,21 @@ class MyModel extends Sirius.BaseModel
   compare: (other) ->
     @.get("id") == other.get("id")
 
+
+class MyCustomValidator extends Sirius.Validator
+  validate: (value, attrs) ->
+    if value?
+      if value.length == 3
+        true
+      else
+        @msg = "Value length must be 3"
+        false
+    else
+      @msg = "Null given"
+      false
+
+Sirius.BaseModel.register_validator('custom', MyCustomValidator)
+
 class ModelwithValidators extends Sirius.BaseModel
   @attrs: ["id", "title", "description"]
   @validate :
@@ -25,6 +40,7 @@ class ModelwithValidators extends Sirius.BaseModel
       exclusion: within: ["Title"]
 
     description:
+      custom: true
       validate_with: (desc) ->
         if desc == "foo"
           true

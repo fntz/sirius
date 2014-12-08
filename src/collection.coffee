@@ -38,27 +38,44 @@
 #  myCollection.sync(3000)   # start sync every 3 second
 #
 #  myCollection.size() # => 3
+#  myCollection.length # => 3 // as property
 class Sirius.Collection
+
   #
   # @param klass [T <: Sirius.BaseModel] - model class for all instances in collection
   # @param klasses [Array] - models, which used for `to_json` @see(Sirius.BaseModel.to_json)
   # @param options [Object] - with keys necessary
-  # @param every [Numberic] - ms for remote call
-  # @param on_add [Function] - callback, which will be call when add new instance to collection
-  # @param on_remove [Function] - callback, which will be call when remove model from collection
-  # @param remote [Function] - callback, which will be call when synchronize collection, must be return json
-  constructor: (klass, klasses = [], options = {}) -> # every: 0, on_add: (x) -> x, on_remove: (x) -> x, remote: null, on_push:
+  # @attr every [Numberic] - ms for remote call
+  # @attr on_add [Function] - callback, which will be call when add new instance to collection
+  # @attr on_remove [Function] - callback, which will be call when remove model from collection
+  # @attr remote [Function] - callback, which will be call when synchronize collection, must be return json
+  constructor: (klass, args...) ->
     if klass.__super__.__name isnt 'BaseModel'
       throw new Error("Collection must be used only with `BaseModel` inheritor")
     @_array = []
+    @logger = Sirius.Application.get_logger()
+    # klasses, options
+    klasses = []
+    options = {}
+    if args.length == 1
+      if Sirius.Utils.is_array(args[0])
+        klasses = args[0]
+      else
+        options = args[0]
+    if args.length == 2
+      klasses = args[0]
+      options = args[1]
+
     @_klasses = klasses
     @_klass = klass
-    @_type  = @_klass.name
+    @_type  = Sirius.Utils.fn_name(klass)
+
+
+    @length = 0
 
     clb = (x) -> x
 
     @on_add = options.on_add || clb
-    @on_push = options.on_push || clb
     @on_remove = options.on_push || clb
 
     if options.remote
@@ -76,14 +93,20 @@ class Sirius.Collection
 
 
   # @nodoc
+  # @private
   _start_sync: (every) ->
     if (every != 0)
+      @logger.info("Collection: start synchronization")
       @_timer = setInterval(@remote, every)
+    return
 
   # stop synchronization
+  # @return [Void]
   unsync: () ->
     if @_timer
+      @logger.info("Collection: end synchronization")
       clearInterval(@_timer)
+    return
 
   # start synchronization
   #
@@ -92,33 +115,42 @@ class Sirius.Collection
     @_start_sync(every)
 
   #
-  # push model in collection
+  # alias for #add
   # @param model [T <: Sirius.BaseModel]
-  #
+  # @return [Void]
   push: (model) ->
-    @_add(model)
-    @on_push(model)
+    @add(model)
+
 
   # add model into collection
   # @param model [T <: Sirius.BaseModel]
-  #
+  # @return [Void]
   add: (model) ->
     @_add(model)
     @on_add(model)
+    return
 
-  # @nodoc  
+  # @nodoc
+  # @private
   _add: (model) ->
     type = Sirius.Utils.fn_name(model.constructor)
-    throw new Error("Require `#{@_type}`, but given `#{type}`") if @_type isnt type
+
+    if @_type isnt type
+      msg = "Require `#{@_type}`, but given `#{type}`"
+      @logger.error("Collection: #{msg}")
+      throw new Error(msg)
     @_array.push(model) #maybe it's a hash ? because hash have a keys, and simple remove, but need a unique id
-     
+    @length++
 
   # remove model from collection
+  # @param [T <: Sirius.Model]
+  # @return [Void]
   remove: (other) ->
     inx = @index(other)
     if inx != null
       @_array.splice(inx, 1)
       @on_remove(other)
+    return
 
   #
   # Return index of model in collection or null, if not found
@@ -175,6 +207,7 @@ class Sirius.Collection
 
   # Clear the collection
   clear: () ->
+    @length = 0
     @_array = []
 
 
@@ -185,9 +218,12 @@ class Sirius.Collection
   from_json: (json) ->
     j = JSON.stringify(json)
     if Sirius.Utils.is_array(j)
-      for jj in j then @_array.push(@_klass.from_json(jj))
+      for jj in j
+        @_array.push(@_klass.from_json(jj))
+        @length++
     else
       @_array.push(@_klass.from_json(json))
+      @length++
     @
 
   # convert collection to json

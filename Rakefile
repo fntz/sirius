@@ -79,6 +79,11 @@ task :test => [:build, :test_compile] do
   system("ruby test/app.rb")
 end
 
+def coffee(path, arr)
+  arr.map{|x| "#{path}/#{x}.coffee"}.join(" ")
+end
+
+
 desc "Compile to javascript"
 task :build do
   path = "lib"
@@ -86,15 +91,20 @@ task :build do
     FileUtils.mkdir_p(path)
     puts "Create a #{path} directory"
   end
-  files = Dir["src/*.coffee"]
-  without_adapter = files.find_all{|f| !f.include?("adapter") }
 
-  output0 = without_adapter.join(" ")
-  output_jquery = "src/adapter.coffee src/jquery_adapter.coffee"
-  output_prototype = "src/adapter.coffee src/prototype_js_adapter.coffee"
-  system("cat #{output0} | coffee -c -b --stdio > lib/sirius.js")
-  system("cat #{output_prototype} | coffee -c -b --stdio > lib/prototypejs_adapter.js")
-  system("cat #{output_jquery} | coffee -c -b --stdio > lib/jquery_adapter.js")
+  src = "src"
+
+  prototype_files = coffee(src, %w(adapter prototype_js_adapter))
+  jquery_files = coffee(src, %w(adapter jquery_adapter))
+  lib_files = coffee(src, %w(
+    version ext logger promise sirius
+    utils validators observer
+    bind_helper view base_model collection
+  ))
+
+  system("cat #{lib_files} | coffee -c -b --stdio > #{path}/sirius.js")
+  system("cat #{prototype_files} | coffee -c -b --stdio > #{path}/prototypejs_adapter.js")
+  system("cat #{jquery_files} | coffee -c -b --stdio > #{path}/jquery_adapter.js")
 end
 
 desc "Create doc"

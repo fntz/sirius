@@ -59,7 +59,6 @@ class PrototypeAdapter extends Adapter
   text: (element) ->
     element = $(element)
     tag = element.tagName
-    type = element.type
     if tag == "INPUT" || tag == "TEXTAREA" || "SELECT"
       element.getValue()
     else
@@ -69,4 +68,4 @@ class PrototypeAdapter extends Adapter
         element.textContent
 
   get_state: (element) ->
-    jQuery(element).checked
+    $(element).checked

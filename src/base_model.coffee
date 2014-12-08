@@ -2,8 +2,8 @@
 #
 # A top level class for all models in application.
 # Supported features:
-#   + to json\html convert
-#   + create from json\html
+#   + to json
+#   + create from json
 #   + validation
 #   + generate guid
 #   + attributes support
@@ -39,6 +39,10 @@
 #
 # @todo Callback support
 class Sirius.BaseModel
+  # @private
+  # Contain all validator pairs.
+  @_Validators = []
+
   ###
     the attributes for model.
 
@@ -193,17 +197,24 @@ class Sirius.BaseModel
   # @note Method generate properties for `@has_many` and `@has_one` attributes.
   # @note Method generate add_x, where `x` it's a attribute from `@has_many` or `@has_one`
   constructor: (obj = {}) ->
+    @logger = Sirius.Application.get_logger()
     @_is_valid = false
     @callbacks = []
     # object, which contain all errors, which registers after validation
     @errors = {}
     @attributes = @normalize_attrs()
+    name = Sirius.Utils.fn_name(@constructor)
+    @errors = {}
 
     for attr in @attrs()
       # @attrs: [{key: value}]
+      @logger.info("BaseModel: define '#{attr}' attribute for '#{name}'")
       if typeof(attr) is "object"
         [key, ...] = Object.keys(attr)
-        throw new Error("Attributes should have a key and value") if !key
+        if !key
+          msg = "Attributes should have a key and value"
+          @logger.error("BaseModel: #{msg}")
+          throw new Error(msg)
         @["_#{key}"] = attr[key]
         @_gen_method_name_for_attribute(key)
       # @attrs: [key1, key2, key3]
@@ -212,12 +223,14 @@ class Sirius.BaseModel
         @["_#{attr}"] = null
 
     for klass in @has_many()
+      @logger.info("BaseModel: has many attribute: #{klass}")
       @["_#{klass}"] = []
       @attributes.push("#{klass}")
       @_has_create(klass)
       @_gen_method_name_for_attribute(klass, true)
 
     for klass in @has_one()
+      @logger.info("BaseModel: has one attribute: #{klass}")
       @["_#{klass}"] = null
       @attributes.push("#{klass}")
       @_has_create(klass, true)
@@ -229,6 +242,19 @@ class Sirius.BaseModel
 
     if g = @guid_for()
       @set(g, @_generate_guid())
+
+    # need define validators key
+    @_registered_validators = @constructor._Validators
+    @_registered_validators_keys = @_registered_validators.map((arr) -> arr[0])
+    @_model_validators = @validators()
+    for key, value of @_model_validators
+      @errors[key] = {}
+      for validator_name, validator of value
+        if @_registered_validators_keys.indexOf(validator_name) == -1 && validator_name != 'validate_with'
+          throw new Error("Unregistered validator: #{validator_name}")
+        @errors[key][validator_name] = ""
+
+
 
     @after_create() || ->
 
@@ -331,51 +357,56 @@ class Sirius.BaseModel
   # Call when you want validate model
   # @nodoc
   validate: (field = null) ->
-    @errors ?= {}
     #FIXME work with relations
-    vv = @validators()
-    Object.keys(vv).filter(
+    Object.keys(@_model_validators || {}).filter(
       (key) =>
         if field?
           key == field
         else
           true
-    ).map((key) =>
+    ).map((key) => # key is a current attribute
       current_value = @get(key)
-      value = vv[key]
-      valid = true # check if current field is valid, and if it's field valid, then need remove errors for it
+      value = @_model_validators[key]
+
       for validator_key, validator_value of value
-        klass = switch validator_key
-          when "length"        then new Sirius.LengthValidator()
-          when "exclusion"     then new Sirius.ExclusionValidator()
-          when "inclusion"     then new Sirius.InclusionValidator()
-          when "format"        then new Sirius.FormatValidator()
-          when "numericality"  then new Sirius.NumericalityValidator()
-          when "presence"      then new Sirius.PresenceValidator()
-          when "validate_with"
-            z = new Sirius.Validator()
-            z.validate = validator_value
-            z.msg = null
-            z
+        klass = if validator_key is "validate_with"
+          z = new Sirius.Validator()
+          z.validate = validator_value
+          z.msg = null
+          z
+        else
+          z = @_registered_validators.filter((arr) -> arr[0] == validator_key)[0][1]
+          new z()
 
         result = klass.validate(current_value, validator_value)
 
-        if !result
-          e = if typeof(validator_value) is "object"
-            validator_value["error"] || klass.error_message()
-          else
-            klass.error_message()
-          valid = false
-          (@errors[key] ?= []).push("#{e}")
+        if !result # when `validate` return false
+          @errors[key][validator_key] = klass.error_message()
+        else #when true, then need set null for error
+          @errors[key][validator_key] = ""
 
-      delete @errors[key] if valid
     )
 
-    @_is_valid = Object.keys(@errors).length == 0 ? true : false
+    for key, value of @errors
+      for k, v of value when v != ""
+        @_is_valid = true
 
-  # @return [Object] - return object with errors for current model
-  get_errors: () ->
-    @errors
+  # @param [String] - attr name, if attr not given then return `errors` object,
+  # otherwise return array with errors for give field
+  # @return [Object|Array] - return object with errors for current model
+  get_errors: (attr = null) ->
+    if @attributes.indexOf(attr) == -1 && attr != null
+      throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model")
+
+    if attr?
+      result = []
+      for key, value of @errors[attr]
+        if value != ""
+          result.push(value)
+
+      result
+    else
+      @errors
 
   # @note must be redefine in descendants
   # @param exception [Boolean] throw exception, when true and instance not valid,
@@ -561,16 +592,21 @@ class Sirius.BaseModel
   # set new title in model -> transform with wrap method -> apply strategy -> result
   #
   # TODO pass parameters with object_setting
-  # TODO strategies
   bind: (view, object_setting = {}) ->
-    throw new Error("`bind` only work with Sirius.View") if !(view.name && view.name() == "View")
+    current_model = @
+    if !(view.name && view.name() == "View")
+      msg = "`bind` only work with Sirius.View"
+      @logger.error(msg)
+      throw new Error(msg)
+
+    @logger.info("BaseModel: bind with #{view.element}")
+
     object_setting['transform'] = if object_setting['transform']?
       object_setting['transform']
     else
       (t) -> t
 
     callbacks = @callbacks
-
 
     Sirius.Application.get_adapter().and_then (adapter) =>
       current = view.element
@@ -586,35 +622,45 @@ class Sirius.BaseModel
 
       attributes = @attributes
 
-      model_name = Sirius.Utils.fn_name(@constructor)
       for element in elements
         do(element) ->
-          if attributes.indexOf(element.from) == -1
-            throw new Error("Attribute '#{element.from}' not found in '#{model_name}' attributes")
-
+          # it attribute or property
           element.view ?= new Sirius.View(element.element)
-
           transform = Sirius.BindHelper.transform(element.transform, object_setting)
+          strategy = element.strategy
+          if !Sirius.View.is_valid_strategy(strategy)
+            throw new Error("Strategy #{strategy} not valid")
 
-          clb = (attr, value) ->
-            if attr is element.from
-              if element.to is 'text'
-                tag = adapter.get_attr(element.element, 'tagName')
-                type = adapter.get_attr(element.element, 'type')
-                if type == 'checkbox' || type == 'radio'
-                  current_value = adapter.get_attr(element.element, 'value')
-                  if current_value == value
-                    adapter.set_prop(element.element, 'checked', true)
-                if tag == 'OPTION'
-                  current_value = adapter.get_attr(element.element, 'value')
-                  if current_value == value
-                    adapter.set_prop(element.element, 'selected', true)
+          if attributes.indexOf(element.from) != -1
+            clb = (attr, value) ->
+              if attr is element.from
+                if element.to is 'text'
+                  tag = adapter.get_attr(element.element, 'tagName')
+                  type = adapter.get_attr(element.element, 'type')
+                  if type == 'checkbox' || type == 'radio'
+                    current_value = adapter.get_attr(element.element, 'value')
+                    if current_value == value
+                      adapter.set_prop(element.element, 'checked', true)
+                  if tag == 'OPTION'
+                    current_value = adapter.get_attr(element.element, 'value')
+                    if current_value == value
+                      adapter.set_prop(element.element, 'selected', true)
+                  else
+                    element.view.render(transform(value))[strategy](element.to)
                 else
-                  element.view.render(transform(value)).swap(element.to)
-              else
-                element.view.render(transform(value)).swap(element.to)
+                  element.view.render(transform(value))[strategy](element.to)
 
-          callbacks.push(clb)
+            callbacks.push(clb)
+          else
+            from = element.from
+            if from.indexOf("errors") != 0
+              throw "For binding errors, need pass property as 'errors.attr.validator'"
+
+            element.view.bind(current_model.errors, from.split(".")[1..-1].join("."), {
+              to: element.to,
+              strategy: strategy,
+              transform: transform
+            })
 
 
   #
@@ -632,10 +678,42 @@ class Sirius.BaseModel
       new Error("BaseModel#bind2 work only with Sirius.View")
 
 
+  # Register pair - name and class for validate
+  # @param [String] - validator name
+  # @param [T <: Sirius.Validator] - class which extend Sirius.Validator
+  #
+  # @example
+  #
+  #   class MyValidator extends Sirius.Validator
+  #     validate: (value, attributes) ->
+  #       if value.length != 3
+  #         @msg = "Error, #{value} must be have length 3, #{value.length} given"
+  #         false
+  #       else
+  #         true
+  #
+  #   Sirius.BaseModel.register_validator('my_validator' MyValidator)
+  #
+  #   # then in you model
+  #   class MyModel extends Sirius.BaseModel
+  #     @attrs: ['name']
+  #     @validate:
+  #       name:
+  #         my_validator : true
+  #
+  # @return [Void]
+  @register_validator: (name, klass) ->
+    logger = Sirius.Application.get_logger()
+    logger.info("BaseModel: register validator: #{name}")
+    @_Validators.push([name, klass])
+    null
 
-
-
-
+Sirius.BaseModel.register_validator("length", Sirius.LengthValidator)
+Sirius.BaseModel.register_validator("exclusion", Sirius.ExclusionValidator)
+Sirius.BaseModel.register_validator("inclusion", Sirius.InclusionValidator)
+Sirius.BaseModel.register_validator("format", Sirius.FormatValidator)
+Sirius.BaseModel.register_validator("numericality", Sirius.NumericalityValidator)
+Sirius.BaseModel.register_validator("presence", Sirius.PresenceValidator)
 
 
 

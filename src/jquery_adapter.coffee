@@ -27,7 +27,7 @@ class JQueryAdapter extends Adapter
 
   get_attr: (element, attr) ->
     if attr.indexOf('data') == 0
-      attr = attr.substring(5, attr.length)
+      attr = attr.replace("data-", "")
       jQuery(element).data(attr)
     else
       jQuery(element).prop(attr)

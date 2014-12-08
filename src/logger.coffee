@@ -3,16 +3,16 @@
 # Base logger class for use in Sirius Application
 class Sirius.Logger
 
-  Levels = ['debug', 'info', 'warn', 'error']
+  @Levels = ['debug', 'info', 'warn', 'error']
 
   # @param [Boolean] - true, when log enabled
   # @param [Function] - logger function for application
-  constructor: (log, logger_function) ->
-    for l in Levels
-      do(l) =>
-        @[l] = (msg) ->
-          if log
-            logger_function("#{l.toUpperCase()}: #{msg}")
+  constructor: (log_enabled, logger_function) ->
+    for level in Sirius.Logger.Levels
+      do(level) =>
+        @[level] = (msg) ->
+          if log_enabled
+            logger_function("#{level.toUpperCase()}: #{msg}")
 
 
 

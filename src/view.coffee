@@ -18,44 +18,47 @@ class Sirius.View
 
   name: () -> 'View' # define name, because not work in IE: constructor.name
 
+  # contain all strategies for view
+  @_Strategies = []
+
   # @param [String] - selector for element
   # @param [Function] - transform function for new content
   #
   constructor: (@element, clb = (txt) -> txt) ->
+    @logger = Sirius.Application.get_logger()
     @_result_fn = (args...) =>
       clb.apply(null, args...)
+    @logger.info("View: Create a new View for #{@element}")
 
+    for strategy in @constructor._Strategies
+      do(strategy) =>
+        name = strategy[0]
+        @logger.info("View: Define #{name} strategy")
+        transform = strategy[1]
+        render = strategy[2]
+        @[name] = (attribute = "text") =>
+          # @render already called
+          # and we have @_result
+          result = @_result
+          element = @element
+          @logger.info("View: Start processing strategy for #{element}")
+          Sirius.Application.get_adapter().and_then (adapter) ->
+            # need extract old value
+            oldvalue = if attribute is 'text'
+              adapter.text()
+            else
+              adapter.get_attr(element, attribute)
+            res = transform(oldvalue, result)
+            render(adapter, element, res, attribute)
+
+  # compile function
+  # @param [Array] with arguments, which pass into transform function
+  # By default transform function take arguments and return it `(x) -> x`
+  # @return [Sirius.View]
   render: (args...) ->
+    @logger.info("View: Call render for #{args}")
     @_result = @_result_fn(args)
     @
-
-  # swap content for given element
-  # @return null
-  swap: (attributes...) ->
-    @_apply_strategy
-      attributes: for a in attributes when a != null then a
-      name : 'swap'
-      transform: (old, result) -> "#{result}"
-
-  # append to current element new content in bottom
-  # @param [Array] list of attributes for append new value
-  # when attributes is empty(is default for text|value) then only append
-  # @note this strategy not work for SELECT element
-  # @return null
-  append: (attributes...) ->
-    @_apply_strategy
-      attributes: for a in attributes when a != null then a
-      name : 'append'
-      transform: (old, result) -> "#{old}#{result}"
-
-  # prepend to current element new content in top
-  # @note this strategy not work for SELECT element
-  # @return null
-  prepend: (attributes...) ->
-    @_apply_strategy
-      attributes: for a in attributes when a != null then a
-      name : 'prepend'
-      transform: (old, result) -> "#{result}#{old}"
 
   #
   # @param [String] - selector in element
@@ -80,6 +83,8 @@ class Sirius.View
                  selector
                else
                  "#{@element} #{selector}"
+    @logger.info("View: Bind event for #{selector}, event name: #{event_name}, will be called : #{custom_event_name}")
+
     handler = (e) ->
       Sirius.Application.get_adapter().and_then((adapter) =>
         adapter.fire.call(null, document, custom_event_name, e, params...)
@@ -89,27 +94,17 @@ class Sirius.View
     null
 
 
-  # @nodoc
-  _apply_strategy: (object = {attributes: [], name: 'swap', transform: (old, result) -> "#{result}" }) ->
-    Sirius.Application.get_adapter().and_then((adapter) =>
-      if object.attributes.length == 0
-        adapter[object.name](@element, @_result)
-      else
-      for attr in object.attributes
-        do(attr) =>
-          if attr == 'text'
-            adapter[object.name](@element, @_result)
-          else
-            old_val = adapter.get_attr(@element, attr)
-            adapter.set_attr(@element, attr, object.transform(old_val, @_result))
-    )
-    null
-
-
   # clear element content
   clear: () ->
+    @logger.info("View: Call clear for #{@element}")
     Sirius.Application.get_adapter().and_then((adapter) => adapter.clear(@element))
     @
+
+  # check if strategy valid
+  # @param [String] - given strategy
+  # @return [Boolean]
+  @is_valid_strategy: (s) ->
+    @_Strategies.filter((arr) -> arr[0] == s).length != 0
 
 
   #
@@ -235,33 +230,61 @@ class Sirius.View
   # When you pass into `bind` method string, then it create new `Sirius.View` for it string,
   # and work as View to View.
   #
+  # === 4. Property to View
   #
-  # @note when you add text into element with jQuery#text method, it will not cause associated method. Use #html for it.
+  # View possible bind with any javascript object property.
+  #
+  # @example
+  #
+  #    //html
+  #    <span></span>
+  #
+  #    my_collection = new Sirius.Collection(MyModel)
+  #    view = new Sirius.View("span")
+  #    view.bind(my_collection.length)
+  #
+  #    my_collection.push(new MyModel())
+  #    # then
+  #    <span>1</span>
+  #
+  # @note
+  #   change in view -> view|model
+  #   but
+  #   chane in property -> view
   #
   # @note strategy it only for view to view
   # @note transform it only for view to model or model to view binding
   # @param [Any] - klass, another view\model\function
-  # @param [Object] - hash with setting: [to, from]
+  # @param [Object|String] - hash with setting: [to, from] or property
   # @return [Sirius.View]
-  # TODO pass parameters with object_setting
-  bind: (klass, object_setting = {}) ->
+  # TODO pass parameters with setting
+  bind: (klass, args...) ->
+    setting = args[0] || {}
+    extra = args[1] || {}
+
+    @logger.info("View: Call bind for #{klass}")
     if klass
       if klass.name && klass.name() == "View"
-        @_bind_view(klass, object_setting)
+        @_bind_view(klass, setting)
+
+      else if (typeof(klass) == 'object') && Sirius.Utils.is_string(setting)
+        @_bind_prop(klass, setting, extra)
 
       else if Sirius.Utils.is_string(klass)
-        @bind(new Sirius.View(klass, object_setting))
+        @bind(new Sirius.View(klass, setting))
 
       else # then it's Sirius.Model
-        @_bind_model(klass, object_setting)
+        @_bind_model(klass, setting)
 
     @
 
   # @private
   # @nodoc
   _bind_model: (model, setting) ->
+    @logger.info("View: Bind #{@element} and model: #{Sirius.Utils.fn_name(model.constructor)}")
     Sirius.Application.get_adapter().and_then (adapter) =>
       setting['transform'] = if setting['transform']?
+        @logger.info("View: 'transform' method not found. Use default transform method.")
         setting['transform']
       else
         (x) -> x
@@ -274,8 +297,10 @@ class Sirius.View
       }).extract(adapter, setting)
 
       model_name = Sirius.Utils.fn_name(model.constructor)
+
       for element in elements
         do(element) ->
+          # find property
           if model.get_attributes().indexOf(element.to) == -1
             throw new Error("Error attribute '#{element.to}' not exist in model class '#{model_name}'")
 
@@ -293,18 +318,31 @@ class Sirius.View
 
   # @private
   # @nodoc
+  _bind_prop: (object, prop, setting = {}) ->
+    @logger.info("View: Bind '#{@element}' and object #{object} with property: #{prop}")
+    to = setting['to'] || 'text'
+    strategy  = setting['strategy'] || 'swap'
+    transform = setting['transform'] || (x) -> x
+    # from this property
+    view = @
+    clb = (result) ->
+      txt = transform(result['text'])
+      view.render(txt)[strategy](to)
+    new Sirius.Observer({object: object, prop: prop}, clb)
+
+  # @private
+  # @nodoc
   _bind_view: (view, setting) ->
+    @logger.info("View: Bind '#{@element}' with '#{view.element}'")
     to   = setting['to']   || 'text'
     from = setting['from'] || 'text'
+    @logger.info("View: for '#{view.element}' use to: '#{to}' and from: '#{from}'")
     strategy = setting['strategy'] || 'swap'
     current = @element
     # {text: null, attribute: null}
     clb = (result) ->
       txt = result['text']
-      if txt? && !result['attribute'] # for change text
-        view.render(txt)[strategy](to)
-      else
-        view.render(txt)[strategy](to)
+      view.render(txt)[strategy](to)
 
     new Sirius.Observer(current, clb)
 
@@ -317,3 +355,87 @@ class Sirius.View
     @bind(klass)
     if klass['bind'] && Sirius.Utils.is_function(klass['bind'])
       klass.bind(@)
+
+  # Register new strategy for View
+  # @param [String] - strategy name
+  # @param [Object] - object with transform and render functions, take oldvalue, and newvalue for attribute
+  # transform [Function] - transform function, take oldvalue, and newvalue for attribute
+  # render [Function] - render function, take adapter, element, result and attribute
+  #
+  # @example
+  #   # swap strategy
+  #   Sirius.View.register_strategy('swap',
+  #      transform: (oldvalue, newvalue) -> "#{newvalue}"
+  #      render: (adapter, element, result, attribute) ->
+  #        if attribute == 'text'
+  #          adapter.swap(element, result)
+  #        else
+  #          adapter.set_attr(@element, attribute, result)
+  #   )
+  #
+  #   # html strategy
+  #   Sirius.View.register_strategy('html',
+  #      transform: (oldvalue, newvalue) -> "<b>#{newvalue}<b>"
+  #      render: (adapter, element, result, attribute) ->
+  #        if attribute == 'text'
+  #          $(element).html(result)
+  #        else
+  #          throw new Error("Html strategy work only for text, not for #{attribute}")
+  #   )
+  #
+  #
+  # @return [Void]
+  @register_strategy: (name, object = {}) ->
+    logger = Sirius.Application.get_logger()
+    logger.info("View: Register new Strategy #{name}")
+    transform = object.transform
+    render = object.render
+    if !Sirius.Utils.is_function(transform)
+      msg = "Strategy must be Function, but #{typeof transform} given."
+      logger.error("View: #{msg}")
+      throw new Error(msg)
+
+    if !Sirius.Utils.is_function(render)
+      msg = "Strategy must be Function, but #{typeof render} given."
+      logger.error("View: #{msg}")
+      throw new Error(msg)
+
+    if !Sirius.Utils.is_string(name)
+      msg = "Strategy name must be String, but #{typeof name} given."
+      logger.error("View: #{msg}")
+      throw new Error(msg)
+
+    @_Strategies.push([name, transform, render])
+    null
+
+
+Sirius.View.register_strategy('swap',
+  transform: (oldvalue, newvalue) -> "#{newvalue}"
+  render: (adapter, element, result, attribute) ->
+    if attribute == 'text'
+      adapter.swap(element, result)
+    else
+      adapter.set_attr(element, attribute, result)
+)
+
+Sirius.View.register_strategy('append',
+  transform: (oldvalue, newvalue) -> "#{oldvalue}#{newvalue}"
+  render: (adapter, element, result, attribute) ->
+    if attribute == 'text'
+      adapter.append(element, result)
+    else
+      adapter.set_attr(element, attribute, result)
+)
+
+Sirius.View.register_strategy('prepend',
+  transform: (oldvalue, newvalue) -> "#{newvalue}#{oldvalue}"
+  render: (adapter, element, result, attribute) ->
+    if attribute == 'text'
+      adapter.prepend(element, result)
+    else
+      adapter.set_attr(element, attribute, result)
+)
+
+
+
+

@@ -26,19 +26,21 @@ describe "View", ->
       describe "for attribute", ->
         beforeEach () ->
           $(element).removeClass().addClass("input-class")
-          $(element).removeData('name').data('name', 'input')
+          $(element).removeData().data('name', 'input')
 
         it "#swap change attribute with new content", ->
           view.render("new-class").swap('class')
           expect($(element).attr('class')).toEqual("new-class")
 
         it "#append add content into attribute", ->
-          view.render("new-class").append('class', 'data-name')
+          view.render("new-class").append('class')
+          view.render("new-class").append('data-name')
           expect($(element).attr('class')).toEqual("input-classnew-class")
           expect($(element).data('name')).toEqual("inputnew-class")
 
         it "#prepend content before attribute", ->
-          view.render("new-class").prepend('class', 'data-name')
+          view.render("new-class").prepend('class')
+          view.render("new-class").prepend('data-name')
           expect($(element).attr('class')).toEqual("new-classinput-class")
           expect($(element).data('name')).toEqual("new-classinput")
 
