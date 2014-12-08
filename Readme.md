@@ -7,13 +7,11 @@
 
 
 + Template free — you may use any template engine or use any at all
-+ Controller free — you may use object as Controllers for you application or use only functions as controllers
-+ Model free — you may use a built in models, or use alternative model implementation from `Backbone.js` or `Ember.Data` or use javascript objects as you models.
-+ Javascript framework free — you may create a Adapter for own framework or use for `jQuery` or `prototypejs` adapters.
-+ Routing - routing from hash changes, from events, from custom events
-+ Possible use plain routing, if browser not support plain routing, then `Sirius` automatically switch to hash-based routing
-+ Include MVVM Support
-+ Easy for understanding
++ MVC style
++ MVVM binding
++ Build-in Collections, Validators
++ Adapters for jQuery and Prototype.js
++ Support html5 routing, and converters to html5 routing
 
 You only need define Route for you application.
 
@@ -51,12 +49,11 @@ MyController =
 ### 2. Define routes
 
 ```coffee
-  routes = {
+  routes =
     "application:run"   : controller: MyController, action: "action"
     "/plain"            : controller: MyController, action: "plain"
     "#/:title"          : controller: MyController, action: "run"
     "click #my-element" : controller: MyController, action: "event_action", guard: "guard_event", data: "id"  
-  } 
 
 ```
 
@@ -68,14 +65,13 @@ MyController =
      @attrs: ["id", "name", "age"]
      @guid_for: "id"
      @form_name: "my-person-form"
-          
-   
+
 ```
 
 ### 4. Run Application
 
 ```coffee
-  Sirius.Application({routes: routes}) 
+  Sirius.Application({route: routes})
 ```
 
 #### 5. Use Validators
@@ -93,7 +89,70 @@ MyController =
         exclusion: ["title"]
 ```
 
-#### 6. Use collections
+##### 5.1 Define custom Validator
+
+```coffee
+  class MyValidator extends Sirius.Validator
+    validate: (value, attrs) ->
+      if value.length == 3
+        @msg = "Error, value should have length 3"
+        false
+      else
+        true
+
+# register validator
+Sirius.BaseModel.register_validator("my_validator", MyValidator)
+
+# and use
+  class MyModel extends Sirius.BaseModel
+    @attrs: ["title"]
+    @validate:
+      title:
+        my_validator: some_attribute: true
+
+```
+
+#### 6. Views
+
+In Sirius, views is an any element on page. You might bind view and other view, or model, or javascript object property.
+
+```coffee
+  view = new Sirius.View("#id", (x) -> "#{x}!!!")
+  view.render("new content").swap()
+  # then in html <element id='id'>new content!!!</element>
+```
+
+`swap` - this strategy, how work with content. Support: `swap`, `append`, `prepend` stretegies.
+
+Define own strategy:
+
+```coffee
+ Sirius.View.register_strategy('html',
+    transform: (oldvalue, newvalue) -> "<b>#{newvalue}<b>"
+    render: (adapter, element, result, attribute) ->
+      if attribute == 'text'
+        $(element).html(result)
+      else
+        throw new Error("Html strategy work only for text, not for #{attribute}")
+ )
+
+# use it
+
+view = new Sirius.View("#element")
+view.render("some text").html()
+
+# then in html
+
+<span id='element'><b>some text</b></span>
+```
+
+Also you might swap content for any attribute:
+
+```coffee
+view.render("active").swap('class')
+```
+
+#### 7. Use collections
 
 ```coffee
 persons = new Sirius.Collection(Person, [], {
@@ -113,6 +172,95 @@ persons.add(joe)
 person.find("name", "Joe").to_json() # => {"id" : "g-u-i-d", "name" : "Joe", "age" : 25}
 ```
 
+#### 8. Binding
+
+Support binding: view to model, view to view, view to model, view to javascript object property
+and model to view. And it support all strategies or transform methods.
+
+
+```
+# view to view
+ # html
+ <input type='text' id='v1' />
+ <span id='r1' data-bind-to='data-name'></span>
+
+ # coffee
+ view1 = new Sirius.View('#v1')
+ view2 = new Sirius.View('#r1')
+ v1.bind(r1)
+
+ # when we enter some text into input
+ # then
+ $("#r1").data('name') # => equal to our input
+```
+
+```
+# view to model
+  # html
+  <form id="form">
+    <input type='text' data-bind-to='title'>
+    <textarea data-bind-to='description'></textarea>
+  </form>
+
+  # coffee
+  view = new Sirius.View("#form")
+  my_model = new MyModel()
+  view.bind(my_model)
+
+  # When we enter input, then
+  my_model.title() # => user input
+  my_model.description() # => user input
+
+```
+
+```
+# view to object property
+//html
+ <span></span>
+
+ my_collection = new Sirius.Collection(MyModel)
+ view = new Sirius.View("span")
+ view.bind(my_collection.length)
+
+ my_collection.push(new MyModel())
+ # then in html
+ <span>1</span>
+```
+
+```
+# model to view
+<form id='my-form'>
+  <input type="checkbox" value="val1" data-bind-view-from='model_value' />
+  <input type="checkbox" value="val2" data-bind-view-from='model_value' />
+  <input type="checkbox" value="val3" data-bind-view-from='model_value' />
+</form>
+
+# you model is only Model with one attribute `model_value`
+model = new Model()
+view = new Sirius.View("#my-form")
+model.bind(view)
+
+# use it
+model.model_value("val3")
+# in element
+$("#my-form input:checked").val() # => val3
+
+```
+Strategies and transform for binding
+
+```html
+  <span data-bind-view-from='title' data-bind-view-transform='wrap' data-bind-view-strategy='append'></span>
+```
+
+##### double-sided binding
+
+```coffee
+view.bind2(model)
+# or
+model.bind2(view)
+```
+
+
 
 # More info
 
@@ -124,7 +272,7 @@ person.find("name", "Joe").to_json() # => {"id" : "g-u-i-d", "name" : "Joe", "ag
 
 # Tasks
 
-Use `cake` or `rake` for run task. Before work run `rake or cake install` for installing dependencies.
+Use `rake` for run task. Before work run `rake install` for installing dependencies.
 
 `rake install` - install all dependencies
 
