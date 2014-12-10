@@ -3,8 +3,10 @@
 
 [Sirius.js](http://fntzr.github.com/sirius) a coffeescript MVC framework. It's give a simple integration with current javascript frameworks.
 
-### Features
+### current version: 0.6.1
+### browser support: IE9+, FF, Opera, Chrome
 
+### Features
 
 + Template free — you may use any template engine or use any at all
 + MVC style
@@ -13,13 +15,13 @@
 + Adapters for jQuery and Prototype.js
 + Support html5 routing, and converters to html5 routing
 
-You only need define Route for you application.
-
 # Install
 
 `npm install sirius` 
 
 or download manually [sirius.min.js](https://raw.githubusercontent.com/fntzr/sirius/master/sirius.min.js) and [jquery_adapter.min.js](https://raw.githubusercontent.com/fntzr/sirius/master/jquery_adapter.min.js) or [prototype_js_adapter.min.js](https://raw.githubusercontent.com/fntzr/sirius/master/prototypejs_adapter.min.js) from repo.
+
+
 
 # Usage
 
