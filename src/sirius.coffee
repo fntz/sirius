@@ -450,10 +450,11 @@ Sirius.Application =
 
   #
   # @method #logger(msg) - logger, default it's write message to console.log, may be redefined
-  # @param msg [String]
-  default_log_function: (msg) ->
+  # @parma [String] - log level: [DEBUG, INFO, WARN, ERROR]
+  # @param msg [String] - message
+  default_log_function: (level, msg) ->
     if console && console.log
-      console.log msg
+      console.log "#{level}: #{msg}"
     else
       alert "Not supported `console`. You should define own `logger` function for Sirius.Application"
 
@@ -513,7 +514,7 @@ Sirius.Application =
 
     @logger.info("Application: Logger enabled? #{@log}")
 
-    @logger.info("Application: Adapter: #{@adapter.__name()}")
+    @logger.info("Application: Adapter: #{Sirius.Utils.fn_name(@adapter.constructor)}")
     @logger.info("Application: Hash always on top: #{@hash_always_on_top}")
     @logger.info("Application: Use hash routing for old browsers: #{@use_hash_routing_for_old_browsers}")
     @logger.info("Application: Current browser: #{navigator.userAgent}")

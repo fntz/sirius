@@ -71,6 +71,11 @@ class Adapter
 
   # first from selector
   get: (selector) ->
-    document.querySelector(selector)
+    q = document.querySelector(selector)
+    console.log(q)
+    # when work with prototype.js, then possible work with 'id-element' instead of '#id-element'
+    if !q?
+      q = document.querySelector("\##{selector}")
+    q
 
   state: (selector) ->

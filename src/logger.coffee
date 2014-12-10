@@ -12,7 +12,7 @@ class Sirius.Logger
       do(level) =>
         @[level] = (msg) ->
           if log_enabled
-            logger_function("#{level.toUpperCase()}: #{msg}")
+            logger_function(level.toUpperCase(), msg)
 
 
 

@@ -1,27 +1,33 @@
 describe "View", ->
 
-  Sirius.Application.adapter = new JQueryAdapter()
+  adapter = if JQueryAdapter?
+    new JQueryAdapter()
+  else
+    new PrototypeAdapter()
+
+  Sirius.Application.adapter = adapter
 
   describe "Elements", ->
     describe "Input Text element", ->
-      element = "#txt"
+      element = if JQueryAdapter? then "#txt" else "txt"
       view = new Sirius.View(element)
 
       describe "for value", ->
         beforeEach () ->
-          $(element).val("default")
+          adapter.clear(element)
+          adapter.swap(element, "default")
 
         it "#swap should change value", ->
           view.render("new value").swap()
-          expect($(element).val()).toEqual("new value")
+          expect(adapter.text(element)).toEqual("new value")
 
         it "#append should add text into value", ->
           view.render("new value").append()
-          expect($(element).val()).toEqual("defaultnew value")
+          expect(adapter.text(element)).toEqual("defaultnew value")
 
         it "#prepend should prepend text before original", ->
           view.render("new value").prepend()
-          expect($(element).val()).toEqual("new valuedefault")
+          expect(adapter.text(element)).toEqual("new valuedefault")
 
       describe "for attribute", ->
         beforeEach () ->

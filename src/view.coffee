@@ -45,7 +45,7 @@ class Sirius.View
           Sirius.Application.get_adapter().and_then (adapter) ->
             # need extract old value
             oldvalue = if attribute is 'text'
-              adapter.text()
+              adapter.text(element)
             else
               adapter.get_attr(element, attribute)
             res = transform(oldvalue, result)
@@ -93,12 +93,6 @@ class Sirius.View
     Sirius.Application.get_adapter().and_then((adapter) => adapter.bind(document, selector, event_name, handler))
     null
 
-
-  # clear element content
-  clear: () ->
-    @logger.info("View: Call clear for #{@element}")
-    Sirius.Application.get_adapter().and_then((adapter) => adapter.clear(@element))
-    @
 
   # check if strategy valid
   # @param [String] - given strategy
@@ -436,6 +430,11 @@ Sirius.View.register_strategy('prepend',
       adapter.set_attr(element, attribute, result)
 )
 
+Sirius.View.register_strategy('clear',
+  transform: (oldvalue, newvalue) -> ""
+  render: (adapter, element, result, attribute) ->
+    adapter.clear(element)
+)
 
 
 

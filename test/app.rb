@@ -3,9 +3,19 @@ require 'sinatra'
 set :public_folder, File.dirname(__FILE__)
 
 get '/' do
-   system("rake test_compile")
-   File.read("#{File.dirname(__FILE__)}/SpecRunner.html")
+   File.read("#{File.dirname(__FILE__)}/index.html")
 end
+
+get '/prototype' do
+  system("rake test_compile")
+  File.read("#{File.dirname(__FILE__)}/SpecRunnerPrototype.html")
+end
+
+get '/jquery' do
+  system("rake test_compile")
+  File.read("#{File.dirname(__FILE__)}/SpecRunner.html")
+end
+
 
 get '/:dir/:file' do
   file = params[:file]

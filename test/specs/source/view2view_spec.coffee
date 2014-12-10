@@ -1,10 +1,24 @@
 describe "View2View", ->
-  Sirius.Application.adapter = new JQueryAdapter()
+  adapter =
+  adapter = if JQueryAdapter?
+    new JQueryAdapter()
+  else
+    new PrototypeAdapter()
 
-  element = ".attribute2text .element"
-  related_div = ".attribute2text .related-div"
-  related_input = ".attribute2text .related-input"
-  related_select = ".attribute2text .related-select"
+  Sirius.Application.adapter = adapter
+
+  if JQueryAdapter?
+    element = ".attribute2text .element"
+    related_div = ".attribute2text .related-div"
+    related_input = ".attribute2text .related-input"
+    related_select = ".attribute2text .related-select"
+  else
+    element = "attribute2text-element"
+    related_div = "attribute2text-related-div"
+    related_input = "attribute2text-related-input"
+    related_select = "attribute2text-related-select"
+
+
 
   view = new Sirius.View(element)
   view_div = new Sirius.View(related_div)
@@ -19,7 +33,7 @@ describe "View2View", ->
     txt = 'val3'
 
     beforeAll (done) ->
-      $(element).attr('data-name', txt)
+      adapter.set_attr(element, 'data-name', txt)
       setTimeout(
         () ->
           done()
@@ -27,9 +41,9 @@ describe "View2View", ->
       )
 
     it "change attribute in element should change text in related elements", ()->
-      expect($(related_div).text()).toEqual(txt)
-      expect($(related_input).val()).toEqual(txt)
-      expect($(related_select).val()).toEqual(txt)
+      expect(adapter.text(related_div)).toEqual(txt)
+      expect(adapter.text(related_input)).toEqual(txt)
+      expect(adapter.text(related_select)).toEqual(txt)
 
   describe "attribute to attribute", ->
 
@@ -39,7 +53,7 @@ describe "View2View", ->
     txt = 'another-value'
 
     beforeAll (done) ->
-      $(element).attr('data-attr', txt)
+      adapter.set_attr(element, 'data-attr', txt)
 
       setTimeout(
         () ->
@@ -48,15 +62,19 @@ describe "View2View", ->
       )
 
     it "change attribute in element should change attribute in related element", () ->
-      expect($(related_div).data('name')).toEqual(txt)
-      expect($(related_input).data('name')).toEqual(txt)
-      expect($(related_select).data('name')).toEqual(txt)
+      expect(adapter.get_attr(related_div, 'data-name')).toEqual(txt)
+      expect(adapter.get_attr(related_input, 'data-name')).toEqual(txt)
+      expect(adapter.get_attr(related_select, 'data-name')).toEqual(txt)
 
 
   describe "/text to attribute/", ->
     # from text to data-name attribute
-    div = ".text2attribute .div"
-    for_div = ".text2attribute .for-div"
+    if JQueryAdapter?
+      div = ".text2attribute .div"
+      for_div = ".text2attribute .for-div"
+    else
+      div = "text2attribute-div"
+      for_div = "text2attribute-for-div"
 
     #FIXME add an input element
     divView = new Sirius.View(div)
@@ -67,7 +85,10 @@ describe "View2View", ->
     value = "val3"
 
     beforeAll (done) ->
-      $(div).html(value)
+      if JQueryAdapter?
+        jQuery(div).html(value)
+      else
+        $(div).update(value)
 
       setTimeout(
         () ->
@@ -76,5 +97,5 @@ describe "View2View", ->
       )
 
     it "change value in input|select|div change attribute for related element", () ->
-      expect($(for_div).data('name')).toEqual(value)
+      expect(adapter.get_attr(for_div, 'data-name')).toEqual(value)
 

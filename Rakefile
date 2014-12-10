@@ -54,7 +54,8 @@ task :vendor_install do
            "http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js",
            "https://raw.githubusercontent.com/dwachss/bililiteRange/master/bililiteRange.js",
            "https://raw.githubusercontent.com/dwachss/bililiteRange/master/jquery.sendkeys.js",
-           "https://github.com/yui/yuicompressor/releases/download/v2.4.8/yuicompressor-2.4.8.jar"
+           "https://github.com/yui/yuicompressor/releases/download/v2.4.8/yuicompressor-2.4.8.jar",
+           "https://raw.githubusercontent.com/kangax/protolicious/master/event.simulate.js"
          ]
   download_and_save(deps, vendor)
 end
