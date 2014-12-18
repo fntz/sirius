@@ -4,13 +4,14 @@
 [Sirius.js](http://fntzr.github.com/sirius) a coffeescript MVC framework. It's give a simple integration with current javascript frameworks.
 
 ### current version: 0.6.1
-### browser support: IE9+, FF, Opera, Chrome
+### browser support: IE10+, FF, Opera, Chrome
+#### Note: ie9 support coming soon
 
 ### Features
 
 + Template free — you may use any template engine or use any at all
 + MVC style
-+ MVVM binding
++ MVVM binding (view to view, model to view, view to model, object property to view)
 + Build-in Collections, Validators
 + Adapters for jQuery and Prototype.js
 + Support html5 routing, and converters to html5 routing
@@ -76,7 +77,7 @@ MyController =
   Sirius.Application({route: routes})
 ```
 
-#### 5. Use Validators
+### 5. Use Validators
 
 ```coffee
   class Person extends Sirius.BaseModel
@@ -91,7 +92,7 @@ MyController =
         exclusion: ["title"]
 ```
 
-##### 5.1 Define custom Validator
+#### 5.1 Define custom Validator
 
 ```coffee
   class MyValidator extends Sirius.Validator
@@ -114,7 +115,7 @@ Sirius.BaseModel.register_validator("my_validator", MyValidator)
 
 ```
 
-#### 6. Views
+### 6. Views
 
 In Sirius, views is an any element on page. You might bind view and other view, or model, or javascript object property.
 
@@ -154,7 +155,7 @@ Also you might swap content for any attribute:
 view.render("active").swap('class')
 ```
 
-#### 7. Use collections
+### 7. Use collections
 
 ```coffee
 persons = new Sirius.Collection(Person, [], {
@@ -174,7 +175,7 @@ persons.add(joe)
 person.find("name", "Joe").to_json() # => {"id" : "g-u-i-d", "name" : "Joe", "age" : 25}
 ```
 
-#### 8. Binding
+### 8. Binding
 
 Support binding: view to model, view to view, view to model, view to javascript object property
 and model to view. And it support all strategies or transform methods.

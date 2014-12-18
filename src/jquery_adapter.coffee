@@ -11,10 +11,11 @@ class JQueryAdapter extends Adapter
       jQuery(element).on(event, selector, fn)
 
   fire: (element, event, params...) ->
-    jQuery(document).trigger(event, params)
+    jQuery(element).trigger(event, params)
 
   get_property: (event, properties) ->
     for p in properties then jQuery(event.target).attr(p)
+
 
   swap: (element, content) ->
     tag = @get_attr(element, 'tagName')
@@ -40,21 +41,10 @@ class JQueryAdapter extends Adapter
     jQuery(element).prop(prop, value)
 
   append: (element, content) ->
-    tag = @get_attr(element, 'tagName')
-    if tag == "INPUT" || tag == "TEXTAREA"
-      old_val = jQuery(element).val()
-      jQuery(element).val("#{old_val}#{content}")
-    else
-      jQuery(element).append(content)
-
+    jQuery(element).append(content)
 
   prepend: (element, content) ->
-    tag = @get_attr(element, 'tagName')
-    if tag == "INPUT" || tag == "TEXTAREA"
-      old_val = jQuery(element).val()
-      jQuery(element).val("#{content}#{old_val}")
-    else
-      jQuery(element).prepend(content)
+    jQuery(element).prepend(content)
 
   clear: (element) ->
     jQuery(element).text("")

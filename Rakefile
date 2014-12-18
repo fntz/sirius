@@ -29,8 +29,6 @@ def download_and_save(arr, path)
   end
 end
 
-desc "Install dependencies"
-
 task :jasmine_install do
   deps = %w{
     https://raw.githubusercontent.com/jasmine/jasmine/master/lib/jasmine-core/boot/boot.js
@@ -98,8 +96,8 @@ task :build do
   prototype_files = coffee(src, %w(adapter prototype_js_adapter))
   jquery_files = coffee(src, %w(adapter jquery_adapter))
   lib_files = coffee(src, %w(
-    version ext logger promise sirius
-    utils validators observer
+    version ext logger promise utils
+    sirius validators observer
     bind_helper view base_model collection
   ))
 

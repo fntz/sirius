@@ -12,7 +12,7 @@ if !Object::watch
 
       setter = (val) ->
         oldval = newval
-        newval = handler.call(this, prop, oldval, val)
+        newval = handler(prop, oldval, val)
 
       if delete this[prop] # can't watch constants
         Object.defineProperty this, prop,

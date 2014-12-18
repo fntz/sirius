@@ -69,11 +69,15 @@ class Sirius.View
   # @note  Second param for bind method is an Original Event
   # @example
   #    //html
-  #    <button id="click">click me</button>
+  #    <div id="my-div">
+  #      <button>click me</button>
+  #    </div>
   #
-  #    //js
-  #    buttonView = Sirius.View("#click")
-  #    buttonView.on("click", "button:click", 'param1', 'param2', param3')
+  #    # coffee
+  #    view = Sirius.View("#my-div")
+  #    view.on("button", "click", "button:click", 'param1', 'param2', param3')
+  #    # or
+  #    view.on("button", "click", (e) -> view.render("custom-class").swap("class"))
   #
   #    routes =
   #      "button:click": (custom_event, original_event, p1, p2, p3) ->
@@ -85,13 +89,22 @@ class Sirius.View
                  "#{@element} #{selector}"
     @logger.info("View: Bind event for #{selector}, event name: #{event_name}, will be called : #{custom_event_name}")
 
-    handler = (e) ->
-      Sirius.Application.get_adapter().and_then((adapter) =>
-        adapter.fire.call(null, document, custom_event_name, e, params...)
-      )
+    if Sirius.Utils.is_string(custom_event_name)
+      handler = (e) ->
+        Sirius.Application.get_adapter().and_then((adapter) =>
+          adapter.fire.call(null, document, custom_event_name, e, params...)
+        )
+      Sirius.Application.get_adapter().and_then((adapter) => adapter.bind(document, selector, event_name, handler))
+    else
+      if Sirius.Utils.is_function(custom_event_name)
+        Sirius.Application.get_adapter().and_then((adapter) =>
+          adapter.bind(document, selector, event_name, custom_event_name)
+        )
+        #custom_event_name
+      else
+        throw new Error("View: 'custom_event_name' must be string or function, #{typeof(custom_event_name)} given")
 
-    Sirius.Application.get_adapter().and_then((adapter) => adapter.bind(document, selector, event_name, handler))
-    null
+    return
 
 
   # check if strategy valid
@@ -235,7 +248,7 @@ class Sirius.View
   #
   #    my_collection = new Sirius.Collection(MyModel)
   #    view = new Sirius.View("span")
-  #    view.bind(my_collection.length)
+  #    view.bind(my_collection, 'length')
   #
   #    my_collection.push(new MyModel())
   #    # then
@@ -322,6 +335,7 @@ class Sirius.View
     clb = (result) ->
       txt = transform(result['text'])
       view.render(txt)[strategy](to)
+
     new Sirius.Observer({object: object, prop: prop}, clb)
 
   # @private
@@ -409,25 +423,37 @@ Sirius.View.register_strategy('swap',
     if attribute == 'text'
       adapter.swap(element, result)
     else
-      adapter.set_attr(element, attribute, result)
+      if attribute == 'checked'
+        # for boolean attributes need remove it when result is false
+        r = if Sirius.Utils.is_string(result)
+              if result == 'true'
+                true
+              else
+                false
+            else
+              !!result
+
+        adapter.set_prop(element, 'checked', r)
+      else
+        adapter.set_attr(element, attribute, result)
 )
 
 Sirius.View.register_strategy('append',
-  transform: (oldvalue, newvalue) -> "#{oldvalue}#{newvalue}"
+  transform: (oldvalue, newvalue) -> newvalue
   render: (adapter, element, result, attribute) ->
     if attribute == 'text'
       adapter.append(element, result)
     else
-      adapter.set_attr(element, attribute, result)
+      throw new Error("Strategy 'append' only work for 'text' content, not for '#{attribute}'")
 )
 
 Sirius.View.register_strategy('prepend',
-  transform: (oldvalue, newvalue) -> "#{newvalue}#{oldvalue}"
+  transform: (oldvalue, newvalue) -> newvalue
   render: (adapter, element, result, attribute) ->
     if attribute == 'text'
       adapter.prepend(element, result)
     else
-      adapter.set_attr(element, attribute, result)
+      throw new Error("Strategy 'prepend' only work for 'text' content, not for '#{attribute}'")
 )
 
 Sirius.View.register_strategy('clear',

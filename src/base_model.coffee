@@ -256,7 +256,7 @@ class Sirius.BaseModel
 
 
 
-    @after_create() || ->
+    @after_create()
 
   # @private
   # @nodoc
@@ -331,12 +331,15 @@ class Sirius.BaseModel
   set: (attr, value) ->
     throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model") if @attributes.indexOf(attr) == -1
 
+    oldvalue = @.get(attr)
     @["_#{attr}"] = value
 
     @validate(attr)
 
     for clb in @callbacks
       clb.apply(null, [attr, value])
+
+    @after_update(attr, value, oldvalue)
 
 
   #
@@ -523,10 +526,15 @@ class Sirius.BaseModel
   # must be overridden in user model
   after_create: () ->
 
+  # callback, run after model will be updated
+  # @param [String] - attribute which will be updated
+  # @param [Any] - new value for attribute
+  # @param [Any] - old value for attribute
+  after_update: (attribute, newvalue, oldvalue) ->
+
   # method for clone current model and create new
   clone: () ->
     @constructor.from_json(@to_json())
-
 
   #
   # bind
@@ -621,7 +629,7 @@ class Sirius.BaseModel
       }, false).extract(adapter, object_setting)
 
       attributes = @attributes
-
+      self = @
       for element in elements
         do(element) ->
           # it attribute or property
@@ -661,6 +669,15 @@ class Sirius.BaseModel
               strategy: strategy,
               transform: transform
             })
+
+      # set default attributes, if present
+      # FIXME possible stackoverflow in IE9
+      # and need unbind event from current view and then bind again
+      for attr in @attributes when @get(attr) != null
+        @set(attr, @get(attr))
+
+
+
 
 
   #

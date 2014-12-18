@@ -172,6 +172,9 @@ class Sirius.ControlFlow
     @guard  = extract('guard', true)
 
     @data = params['data'] || null
+    @controller = controller
+
+    return
 
 
   # @param e [EventObject|null] - event object if it's a mouse\key events, and `null` when it's url change event
@@ -184,30 +187,31 @@ class Sirius.ControlFlow
     @logger.info("ControlFlow: Start event processing")
     if e
       data   = if Sirius.Utils.is_array(@data) then @data else if @data then [@data] else []
-      data   = Sirius.Application.adapter.get_property(e, data) #FIXME use Promise
-      merge  = [].concat([], [e], data)
+      result   = Sirius.Application.adapter.get_property(e, data) #FIXME use Promise
+
+      merge  = [].concat([], [e], result)
       # fix bug#4 when event is a custom event we should get an args for this event
       merge  = [].concat([], merge, args...)
       if @guard
-        if @guard.apply(null, merge)
-          @before()
-          @action.apply(null, merge)
-          @after()
+        if @guard.apply(@controller, merge)
+          @before.apply(@controller)
+          @action.apply(@controller, merge)
+          @after.apply(@controller)
       else
-        @before()
-        @action.apply(null, merge)
-        @after()
+        @before.apply(@controller)
+        @action.apply(@controller, merge)
+        @after.apply(@controller)
     else
       args = [].concat.apply([], args)
       if @guard
-        if @guard.apply(null, args)
-          @before()
-          @action.apply(null, args)
-          @after()
+        if @guard.apply(@controller, args)
+          @before.apply(@controller)
+          @action.apply(@controller, args)
+          @after.apply(@controller)
       else
-        @before()
-        @action.apply(null, args)
-        @after()
+        @before.apply(@controller)
+        @action.apply(@controller, args)
+        @after.apply(@controller)
 
 # @mixin
 # @private
@@ -240,10 +244,16 @@ Sirius.RouteSystem =
     hash_on_top        = setting["top"]
     redirect_to_hash   = setting["old"]
     push_state_support = setting["support"]
+    link_transform     = setting["link_transform"]
+    active_class       = setting["active_class"]
+
+    current_link = previous_link = null
 
     Sirius.Application.get_adapter().and_then (adapter) =>
+      is_hash_routing = false
       if redirect_to_hash and !push_state_support
         logger.info("RouteSystem: Convert plain routing into hash routing")
+        is_hash_routing = true
         # convert to new routing
         urls = [] #save urls into array, for check collision
         route = {}
@@ -278,6 +288,7 @@ Sirius.RouteSystem =
           selector   = z[3] || document #when it a custom event: 'custom:event' for example
           adapter.bind(document, selector, event_name, handler)
           logger.info("RouteSystem: define event route: '#{event_name}' for '#{selector}'")
+          null
 
       # for cache change obj[k, v] to array [[k,v]]
       array_of_routes = for url, action of routes when @_hash_route(url)
@@ -302,6 +313,15 @@ Sirius.RouteSystem =
         prev        = current
         route_array = null
         result      = false
+        if e.target.location? # then it after back or forward button click
+          link_transform(previous_link, current_link) #FIXME
+          t = current_link
+          current_link = previous_link
+          previous_link = t
+        else
+          previous_link = current_link
+          current_link = e.target
+          link_transform(current_link, previous_link)
         logger.info("RouteSystem: start processing route: '#{current}'")
         if e.type == "hashchange"
           # hashchange
@@ -353,17 +373,18 @@ Sirius.RouteSystem =
 
       # need convert all plain url into hash based url
       # convert only when
+      links = adapter.all(@_selector)
       if redirect_to_hash && !push_state_support
-        links = adapter.all(@_selector)
-        @logger("RouteSystem: Found #{links.length} link. Convert href into hash based routing")
+        logger.info("RouteSystem: Found #{links.length} link. Convert href into hash based routing")
         for link in links
           href = link.getAttribute('href')
-          new_href = if href.indexOf("/") == 0
-            "\##{href}"
-          else
-            "\#/#{href}"
-          @logger("RouteSystem: Convert '#{href}' -> '#{new_href}'")
-          link.setAttribute('href', new_href)
+          if href.indexOf("http") == -1
+            new_href = if href.indexOf("/") == 0
+              "\##{href}"
+            else
+              "\#/#{href}"
+            logger.info("RouteSystem: Convert '#{href}' -> '#{new_href}'")
+            link.setAttribute('href', new_href)
 
       if plain_routes.length != 0
         # bind all <a> element with dispatch function, but bind only when href not contain "#"
@@ -376,8 +397,35 @@ Sirius.RouteSystem =
           # history.state.href contain url which start from "#", when hash change
           #                    contain full address otherwise
           # also when we visit from plain url to hash, then history.state is null
-          if history && history.state && (history.state == null || history.state['href'].indexOf("#") != 0)
+          if history and history.state?
+            if history.state.href != undefined
+              if history.state.href.indexOf("#") != 0
+                dispatcher(e)
             dispatcher(e)
+
+
+      # TODO work with hash routes
+      current = if is_hash_routing
+        location.hash
+      else
+        location.pathname
+
+      logger.info("RouteSystem: current url: #{current}")
+
+      # also we need detect current active link if present
+      for link in links when adapter.get_attr(link, 'class').split(" ").indexOf(active_class) != -1
+        current_link = link
+
+      # need detect current url and set active link for current url
+      # if previous already set and it not for current url, then we reset class for url
+      for link in links when link.getAttribute('href') == current
+        if current_link?
+          if current_link != link
+            logger.warn("RouteSystem: link with active class: #{active_class} not equal for current url: #{current}")
+            adapter.set_attr(link, 'class', active_class)
+        else
+          adapter.set_attr(link, 'class', active_class)
+          current_link = link
 
 
       fn()
@@ -426,6 +474,29 @@ Sirius.Application =
   }
 
   ###
+    default class when click on link.
+  ###
+  class_name_for_active_link: 'active'
+
+  ###
+    It's should be function.
+    When user click on link, then need add `class_name_for_active_link` for this link
+
+    @example
+      class_name_for_active_link: (element, previous) ->
+        $(element).addClass('custom-class')
+        $(previous).removeClass('custom-class')
+
+  ###
+  transform_link_to_active: (element, previous) ->
+    Sirius.Application.get_adapter().and_then (adapter) ->
+      adapter.set_attr(element, 'class', Sirius.Application.class_name_for_active_link)
+      if previous?
+        previous.className = ''
+
+
+
+  ###
     when, false, then hash will be add into last for url, for true, no
     false:
       "http://example.com/" - start
@@ -450,7 +521,7 @@ Sirius.Application =
 
   #
   # @method #logger(msg) - logger, default it's write message to console.log, may be redefined
-  # @parma [String] - log level: [DEBUG, INFO, WARN, ERROR]
+  # @param [String] - log level: [DEBUG, INFO, WARN, ERROR]
   # @param msg [String] - message
   default_log_function: (level, msg) ->
     if console && console.log
@@ -499,6 +570,8 @@ Sirius.Application =
     @logger  = new Sirius.Logger(@log, options['logger'] || @default_log_function)
     @start   = options["start"]   || @start
 
+    @class_name_for_active_link = options['class_name_for_active_link'] || @class_name_for_active_link
+
     for key, value of (options["controller_wrapper"] || {})
       @controller_wrapper[key] = value
 
@@ -511,6 +584,7 @@ Sirius.Application =
                                            options["use_hash_routing_for_old_browsers"]
                                          else
                                            @use_hash_routing_for_old_browsers
+    @transform_link_to_active = options['transform_link_to_active'] || @transform_link_to_active
 
     @logger.info("Application: Logger enabled? #{@log}")
 
@@ -518,6 +592,7 @@ Sirius.Application =
     @logger.info("Application: Hash always on top: #{@hash_always_on_top}")
     @logger.info("Application: Use hash routing for old browsers: #{@use_hash_routing_for_old_browsers}")
     @logger.info("Application: Current browser: #{navigator.userAgent}")
+    @logger.info("Application: class name for link: #{@class_name_for_active_link}")
 
     @push_state_support = if history.pushState then true else false
     @logger.info("Application: History pushState support: #{@push_state_support}")
@@ -529,6 +604,8 @@ Sirius.Application =
       old: @use_hash_routing_for_old_browsers
       top: @hash_always_on_top
       support: @push_state_support
+      active_class: @class_name_for_active_link
+      link_transform: @transform_link_to_active
 
     # start
     Sirius.RouteSystem.create @route, setting, () =>

@@ -96,7 +96,5 @@ class Sirius.BindHelper
       if setting.transform[name]?
         setting.transform[name]
       else
-        msg = error(name)
-        logger.error("BindHelper: #{msg}")
-        throw new Error(msg)
-
+        logger.warn("BindHelper: Transform method not found use default transform method: '(x) -> x'")
+        (x) -> x

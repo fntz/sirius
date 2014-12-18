@@ -43,6 +43,7 @@ class Sirius.Observer
           text: newvalue
           previous: oldvalue
         clb(result)
+        newvalue
 
       my_watch = (object, prop, handler) ->
         namespaces = prop.split(".")
@@ -59,7 +60,6 @@ class Sirius.Observer
       handler = (e) ->
         logger.info("Observer: Handler Function: given #{e.type} event")
         result = {text: null, attribute: null}
-
         return if ['focusout', 'focusin'].indexOf(e.type) != -1
 
         txt = adapter.text(from)
@@ -69,6 +69,7 @@ class Sirius.Observer
         if e.type == "input" || e.type == "childList" || e.type == "change" || e.type == "DOMNodeInserted" || e.type == "selectionchange"
           result['text'] = txt
           current_value = txt
+
 
         if e.type == "change" # get a state for input enable or disable
           result['state'] = adapter.get_state(from)
@@ -131,6 +132,7 @@ class Sirius.Observer
 
 
       else # when null, need register event with routes
+        # FIXME stackoverflow
         logger.warn("Observer: MutationObserver not support")
         logger.info("Observer: Use Deprecated events for observe")
         adapter.bind(document, @from_element, 'DOMNodeInserted', handler)

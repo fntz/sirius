@@ -1,7 +1,18 @@
-<li id="<%= todo.id() %>" data-bind-view-to="class" data-bind-view-from="completed" class="">
+<li id="<%= todo.id() %>"
+    data-bind-view-to="class"
+    data-bind-view-transform="mark_as_completed"
+    data-bind-view-from="completed" class="">
   <div class="view">
-    <input class="toggle" type="checkbox" data-bind-to="completed" data-bind-from="checked">
-    <label><%= todo.title() %></label>
-    <button class="destroy"></button>
+    <input class="toggle" type="checkbox"
+           data-bind-to="completed"
+           data-bind-from="checked"
+           data-bind-view-to="checked"
+           data-bind-view-from="completed">
+    <label data-bind-view-from="title"><%= todo.title() %></label>
+    <button class="destroy" data-id="<%= todo.id() %>"></button>
   </div>
+  <input class="edit"
+         data-id='<%= todo.id() %>' value="<%= todo.title() %>"
+         data-bind-to="title"
+    />
 </li>

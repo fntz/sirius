@@ -44,22 +44,10 @@ class PrototypeAdapter extends Adapter
       $(element).update(content)
 
   append: (element, content) ->
-    element = $(element)
-    tag = element.tagName
-    if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
-      old_val = element.getValue()
-      element.setValue("#{old_val}#{content}")
-    else
-      $(element).insert({bottom: content})
+    $(element).insert(top: content)
 
   prepend: (element, content) ->
-    element = $(element)
-    tag = element.tagName
-    if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
-      old_val = element.getValue()
-      element.setValue("#{content}#{old_val}")
-    else
-      $(element).insert({top: content})
+    $(element).insert(bottom: content)
 
   clear: (element) ->
     tag = $(element).tagName

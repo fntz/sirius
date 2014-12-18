@@ -9,16 +9,9 @@
 #
 #   myCollection = new Sirius.Collection(MyModel, [], {
 #     every: 1000,
-#     on_remote: () ->
+#     remote: () ->
 #       json = ... # ajax call
 #       return json
-#
-#     on_remove: (model) ->
-#       id = model.id
-#       #ajax call with id
-#
-#     on_add: (model) ->
-#       $('list-of-models').append(model.to_html())
 #
 #   })
 #
@@ -39,15 +32,16 @@
 #
 #  myCollection.size() # => 3
 #  myCollection.length # => 3 // as property
+#
+#  @note for listen changes in collection use `subscribe` method
+#
 class Sirius.Collection
-
+  @_EVENTS = ['add', 'remove', 'sync', 'unsync']
   #
   # @param klass [T <: Sirius.BaseModel] - model class for all instances in collection
   # @param klasses [Array] - models, which used for `to_json` @see(Sirius.BaseModel.to_json)
   # @param options [Object] - with keys necessary
   # @attr every [Numberic] - ms for remote call
-  # @attr on_add [Function] - callback, which will be call when add new instance to collection
-  # @attr on_remove [Function] - callback, which will be call when remove model from collection
   # @attr remote [Function] - callback, which will be call when synchronize collection, must be return json
   constructor: (klass, args...) ->
     if klass.__super__.__name isnt 'BaseModel'
@@ -70,13 +64,11 @@ class Sirius.Collection
     @_klass = klass
     @_type  = Sirius.Utils.fn_name(klass)
 
+    @_subscribers = {}
+    for e in @constructor._EVENTS
+      @_subscribers[e] = []
 
     @length = 0
-
-    clb = (x) -> x
-
-    @on_add = options.on_add || clb
-    @on_remove = options.on_push || clb
 
     if options.remote
       @remote = =>
@@ -98,6 +90,7 @@ class Sirius.Collection
     if (every != 0)
       @logger.info("Collection: start synchronization")
       @_timer = setInterval(@remote, every)
+      @_gen('sync')
     return
 
   # stop synchronization
@@ -106,6 +99,7 @@ class Sirius.Collection
     if @_timer
       @logger.info("Collection: end synchronization")
       clearInterval(@_timer)
+      @_gen('unsync')
     return
 
   # start synchronization
@@ -127,20 +121,19 @@ class Sirius.Collection
   # @return [Void]
   add: (model) ->
     @_add(model)
-    @on_add(model)
     return
 
   # @nodoc
   # @private
   _add: (model) ->
     type = Sirius.Utils.fn_name(model.constructor)
-
     if @_type isnt type
       msg = "Require `#{@_type}`, but given `#{type}`"
       @logger.error("Collection: #{msg}")
       throw new Error(msg)
     @_array.push(model) #maybe it's a hash ? because hash have a keys, and simple remove, but need a unique id
     @length++
+    @_gen('add', model)
 
   # remove model from collection
   # @param [T <: Sirius.Model]
@@ -149,7 +142,8 @@ class Sirius.Collection
     inx = @index(other)
     if inx != null
       @_array.splice(inx, 1)
-      @on_remove(other)
+      @_gen('remove', other)
+      @length--
     return
 
   #
@@ -231,6 +225,54 @@ class Sirius.Collection
   to_json: () ->
     z = for e in @_array then e.to_json()
     JSON.parse(JSON.stringify(z))
+
+  #
+  #
+  # @param [String] - event name for subscribing [add, remove, sync, unsync]
+  # @param [String|Function] - when it function, then when event will be occurred, then it
+  # call given function, when it event (it's should be custom event name) it will be fired.
+  #
+  # @example
+  #
+  #   myCollection = new Collection(MyModel,
+  #     remote: () ->
+  #       # work with ajax
+  #     every: 10000 # every 10 sec
+  #
+  #
+  #   myCollection.subscribe('add', (model) -> console.log('upd'))
+  #   myCollection.subscribe('add', 'my_collection:update')
+  #   # in routes
+  #   'my_collection:update': (event, model) ->
+  #     console.log('custom upd')
+  #
+  #   myCollection.add(new MyMode())
+  #   # will be
+  #   # print in console: 'upd' and 'custom upd'
+  #
+  # @return [Void]
+  subscribe: (event, fn_or_event) ->
+    if @constructor._EVENTS.indexOf(event) == -1
+      throw new Error("For 'subscribe' method available only [#{@constructor._EVENTS}], but given '#{event}'")
+
+    if Sirius.Utils.is_string(fn_or_event) or Sirius.Utils.is_function(fn_or_event)
+      @logger.info("Collection: Add new subscriber for '#{event}' event")
+      @_subscribers[event].push(fn_or_event)
+    else
+      throw new Error("Second parameter for 'subscribe' method must be Function or String, but '#{typeof(fn_or_event)}' given")
+
+    return
+
+  # @private
+  # @nodoc
+  _gen: (event, args...) ->
+    subscribers = @_subscribers[event]
+    Sirius.Application.get_adapter().and_then (adapter) ->
+      for subsriber in subscribers
+        if Sirius.Utils.is_string(subsriber)
+          adapter.fire(document, subsriber, args...)
+        else
+          subsriber.apply(null, args)
 
 
 
