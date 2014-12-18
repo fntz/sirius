@@ -1,9 +1,9 @@
 # Are you sirius?
 
 
-[Sirius.js](http://fntzr.github.com/sirius) a coffeescript MVC framework. It's give a simple integration with current javascript frameworks.
+[Sirius.js](http://fntzr.github.com/sirius) a coffeescript MVC framework. It's give a simple integration with current javascript libraries (jquery, prototype, etc).
 
-### current version: 0.6.1
+### current version: 0.6.2
 ### browser support: IE10+, FF, Opera, Chrome
 #### Note: ie9 support coming soon
 
@@ -22,7 +22,10 @@
 
 or download manually [sirius.min.js](https://raw.githubusercontent.com/fntzr/sirius/master/sirius.min.js) and [jquery_adapter.min.js](https://raw.githubusercontent.com/fntzr/sirius/master/jquery_adapter.min.js) or [prototype_js_adapter.min.js](https://raw.githubusercontent.com/fntzr/sirius/master/prototypejs_adapter.min.js) from repo.
 
+#### TODO
 
+1. `grep -r -i -e 'fixme' -e 'todo' src`
+2. more tests
 
 # Usage
 
