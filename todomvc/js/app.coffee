@@ -8,7 +8,7 @@ class TodoList extends Sirius.BaseModel
     @_id = "todo-#{Math.random().toString(36).substring(7)}"
 
   is_active: () -> !@completed()
-  
+
   is_completed: () -> @completed()
 
   after_update: (attribute, newvalue, oldvalue) ->
@@ -97,7 +97,6 @@ TodoController =
 
   is_enter: (custom_event, original_event) ->
     return true if original_event.which == 13
-
     false
 
   create: (custom_event, original_event, model) ->
@@ -131,7 +130,7 @@ BottomController =
 
 # ----------------------- Routing ----------------- #
 
-routes = 
+routes =
   "/"               : {controller: MainController, action: "root"}
   "/active"        :  {controller: MainController, action: "active"}
   "/completed"     :  {controller: MainController, action: "completed"}
@@ -150,7 +149,6 @@ $ ->
     adapter : new JQueryAdapter()
     class_name_for_active_link: 'selected'
     log: false
-
 
 
 
