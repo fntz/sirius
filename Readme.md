@@ -3,7 +3,7 @@
 
 [Sirius.js](http://fntzr.github.com/sirius) a coffeescript MVC framework. It's give a simple integration with current javascript libraries (jquery, prototype, etc).
 
-### current version: 0.6.2
+### current version: 0.6.2.1
 ### browser support: IE10+, FF, Opera, Chrome
 #### Note: ie9 support coming soon
 
