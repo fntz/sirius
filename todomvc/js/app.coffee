@@ -1,6 +1,6 @@
 "use strict"
 
-class TodoList extends Sirius.BaseModel
+class Task extends Sirius.BaseModel
   @attrs: ["title", {completed: false}, "id"]
 
   constructor: (obj = {}) ->
@@ -51,10 +51,10 @@ Renderer =
       @clear_view.render().clear()
 
 
-Todos = new Sirius.Collection(TodoList)
+TodoList = new Sirius.Collection(Task)
 
-Todos.subscribe('add', (todo) -> Renderer.append(todo))
-Todos.subscribe('remove', (todo) -> $("\##{todo.id()}").remove())
+TodoList.subscribe('add', (todo) -> Renderer.append(todo))
+TodoList.subscribe('remove', (todo) -> $("\##{todo.id()}").remove())
 
 
 
@@ -62,25 +62,25 @@ Todos.subscribe('remove', (todo) -> $("\##{todo.id()}").remove())
 
 MainController =
   root: () ->
-    Renderer.render(Todos.all())
+    Renderer.render(TodoList.all())
 
   active: () ->
-    Renderer.render(Todos.filter((t) -> t.is_active()))
+    Renderer.render(TodoList.filter((t) -> t.is_active()))
 
   completed: () ->
-    Renderer.render(Todos.filter((t) -> t.is_completed()))
+    Renderer.render(TodoList.filter((t) -> t.is_completed()))
 
   start: () ->
     view  = new Sirius.View("#todoapp")
-    model = new TodoList()
+    model = new Task()
     view.bind2(model)
     view.on("#new-todo", "keypress", "todo:create", model)
 
     length_view = new Sirius.View("#todo-count strong")
-    length_view.bind(Todos, 'length')
+    length_view.bind(TodoList, 'length')
 
     footer = new Sirius.View("#footer")
-    footer.bind(Todos, 'length', {
+    footer.bind(TodoList, 'length', {
       to: 'class'
       transform: (x) ->
         if x == 0
@@ -89,8 +89,8 @@ MainController =
           ""
     })
 
-    Todos.add(new TodoList({title : "Create a TodoMVC template", completed: true}))
-    Todos.add(new TodoList(title: "Rule the web"))
+    TodoList.add(new Task({title : "Create a TodoMVC template", completed: true}))
+    TodoList.add(new Task(title: "Rule the web"))
 
 
 TodoController =
@@ -100,31 +100,31 @@ TodoController =
     false
 
   create: (custom_event, original_event, model) ->
-    todo = new TodoList(title: model.title())
-    Todos.add(todo)
+    todo = new Task(title: model.title())
+    TodoList.add(todo)
     model.title("")
 
 
   mark_all: (e, state) ->
     if state == 'completed'
-      Todos.filter((t) -> t.is_completed()).map((t) -> t.completed(false))
+      TodoList.filter((t) -> t.is_completed()).map((t) -> t.completed(false))
     else
-      Todos.filter((t) -> t.is_active()).map((t) -> t.completed(true))
+      TodoList.filter((t) -> t.is_active()).map((t) -> t.completed(true))
 
     $("#toggle-all").toggleClass('completed')
 
 
   destroy: (e, id) ->
-    todo = Todos.filter((t) -> t.id() == id)[0]
-    Todos.remove(todo)
+    todo = TodoList.filter((t) -> t.id() == id)[0]
+    TodoList.remove(todo)
 
 BottomController =
   change: () ->
-    Renderer.clear(Todos.filter((t) -> t.is_completed()).length)
+    Renderer.clear(TodoList.filter((t) -> t.is_completed()).length)
 
 
   clear: () ->
-    Todos.filter((t) -> t.is_completed()).map((t) -> Todos.remove(t))
+    TodoList.filter((t) -> t.is_completed()).map((t) -> TodoList.remove(t))
     Renderer.clear(0)
 
 
