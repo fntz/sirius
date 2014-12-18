@@ -188,7 +188,11 @@ class Sirius.ControlFlow
     @logger.info("ControlFlow: Start event processing")
 =======
     #when e defined it'pygments.css a Event, otherwise it'pygments.css call from url_routes
+<<<<<<< HEAD
 >>>>>>> project page
+=======
+>>>>>>> 0f57182c76640edbf8d78e1d7ee57e3992373515
+>>>>>>> 1eec9b378bdf61074f628df1fce2e14ed50d4366
     if e
       data   = if Sirius.Utils.is_array(@data) then @data else if @data then [@data] else []
       result   = Sirius.Application.adapter.get_property(e, data) #FIXME use Promise

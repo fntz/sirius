@@ -4,6 +4,10 @@ var BottomController, MainController, Renderer, TodoController, TodoList, Todos,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
 TodoList = (function(_super) {
   __extends(TodoList, _super);
 
@@ -29,6 +33,205 @@ TodoList = (function(_super) {
     return this.completed();
   };
 
+<<<<<<< HEAD
+  return TodoList;
+
+})(Sirius.BaseModel);
+
+Todos = new Sirius.Collection(TodoList, []);
+
+Todos.add(new TodoList({
+  title: "Create a TodoMVC template",
+  completed: true
+}));
+
+Todos.add(new TodoList({
+  title: "Rule the web"
+}));
+
+>>>>>>> 0f57182c76640edbf8d78e1d7ee57e3992373515
+Renderer = {
+  template: new EJS({
+    url: 'js/todos.ejs'
+  }),
+  todo_template: new EJS({
+    url: 'js/todo.ejs'
+  }),
+  view: new Sirius.View("#todo-list"),
+  render: function(data) {
+    var klass, t, template, todos;
+    if (data == null) {
+      data = [];
+    }
+    todos = (function() {
+      var _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = data.length; _i < _len; _i++) {
+        t = data[_i];
+        klass = t.get("completed") ? "completed" : "";
+        _results.push({
+          "class_name": klass,
+          "title": t.get("title"),
+          id: t.get("id")
+        });
+=======
+  EventController = {
+    start: function() {
+      Todos.push(new TodoList({
+        title: "Create a TodoMVC template",
+        completed: true
+      }));
+      Todos.push(new TodoList({
+        title: "Rule the web"
+      }));
+      return Renderer.render(Todos);
+    },
+    destroy: function(event, id) {
+      var i, index, t, _i, _len;
+      index = null;
+      for (i = _i = 0, _len = Todos.length; _i < _len; i = ++_i) {
+        t = Todos[i];
+        if (t.get("id") === id) {
+          index = i;
+        }
+      }
+      if (index !== null) {
+        Todos.splice(index, 1);
+        return $(event.target).parents("li").remove();
+      }
+    },
+    mark: function(event, id) {
+      var todo;
+      todo = Todos.find_by_id(id);
+      if (todo.get("completed")) {
+        todo.set("completed", false);
+      } else {
+        todo.set("completed", true);
+      }
+      return $(event.target).parents("li").toggleClass("completed");
+    },
+    mark_all: function(event, klass) {
+      var t, _i, _j, _len, _len1;
+      if (klass === "marked") {
+        for (_i = 0, _len = Todos.length; _i < _len; _i++) {
+          t = Todos[_i];
+          t.set("completed", true);
+        }
+      } else {
+        for (_j = 0, _len1 = Todos.length; _j < _len1; _j++) {
+          t = Todos[_j];
+          t.set("completed", false);
+        }
+      }
+      $(event.target).toggleClass("marked");
+      return Renderer.render(Todos);
+    },
+    is_enter: function(event) {
+      if (event.which === 13) {
+        return true;
+      }
+      return false;
+    },
+    new_todo: function(event) {
+      var new_todo;
+      new_todo = TodoList.from_html();
+      Todos.push(new_todo);
+      Renderer.render(Todos);
+      return $("#new-todo").val('');
+    },
+    update_footer: function() {
+      var active, completed, _;
+      if (Todos.length === 0) {
+        $("#footer").hide();
+        return;
+      } else {
+        $("#footer").show();
+      }
+      active = ((function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = Todos.length; _i < _len; _i++) {
+          _ = Todos[_i];
+          if (_.is_active()) {
+            _results.push(_);
+          }
+        }
+        return _results;
+      })()).length;
+      completed = ((function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = Todos.length; _i < _len; _i++) {
+          _ = Todos[_i];
+          if (_.is_completed()) {
+            _results.push(_);
+          }
+        }
+        return _results;
+      })()).length;
+      $("#todo-count strong").text(active);
+      if (completed > 0) {
+        $("#clear-completed").show();
+        return $("#clear-completed").text("Clear completed (" + completed + ")");
+      } else {
+        return $("#clear-completed").hide();
+>>>>>>> update todo
+      }
+      return _results;
+    })();
+    template = this.template.render({
+      todos: todos
+    });
+    return $("#todo-list").html("").html(template);
+  },
+  add: function(todo) {
+    var template, todo_view;
+    c("get id: " + (todo.id()));
+    template = this.todo_template.render({
+      todo: todo
+    });
+    this.view.render(template).append();
+    todo_view = new Sirius.View("li\#" + (todo.id()));
+    todo_view.bind(todo);
+    return todo.bind(todo_view, {
+      transform: function(t) {
+        if (t) {
+          return "completed";
+        } else {
+          return "";
+        }
+      }
+    });
+  }
+};
+
+>>>>>>> 1eec9b378bdf61074f628df1fce2e14ed50d4366
+TodoList = (function(_super) {
+  __extends(TodoList, _super);
+
+  TodoList.attrs = [
+    "title", {
+      completed: false
+    }, "id"
+  ];
+
+  function TodoList(obj) {
+    if (obj == null) {
+      obj = {};
+    }
+    TodoList.__super__.constructor.call(this, obj);
+    this._id = "todo-" + (Math.random().toString(36).substring(7));
+  }
+
+  TodoList.prototype.is_active = function() {
+    return !this.completed();
+  };
+
+  TodoList.prototype.is_completed = function() {
+    return this.completed();
+  };
+
+<<<<<<< HEAD
   TodoList.prototype.after_update = function(attribute, newvalue, oldvalue) {
     if (attribute === "completed" || newvalue === true) {
       return Sirius.Application.get_adapter().and_then(function(adapter) {
@@ -41,6 +244,9 @@ TodoList = (function(_super) {
     return other.id() === this.id();
   };
 
+=======
+<<<<<<< HEAD
+>>>>>>> 1eec9b378bdf61074f628df1fce2e14ed50d4366
   return TodoList;
 
 })(Sirius.BaseModel);
