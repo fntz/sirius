@@ -23,7 +23,7 @@ Sirius.redirect = (url) ->
 # @private
 # Class for map urls.
 #
-# Also it'pygments.css class contain extracted parts from url.
+# Also it's class contain extracted parts from url.
 # ### Url syntax:
 # ```coffee
 # #/:param1/:param2   => extract param1, param2 ...
@@ -130,13 +130,13 @@ class Sirius.ControlFlow
     act = params['action']
 
     action = if Sirius.Utils.is_string(act)
-                controller[act]
-              else if Sirius.Utils.is_function(act)
-                act
-              else
-                msg = "Action must be string or function"
-                @logger.error("ControlFlow: #{msg}")
-                throw new Error(msg)
+      controller[act]
+    else if Sirius.Utils.is_function(act)
+      act
+    else
+      msg = "Action must be string or function"
+      @logger.error("ControlFlow: #{msg}")
+      throw new Error(msg)
     if !action
       msg = "action #{act} not found in controller #{controller}"
       @logger.error("ControlFlow: #{msg}")
@@ -177,22 +177,14 @@ class Sirius.ControlFlow
     return
 
 
-  # @param e [EventObject|null] - event object if it'pygments.css a mouse\key events, and `null` when it'pygments.css url change event
+  # @param e [EventObject|null] - event object if it's a mouse\key events, and `null` when it's url change event
   # @param args [Array<Any>] - arguments, used only for url changes events
   #
   # @note if you have a guard function, then firstly called it, if `guard` is true, then will be called `before`, `action` and `after` methods
   #
   handle_event: (e, args...) ->
-<<<<<<< HEAD
     #when e defined it's a Event, otherwise it's call from url_routes
     @logger.info("ControlFlow: Start event processing")
-=======
-    #when e defined it'pygments.css a Event, otherwise it'pygments.css call from url_routes
-<<<<<<< HEAD
->>>>>>> project page
-=======
->>>>>>> 0f57182c76640edbf8d78e1d7ee57e3992373515
->>>>>>> 1eec9b378bdf61074f628df1fce2e14ed50d4366
     if e
       data   = if Sirius.Utils.is_array(@data) then @data else if @data then [@data] else []
       result   = Sirius.Application.adapter.get_property(e, data) #FIXME use Promise
@@ -239,13 +231,13 @@ Sirius.RouteSystem =
 
   _event_route: (url) ->
     !@_hash_route(url) && !@_404_route(url) && !@_plain_route(url)
-  #
-  # @param routes [Object] object with routes
-  # @param fn [Function] callback, which will be called, after routes will be defined
-  # @event application:urlchange - generate, when url change
-  # @event application:404 - generate, if given url not matched with given routes
-  # @event application:run - generate, after application running
-  # setting : old, top, support
+#
+# @param routes [Object] object with routes
+# @param fn [Function] callback, which will be called, after routes will be defined
+# @event application:urlchange - generate, when url change
+# @event application:404 - generate, if given url not matched with given routes
+# @event application:run - generate, after application running
+# setting : old, top, support
   create: (routes, setting, fn = ->) ->
     logger = Sirius.Application.get_logger()
     current = prev = window.location.hash
@@ -303,18 +295,18 @@ Sirius.RouteSystem =
         logger.info("RouteSystem: define hash route: '#{url}'")
         url    = new Sirius.RoutePart(url)
         action = if Sirius.Utils.is_function(action)
-                   wrapper(action)
-                 else
-                   new Sirius.ControlFlow(action, wrapper)
+          wrapper(action)
+        else
+          new Sirius.ControlFlow(action, wrapper)
         [url, action]
 
       plain_routes = for url, action of routes when @_plain_route(url)
         logger.info("RouteSystem: define route: '#{url}'")
         url    = new Sirius.RoutePart(url)
         action = if Sirius.Utils.is_function(action)
-                   wrapper(action)
-                 else
-                   new Sirius.ControlFlow(action, wrapper)
+          wrapper(action)
+        else
+          new Sirius.ControlFlow(action, wrapper)
         [url, action]
 
       dispatcher = (e) ->
@@ -424,7 +416,6 @@ Sirius.RouteSystem =
       for link in links when adapter.get_attr(link, 'class').split(" ").indexOf(active_class) != -1
         current_link = link
 
-<<<<<<< HEAD
       # need detect current url and set active link for current url
       # if previous already set and it not for current url, then we reset class for url
       for link in links when link.getAttribute('href') == current
@@ -443,10 +434,6 @@ Sirius.RouteSystem =
 
 # @mixin
 # A main object, it's a start point all user applications
-=======
-#
-# A main object, it'pygments.css a start point all user applications
->>>>>>> project page
 # @example
 #   var routes = {
 #     "#/"                : { controller : Controller, action: "action" },
@@ -462,46 +449,45 @@ Sirius.Application =
     when true, logs will be written
   ###
   log: false
-  ###
-    application adapter for javascript frameworks @see Adapter documentation
-  ###
+###
+  application adapter for javascript frameworks @see Adapter documentation
+###
   adapter: null
-  ###
-    true, when application already running
-  ###
+###
+  true, when application already running
+###
   running: false
-  ###
-    user routes
-  ###
+###
+  user routes
+###
   route: {}
-<<<<<<< HEAD
-  ###
-    a root url for application
-  ###
+###
+  a root url for application
+###
   start : false
 
-  ###
-    a shared methods for controllers
-  ###
+###
+  a shared methods for controllers
+###
   controller_wrapper: {
     redirect: Sirius.redirect
   }
 
-  ###
-    default class when click on link.
-  ###
+###
+  default class when click on link.
+###
   class_name_for_active_link: 'active'
 
-  ###
-    It's should be function.
-    When user click on link, then need add `class_name_for_active_link` for this link
+###
+  It's should be function.
+  When user click on link, then need add `class_name_for_active_link` for this link
 
-    @example
-      class_name_for_active_link: (element, previous) ->
-        $(element).addClass('custom-class')
-        $(previous).removeClass('custom-class')
+  @example
+    class_name_for_active_link: (element, previous) ->
+      $(element).addClass('custom-class')
+      $(previous).removeClass('custom-class')
 
-  ###
+###
   transform_link_to_active: (element, previous) ->
     Sirius.Application.get_adapter().and_then (adapter) ->
       adapter.set_attr(element, 'class', Sirius.Application.class_name_for_active_link)
@@ -510,54 +496,45 @@ Sirius.Application =
 
 
 
-  ###
-    when, false, then hash will be add into last for url, for true, no
-    false:
-      "http://example.com/" - start
-      "http://example.com/another" - change to another url
-      "http://example.com/another#hash" - change to hash
-    true
-      "http://example.com/" - start
-      "http://example.com/another" - change to another url
-      "http://example.com/#/hash" - change to hash
-  ###
+###
+  when, false, then hash will be add into last for url, for true, no
+  false:
+    "http://example.com/" - start
+    "http://example.com/another" - change to another url
+    "http://example.com/another#hash" - change to hash
+  true
+    "http://example.com/" - start
+    "http://example.com/another" - change to another url
+    "http://example.com/#/hash" - change to hash
+###
   hash_always_on_top : true
 
-  ###
-    when true, then all routing will be redefined with hash based routing
-    and convert all url href to hash based urls
-    "/" => "#/"
-    <a href="/posts">posts</a>
-    to
-    <a href="#/posts">posts</a>
-  ###
+###
+  when true, then all routing will be redefined with hash based routing
+  and convert all url href to hash based urls
+  "/" => "#/"
+  <a href="/posts">posts</a>
+  to
+  <a href="#/posts">posts</a>
+###
   use_hash_routing_for_old_browsers : true
 
-  #
-  # @method #logger(msg) - logger, default it's write message to console.log, may be redefined
-  # @param [String] - log level: [DEBUG, INFO, WARN, ERROR]
-  # @param msg [String] - message
+#
+# @method #logger(msg) - logger, default it's write message to console.log, may be redefined
+# @param [String] - log level: [DEBUG, INFO, WARN, ERROR]
+# @param msg [String] - message
   default_log_function: (level, msg) ->
     if console && console.log
       console.log "#{level}: #{msg}"
-=======
-  # @property [String] - a root url for application
-  start : "#"
-  # @method #logger(msg) - logger, default it'pygments.css write message to console.log, may be redefined
-  logger: (msg) ->
-    return if !@log
-    if window.console
-      console.log msg
->>>>>>> project page
     else
       alert "Not supported `console`. You should define own `logger` function for Sirius.Application"
 
-  # @private
+# @private
   _wait: []
 
   _messages_queue: []
-  #
-  # @return [Object] - promise, which will be use for log information
+#
+# @return [Object] - promise, which will be use for log information
   get_logger: () ->
     if !@logger
       lvls = Sirius.Logger.Levels
@@ -570,8 +547,8 @@ Sirius.Application =
     else
       @logger
 
-  #
-  # @return [Function] - promise, when adapter not null then it function will be called
+#
+# @return [Function] - promise, when adapter not null then it function will be called
   get_adapter: () ->
     if !@adapter?
       p = new Sirius.Promise()
@@ -582,9 +559,9 @@ Sirius.Application =
 
 
 
-  #
-  # @method #run(options)
-  # @param options [Object] - base options for application
+#
+# @method #run(options)
+# @param options [Object] - base options for application
   run: (options = {}) ->
     @running = true
     @log     = options["log"]     || @log
@@ -599,14 +576,14 @@ Sirius.Application =
       @controller_wrapper[key] = value
 
     @hash_always_on_top = if options["hash_always_on_top"]?
-                            options["hash_always_on_top"]
-                          else
-                            @hash_always_on_top
+      options["hash_always_on_top"]
+    else
+      @hash_always_on_top
 
     @use_hash_routing_for_old_browsers = if options["use_hash_routing_for_old_browsers"]?
-                                           options["use_hash_routing_for_old_browsers"]
-                                         else
-                                           @use_hash_routing_for_old_browsers
+      options["use_hash_routing_for_old_browsers"]
+    else
+      @use_hash_routing_for_old_browsers
     @transform_link_to_active = options['transform_link_to_active'] || @transform_link_to_active
 
     @logger.info("Application: Logger enabled? #{@log}")
@@ -640,6 +617,5 @@ Sirius.Application =
 
     if @start
       Sirius.redirect(@start)
-
 
 
