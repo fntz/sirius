@@ -8,6 +8,7 @@ class Sirius.Observer
   @_observers:   []
   @add_observer: (new_observer) ->
     []
+  @_clbs: [] # save object, property and callback
 
   MO = window.MutationObserver ||
        window.WebKitMutationObserver ||
@@ -37,12 +38,17 @@ class Sirius.Observer
     current_value = null
 
     if typeof(from) == 'object' && from.object && from.prop
-
+      @constructor._clbs.push([from, clb]) #{object:object, prop:prop, clb}
+      clbs = @constructor._clbs
       handler = (prop, oldvalue, newvalue) ->
+        # need call all callbacks for current pair: object#property
         result =
           text: newvalue
           previous: oldvalue
-        clb(result)
+
+        clbs.filter((arr) -> arr[0].object == from.object and arr[0].prop == prop)
+        .forEach((arr) -> arr[1].call(null, result))
+
         newvalue
 
       my_watch = (object, prop, handler) ->
@@ -138,9 +144,6 @@ class Sirius.Observer
         adapter.bind(document, @from_element, 'DOMNodeInserted', handler)
         adapter.bind(document, @from_element, 'DOMNodeRemoved', handler)
         adapter.bind(document, @from_element, 'DOMAttrModified', handler)
-
-
-
 
 
 
