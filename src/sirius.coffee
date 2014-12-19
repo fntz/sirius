@@ -219,6 +219,7 @@ class Sirius.ControlFlow
 Sirius.RouteSystem =
 
   _selector: "a:not([href^='#'])"
+  _hash_selector: "a[href^='#']"
 
   _hash_route: (url) ->
     url.toString().indexOf("#") == 0
@@ -253,7 +254,6 @@ Sirius.RouteSystem =
       is_hash_routing = false
       if redirect_to_hash and !push_state_support
         logger.info("RouteSystem: Convert plain routing into hash routing")
-        is_hash_routing = true
         # convert to new routing
         urls = [] #save urls into array, for check collision
         route = {}
@@ -288,7 +288,7 @@ Sirius.RouteSystem =
           selector   = z[3] || document #when it a custom event: 'custom:event' for example
           adapter.bind(document, selector, event_name, handler)
           logger.info("RouteSystem: define event route: '#{event_name}' for '#{selector}'")
-          null
+
 
       # for cache change obj[k, v] to array [[k,v]]
       array_of_routes = for url, action of routes when @_hash_route(url)
@@ -309,19 +309,12 @@ Sirius.RouteSystem =
                    new Sirius.ControlFlow(action, wrapper)
         [url, action]
 
+      # optimize this function
       dispatcher = (e) ->
         prev        = current
         route_array = null
         result      = false
-        if e.target.location? # then it after back or forward button click
-          link_transform(previous_link, current_link) #FIXME
-          t = current_link
-          current_link = previous_link
-          previous_link = t
-        else
-          previous_link = current_link
-          current_link = e.target
-          link_transform(current_link, previous_link)
+
         logger.info("RouteSystem: start processing route: '#{current}'")
         if e.type == "hashchange"
           # hashchange
@@ -345,6 +338,28 @@ Sirius.RouteSystem =
 
         logger.info("RouteSystem: Url change to: #{current}")
         adapter.fire(document, "application:urlchange", current, prev)
+
+        # then it after back or forward button click
+        # or after click on link with hash href
+        if e.target.location?
+          if is_hash_routing
+            # need find a with given href and add class for it
+            # FIXME this is quick?
+            links = adapter.all("a[href='#{current}']")
+            t = current_link
+            current_link = links
+            previous_link = t
+
+            link_transform(current_link, previous_link)
+          else
+            t = current_link
+            current_link = previous_link
+            previous_link = t
+            link_transform(current_link, previous_link)
+        else
+          previous_link = current_link
+          current_link = e.target
+          link_transform(current_link, previous_link)
 
         for part in route_array
           f = part[0]
@@ -401,37 +416,57 @@ Sirius.RouteSystem =
             if history.state.href != undefined
               if history.state.href.indexOf("#") != 0
                 dispatcher(e)
-            dispatcher(e)
+            #dispatcher(e)
 
 
-      # TODO work with hash routes
-      current = if is_hash_routing
-        location.hash
+      if array_of_routes.length != 0 && plain_routes.length != 0
+        logger.warn("RouteSystem: Seems you use plain routing and hashbased routing at the same time")
+
+
+      current = if array_of_routes.length != 0 && plain_routes.length == 0
+        is_hash_routing = true
+        if location.hash == "" then "#/" else location.hash
       else
         location.pathname
 
       logger.info("RouteSystem: current url: #{current}")
 
-      # also we need detect current active link if present
-      for link in links when adapter.get_attr(link, 'class').split(" ").indexOf(active_class) != -1
-        current_link = link
 
-      # need detect current url and set active link for current url
-      # if previous already set and it not for current url, then we reset class for url
-      for link in links when link.getAttribute('href') == current
-        if current_link?
-          if current_link != link
-            logger.warn("RouteSystem: link with active class: #{active_class} not equal for current url: #{current}")
-            adapter.set_attr(link, 'class', active_class)
-        else
-          adapter.set_attr(link, 'class', active_class)
-          current_link = link
+      if is_hash_routing
+        logger.info("RouteSystem find links for hash based routing")
 
+        hash_links = adapter.all(@_hash_selector)
+        logger.info("RouteSystem find #{hash_links.length} links")
+
+        current_link = @_make_active_current_link(adapter, logger, current, hash_links, active_class)
+
+      else
+        logger.info("RouteSystem find links for plain routing")
+        logger.info("RouteSystem find #{links.length} links")
+
+        current_link = @_make_active_current_link(adapter, logger, current, links, active_class)
 
       fn()
 
+    # @private
+    # @return current link
+  _make_active_current_link: (adapter, logger, current_url, links, active_class) ->
+    current_link = null
+    for link in links when adapter.get_attr(link, 'class').split(" ").indexOf(active_class) != -1
+      current_link = link
 
+    # need detect current url and set active link for current url
+    # if previous already set and it not for current url, then we reset class for url
+    for link in links when link.getAttribute('href') == current_url
+      if current_link?
+        if current_link != link
+          logger.warn("RouteSystem: link with active class: #{active_class} not equal for current url: #{current}")
+          adapter.set_attr(link, 'class', active_class)
+      else
+        adapter.set_attr(link, 'class', active_class)
+        current_link = link
 
+    current_link
 # @mixin
 # A main object, it's a start point all user applications
 # @example
@@ -478,21 +513,37 @@ Sirius.Application =
   ###
   class_name_for_active_link: 'active'
 
-  ###
-    It's should be function.
-    When user click on link, then need add `class_name_for_active_link` for this link
-
-    @example
-      class_name_for_active_link: (element, previous) ->
-        $(element).addClass('custom-class')
-        $(previous).removeClass('custom-class')
-
-  ###
-  transform_link_to_active: (element, previous) ->
+  #
+  #  It's should be function.
+  #  When user click on link, then need add `class_name_for_active_link` for this link
+  #
+  #  @example
+  #    class_name_for_active_link: (element, previous) ->
+  #      $(element).addClass('custom-class')
+  #      $(previous).removeClass('custom-class')
+  #
+  # @param [HtmlElement|Array<HtmlElement] - current array of all links or one link
+  # @param [HtmlElement|Array<HtmlElement] - previous array of all links or one link
+  # @return [Void]
+  transform_link_to_active: (elements, previous_elements) ->
     Sirius.Application.get_adapter().and_then (adapter) ->
-      adapter.set_attr(element, 'class', Sirius.Application.class_name_for_active_link)
-      if previous?
-        previous.className = ''
+      elements = if typeof(elements) == 'object' && elements.length
+        elements
+      else
+        [elements]
+
+      for element in elements
+        adapter.set_attr(element, 'class', Sirius.Application.class_name_for_active_link)
+
+      if previous_elements?
+        previous_elements = if typeof(previous_elements) == 'object' && previous_elements.length
+          previous_elements
+        else
+          [previous_elements]
+
+        for prev in previous_elements
+          if prev?
+            prev.className = ''
 
 
 

@@ -38,6 +38,7 @@ class Sirius.Observer
     current_value = null
 
     if typeof(from) == 'object' && from.object && from.prop
+      logger.info("Observer: for #{from.object}")
       @constructor._clbs.push([from, clb]) #{object:object, prop:prop, clb}
       clbs = @constructor._clbs
       handler = (prop, oldvalue, newvalue) ->
@@ -67,7 +68,6 @@ class Sirius.Observer
         logger.info("Observer: Handler Function: given #{e.type} event")
         result = {text: null, attribute: null}
         return if ['focusout', 'focusin'].indexOf(e.type) != -1
-
         txt = adapter.text(from)
 
         return if ["input", "selectionchange"].indexOf(e.type) != -1 && txt == current_value
@@ -98,6 +98,7 @@ class Sirius.Observer
           result['previous'] = old_attr
 
         clb(result)
+
       #FIXME need only when 'from text' expected
       if ONCHANGE_TAGS.indexOf(tag) != -1
         if type == "checkbox" || type == "radio"
@@ -112,6 +113,9 @@ class Sirius.Observer
             logger.warn("Observer: Hook for work with IE9 browser")
             adapter.bind(document, document, 'selectionchange', handler)
 
+        # return, because for input element seems this events enough
+        # fixme is it correct?
+        return
 
       if MO
         logger.info("Observer: MutationObserver support")
@@ -142,7 +146,6 @@ class Sirius.Observer
         logger.warn("Observer: MutationObserver not support")
         logger.info("Observer: Use Deprecated events for observe")
         adapter.bind(document, @from_element, 'DOMNodeInserted', handler)
-        adapter.bind(document, @from_element, 'DOMNodeRemoved', handler)
         adapter.bind(document, @from_element, 'DOMAttrModified', handler)
 
 

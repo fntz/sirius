@@ -600,6 +600,9 @@ class Sirius.BaseModel
   # set new title in model -> transform with wrap method -> apply strategy -> result
   #
   # TODO pass parameters with object_setting
+  #
+  # @note when you use double side binding, and set the new value which equal previous, value has not changed
+  #
   bind: (view, object_setting = {}) ->
     current_model = @
     if !(view.name && view.name() == "View")
@@ -629,7 +632,7 @@ class Sirius.BaseModel
       }, false).extract(adapter, object_setting)
 
       attributes = @attributes
-      self = @
+
       for element in elements
         do(element) ->
           # it attribute or property
@@ -641,6 +644,16 @@ class Sirius.BaseModel
 
           if attributes.indexOf(element.from) != -1
             clb = (attr, value) ->
+              result = transform(value)
+
+              # recursion detect
+              # fixme maybe only for double side binding
+              if element.to is 'text'
+                return if adapter.text(element.element) == result
+              else
+                # for checked fixme
+                return if adapter.get_attr(element.element, element.to) == result
+
               if attr is element.from
                 if element.to is 'text'
                   tag = adapter.get_attr(element.element, 'tagName')
@@ -654,15 +667,15 @@ class Sirius.BaseModel
                     if current_value == value
                       adapter.set_prop(element.element, 'selected', true)
                   else
-                    element.view.render(transform(value))[strategy](element.to)
+                    element.view.render(result)[strategy](element.to)
                 else
-                  element.view.render(transform(value))[strategy](element.to)
+                  element.view.render(result)[strategy](element.to)
 
             callbacks.push(clb)
           else
             from = element.from
             if from.indexOf("errors") != 0
-              throw "For binding errors, need pass property as 'errors.attr.validator'"
+              throw new Error("For binding errors, need pass property as 'errors.attr.validator'")
 
             element.view.bind(current_model.errors, from.split(".")[1..-1].join("."), {
               to: element.to,
