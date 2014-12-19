@@ -5,8 +5,8 @@
 [post: Writing Todo App with Sirius.js](http://fntzr.github.io/coffeescript/2014/12/18/writing-todo-app-with-sirius.html)
 
 ### current version: 0.6.3
-### browser support: IE10+, FF, Opera, Chrome
-#### Note: ie9 support coming soon
+### browser support: IE9+, FF, Opera, Chrome
+
 
 ### Features
 
