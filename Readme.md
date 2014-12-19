@@ -1,9 +1,10 @@
 # Are you sirius?
 
 
-[Sirius.js](http://fntzr.github.com/sirius) a coffeescript MVC framework. It's give a simple integration with current javascript libraries (jquery, prototype, etc).
+[Sirius.js](http://fntzr.github.com/sirius) a coffeescript MVC framework.
+[post: Writing Todo App with Sirius.js](http://fntzr.github.io/coffeescript/2014/12/18/writing-todo-app-with-sirius.html)
 
-### current version: 0.6.2.1
+### current version: 0.6.3
 ### browser support: IE10+, FF, Opera, Chrome
 #### Note: ie9 support coming soon
 
@@ -15,6 +16,9 @@
 + Build-in Collections, Validators
 + Adapters for jQuery and Prototype.js
 + Support html5 routing, and converters to html5 routing
++ Log all actions in application.
++ Share actions between controllers.
++ And many others
 
 # Install
 
@@ -51,6 +55,39 @@ MyController =
     # ...
 
 ```
+
+#### 1.1 Advanced with controllers
+
+Sometimes you need share some actions between all controllers - logger, ajax requests, or some like this, that simple:
+
+```coffee
+
+CommonMethods =
+
+  ajax: (args...) ->
+  logger: (args...) ->
+  another_action: (args...) ->
+
+# then
+  Sirius.Application.run
+    route: # you routes
+    adapter: # some adapter
+    controller_wrapper : CommonActions
+
+# and now in you controller:
+
+Controller =
+  action: (url) =
+    # possible use
+    # any method from CommonActions, like
+    logger("start ajax request")
+    response = ajax(url)
+    logger("stop ajax request, response #{response} given")
+
+```
+
+##### note: by default Sirius `controller_wrapper` contain only `redirect` action.
+
 
 ### 2. Define routes
 

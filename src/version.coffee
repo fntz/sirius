@@ -1,5 +1,5 @@
 ###!
-#  Sirius.js v0.6.2.1
+#  Sirius.js v0.6.3
 #  (c) 2014 fntzr
 #  license: MIT
 ###
@@ -10,4 +10,4 @@
 # @mixin
 # A main module, which included methods and classes for work with application.
 Sirius =
-  VERSION: "0.6.2.1"
+  VERSION: "0.6.3"
