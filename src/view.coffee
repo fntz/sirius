@@ -30,6 +30,8 @@ class Sirius.View
       clb.apply(null, args...)
     @logger.info("View: Create a new View for #{@element}")
 
+
+
     for strategy in @constructor._Strategies
       do(strategy) =>
         name = strategy[0]
@@ -188,6 +190,13 @@ class Sirius.View
   #
   # You might bind text to text or text to attribute, or attribute to text, or attribute to attribute.
   #
+  #
+  # Another way for pass parameters to bind method:
+  #
+  # @example
+  #    view1.bind(view2, {strategy: 'strategy-name', from: 'text', to: 'data-attr'})
+  #
+  #
   # === 2. View to Model
   #
   # Change view attribute or text content will be change in model related attribute.
@@ -231,6 +240,26 @@ class Sirius.View
   #     # When we enter input, then it change model attributes
   #     my_model.title() # => user input!!!
   #     my_model.description() # => user input
+  #
+  #
+  # With options:
+  #
+  # @example
+  #    # in html code not need to specify data-* attributes
+  #    form_view.bind(model, {
+  #      'input[type="text"]': {from: 'text', to: 'title', transform: (x) -> "#{x}!!!", strategy: "swap",
+  #      'textarea': {to: 'description'}
+  #    })
+  #
+  #  Only need create an object, where keys is a nodes for current view (`form_view` in current case),
+  #  when you need bind one node with more then one model attribute use array:
+  #
+  # @example
+  #   form_view.bind(model, {
+  #     'input[type="text"]': [{to: 'title'}, {to: 'another-attribute', transform: (title_text) -> "#{title_text}!!!" ]
+  #   })
+  #
+  # As previously: default strategy: 'swap', default transform: `(x) -> x`
   #
   # === 3. View to String
   #
@@ -290,11 +319,13 @@ class Sirius.View
   _bind_model: (model, setting) ->
     @logger.info("View: Bind #{@element} and model: #{Sirius.Utils.fn_name(model.constructor)}")
     Sirius.Application.get_adapter().and_then (adapter) =>
+
       setting['transform'] = if setting['transform']?
         @logger.info("View: 'transform' method not found. Use default transform method.")
         setting['transform']
       else
         (x) -> x
+
       elements = new Sirius.BindHelper(@element, {
         to: 'data-bind-to',
         from: 'data-bind-from'
@@ -344,8 +375,8 @@ class Sirius.View
     @logger.info("View: Bind '#{@element}' with '#{view.element}'")
     to   = setting['to']   || 'text'
     from = setting['from'] || 'text'
-    @logger.info("View: for '#{view.element}' use to: '#{to}' and from: '#{from}'")
     strategy = setting['strategy'] || 'swap'
+    @logger.info("View: for '#{view.element}' use to: '#{to}' and from: '#{from}', strategy: #{strategy}")
     current = @element
     # {text: null, attribute: null}
     clb = (result) ->
