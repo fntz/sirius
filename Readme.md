@@ -4,7 +4,7 @@
 [Sirius.js](http://fntzr.github.com/sirius) a coffeescript MVC framework.
 [post: Writing Todo App with Sirius.js](http://fntzr.github.io/coffeescript/2014/12/18/writing-todo-app-with-sirius.html)
 
-### current version: 0.6.3
+### current version: 0.6.5
 ### browser support: IE9+, FF, Opera, Chrome
 
 
@@ -107,7 +107,24 @@ Controller =
   class Person extends Sirius.BaseModel
      @attrs: ["id", "name", "age"]
      @guid_for: "id"
-     @form_name: "my-person-form"
+     @validate:
+       id: c only_integers: true
+
+```
+
+For work with models from javascript code, define models like:
+
+```js
+
+var MyModel = Sirius.BaseModel.define_model({
+  attrs: ["id", "name", "age"],
+  validate: {id: { numericality: { only_integers: true } } }
+  instance_method: function(){ }
+})
+
+var my_model = new MyModel()
+my_model.id() // => some guid
+my_model.instance_method() // => call
 
 ```
 

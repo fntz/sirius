@@ -27,9 +27,6 @@ class Sirius.BindHelper
   # @param [Object] - `to` and `from` if present
   #
   extract: (adapter, user_setting = {}) ->
-    # need extract main element, and children
-    # fixme optimize this need extract only when element contain data-bind-*
-    elements = adapter.all("#{@element}, #{@element} *")
     # when it contain only one element (no children)
     # it's a single mode
 
@@ -46,6 +43,23 @@ class Sirius.BindHelper
     @logger.info("BindHelper: transform: #{transform}")
     @logger.info("BindHelper: default from: #{default_from}")
     @logger.info("BindHelper: default to: #{default_to}")
+
+    element = @element
+    keys = Object.keys(user_setting)
+    tmp_a = keys.filter((k) -> !Sirius.Utils.is_object(user_setting[k]))
+    elements = if tmp_a.length == 0
+      # extract sub elements
+      @logger.info("BindHelper: use user setting for work with elements")
+      Object.keys(user_setting).map((k) -> adapter.get("#{element} #{k}"))
+    else
+      # fixme optimize this need extract only when element contain data-bind-*
+      # need extract main element, and children
+      @logger.info("BindHelper: seems `user_setting`: #{tmp_a} contain non object, use extract with queryAll")
+      if is_bind_view_to_model
+        adapter.all("#{element}, #{element}[data-bind-to]") # *
+      else
+        adapter.all("#{element}, #{element}[data-bind-from]")
+
 
     #
     # Extract all elements which contain data-bind-*

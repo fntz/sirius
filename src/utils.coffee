@@ -3,23 +3,30 @@
 #
 class Sirius.Utils
   #
-  # @param [Any] a - check, that `a` is a Function
+  # @param [Any] a - check, that `a` is Function
   # @return [Boolean] - true, when is Function, otherwise return false
   #
   @is_function: (a) ->
     Object.prototype.toString.call(a) is '[object Function]'
   #
-  # @param [Any] a - check, that `a` is a String
+  # @param [Any] a - check, that `a` is String
   # @return [Boolean] - true, when is String, otherwise return false
   #
   @is_string: (a) ->
     Object.prototype.toString.call(a) is '[object String]'
   #
-  # @param [Any] a - check, that `a` is a Array
+  # @param [Any] a - check, that `a` is Array
   # @return [Boolean] - true, when is Array, otherwise return false
   #
   @is_array: (a) ->
     Object.prototype.toString.call(a) is '[object Array]'
+
+  #
+  # @param [Any] a - check if `a` is Object
+  # @return [Boolean] - true, when is object, otherwise return false
+  #
+  @is_object: (a) ->
+    a != null && typeof(a) == 'object'
   #
   # Upper case first letter in string
   #

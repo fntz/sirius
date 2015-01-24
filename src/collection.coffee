@@ -204,6 +204,27 @@ class Sirius.Collection
     @length = 0
     @_array = []
 
+  # @alias collect
+  map: (f) ->
+    @collect(f)
+
+  # Apply given method for each element in collection and return result array
+  collect: (f) ->
+    @_array.map(f)
+
+  # Get first element by conditional
+  #
+  # @example
+  #   col = new Sirius.Collection(Model)
+  #   result = col.takeFirst((model) -> model.name() == 'some-name')
+  #
+  takeFirst: (f) ->
+    result = null
+    for e in @_array
+      if f(e)
+        result = e
+        break
+    result
 
   # @return [Numeric] size of collection
   size: () ->

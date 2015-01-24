@@ -40,7 +40,7 @@ describe "View2View", ->
         100
       )
 
-    it "change attribute in element should change text in related elements", ()->
+    pending "change attribute in element should change text in related elements", ()->
       expect(adapter.text(related_div)).toEqual(txt)
       expect(adapter.text(related_input)).toEqual(txt)
       expect(adapter.text(related_select)).toEqual(txt)

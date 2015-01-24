@@ -49,5 +49,21 @@ describe "Collections", ->
     expect(mc.size() == 2)
     expect(mc.first().compare(mc.last())).toBeTruthy()
 
+    mc.clear()
+
+    expect(mc.size() == 0).toBeTruthy()
+
+    for z in [1..10]
+      model = new MyModel({id: z})
+      mc.add(model)
+
+    expect(mc.size() == 10).toBeTruthy()
+
+    mc0 = mc.collect((m) -> m.id() + 1)
+    expect(mc0[0] == 2).toBeTruthy()
+
+    e = mc.takeFirst((f) -> f.id() == 3)
+    expect(e.id() == 3).toBeTruthy()
+
 
   pending "sync"

@@ -16,15 +16,25 @@
 #
 class Sirius.View
 
-  name: () -> 'View' # define name, because not work in IE: constructor.name
+  name: () -> 'View' # define name, because `constructor.name` not work in IE
 
   # contain all strategies for view
   @_Strategies = []
 
+  @_Cache = [] # cache for all views
+
   # @param [String] - selector for element
   # @param [Function] - transform function for new content
   #
-  constructor: (@element, clb = (txt) -> txt) ->
+  constructor: (@element, @clb = (txt) -> txt) ->
+    element = @element
+    clb = @clb
+
+    view = @constructor._Cache.filter((v) -> v.element == element && "#{v.clb}" == "#{clb}")
+
+    if view.length != 0
+      view[0]
+
     @logger = Sirius.Application.get_logger()
     @_result_fn = (args...) =>
       clb.apply(null, args...)
@@ -52,6 +62,8 @@ class Sirius.View
               adapter.get_attr(element, attribute)
             res = transform(oldvalue, result)
             render(adapter, element, res, attribute)
+
+    @constructor._Cache.push(@)
 
   # compile function
   # @param [Array] with arguments, which pass into transform function
@@ -290,7 +302,7 @@ class Sirius.View
   #
   # @note strategy it only for view to view
   # @note transform it only for view to model or model to view binding
-  # @param [Any] - klass, another view\model\function
+  # @param [Any] - type, another view\model\function
   # @param [Object|String] - hash with setting: [to, from] or property
   # @return [Sirius.View]
   # TODO pass parameters with setting
@@ -317,6 +329,14 @@ class Sirius.View
   # @private
   # @nodoc
   _bind_model: (model, setting) ->
+    # setting must be like
+    # setting =
+    #   '#element':
+    #     to: ''
+    #     from: ''
+    #     transform: '' # or default transform
+    #     strategy: '' # or default strategy
+    #
     @logger.info("View: Bind #{@element} and model: #{Sirius.Utils.fn_name(model.constructor)}")
     Sirius.Application.get_adapter().and_then (adapter) =>
 
@@ -390,10 +410,10 @@ class Sirius.View
   # bind2
   # double-sided binding
   # @param [Sirius.View|Sirius.Model] klass - Sirius.Model or Sirius.View
-  bind2: (klass) ->
-    @bind(klass)
+  bind2: (klass, setting = {}) ->
+    @bind(klass, setting['model'] || {})
     if klass['bind'] && Sirius.Utils.is_function(klass['bind'])
-      klass.bind(@)
+      klass.bind(@, setting['view'] || {})
 
   # Register new strategy for View
   # @param [String] - strategy name
