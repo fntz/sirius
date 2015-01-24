@@ -46,14 +46,6 @@ describe "BaseModel", ->
       expect(model.title()).toEqual("default title")
       expect(model.description()).toEqual("text")
 
-    pending "from_html", ->
-      Sirius.Application.adapter = new JQueryAdapter()
-
-      model = MyModel.from_html("#my-model-form")
-      console.log(model)
-      expect(model.id()).toEqual(1)
-      expect(model.title()).toEqual("new title")
-      expect(model.description()).toEqual("text...")
 
   describe "Relations", ->
 
