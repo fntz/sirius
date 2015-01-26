@@ -11,3 +11,5 @@
 # A main module, which included methods and classes for work with application.
 Sirius =
   VERSION: "0.6.4"
+
+`var c = function(m){console.log(m);};`

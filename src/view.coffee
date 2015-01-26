@@ -312,11 +312,13 @@ class Sirius.View
 
     @logger.info("View: Call bind for #{klass}")
     if klass
-      if klass.name && klass.name() == "View"
-        @_bind_view(klass, setting)
 
-      else if (typeof(klass) == 'object') && Sirius.Utils.is_string(setting)
+      if (typeof(klass) == 'object') && Sirius.Utils.is_string(setting)
         @_bind_prop(klass, setting, extra)
+
+        # bug, when bind object property {name: function() {}}
+      else if klass.name && klass.name() == "View"
+        @_bind_view(klass, setting)
 
       else if Sirius.Utils.is_string(klass)
         @bind(new Sirius.View(klass, setting))
@@ -338,13 +340,29 @@ class Sirius.View
     #     strategy: '' # or default strategy
     #
     @logger.info("View: Bind #{@element} and model: #{Sirius.Utils.fn_name(model.constructor)}")
+
+    logger = @logger
+
     Sirius.Application.get_adapter().and_then (adapter) =>
 
-      setting['transform'] = if setting['transform']?
-        @logger.info("View: 'transform' method not found. Use default transform method.")
-        setting['transform']
+      # when it is object with functions -> transform
+      # otherwise this setting for elements
+      t = Object.keys(setting).map((key) -> Sirius.Utils.is_function(setting[key]))
+
+      if t.length == 0
+        logger.info("View: Bind: setting empty")
+        setting['transform'] = if setting['transform']?
+          setting['transform']
+        else
+          logger.info("View: 'transform' method not found. Use default transform method.")
+          (x) -> x
       else
-        (x) -> x
+        # if not transform for given key define default transform method
+        Object.keys(setting).map((key) ->
+          if !setting[key]['transform']?
+            logger.info("View: define default transform method for '#{key}'")
+            setting[key]['transform'] = (x) -> x
+        )
 
       elements = new Sirius.BindHelper(@element, {
         to: 'data-bind-to',
@@ -383,6 +401,7 @@ class Sirius.View
     transform = setting['transform'] || (x) -> x
     # from this property
     view = @
+
     clb = (result) ->
       txt = transform(result['text'])
       view.render(txt)[strategy](to)

@@ -1,4 +1,9 @@
 
+# @class
+# @private
+class Sirius.StateContain
+  constructor: (@object, @clb) ->
+
 # hacks for observer when property or text changed into DOM
 
 # #TODO not need create new observer, just subscribe for the currents
@@ -8,7 +13,7 @@ class Sirius.Observer
   @_observers:   []
   @add_observer: (new_observer) ->
     []
-  @_clbs: [] # save object, property and callback
+  @_clbs: {}#[] # save callbacks for properties
 
   MO = window.MutationObserver ||
        window.WebKitMutationObserver ||
@@ -22,7 +27,6 @@ class Sirius.Observer
   # http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-MutationEvent
   # https://dvcs.w3.org/hg/domcore/raw-file/tip/Overview.html#mutation-observers
   # BUG when reset input, bind element should reset the same
-  # TODO add logger for events
   constructor: (@from_element, @clb = ->) ->
     adapter = Sirius.Application.get_adapter()
     adapter.and_then(@_create)
@@ -39,17 +43,24 @@ class Sirius.Observer
 
     if typeof(from) == 'object' && from.object && from.prop
       logger.info("Observer: for #{from.object}")
-      @constructor._clbs.push([from, clb]) #{object:object, prop:prop, clb}
+
+      current_prop = from.prop.split(".").join("-")
+      if @constructor._clbs[current_prop]?
+        @constructor._clbs[current_prop].push(clb)
+        # because already have handler
+        return
+      else
+        @constructor._clbs[current_prop] = [clb]
+
       clbs = @constructor._clbs
+
       handler = (prop, oldvalue, newvalue) ->
         # need call all callbacks for current pair: object#property
         result =
           text: newvalue
           previous: oldvalue
 
-        clbs.filter((arr) -> arr[0].object == from.object and arr[0].prop == prop)
-        .forEach((arr) -> arr[1].call(null, result))
-
+        clbs[current_prop].forEach((f) -> f.call(null, result))
         newvalue
 
       my_watch = (object, prop, handler) ->
@@ -59,8 +70,14 @@ class Sirius.Observer
           o = object[n]
 
         o.watch(namespaces[namespaces.length - 1], handler)
+        return
+
 
       my_watch(from.object, from.prop, handler)
+
+      return
+
+
     else
       logger.info("Observer: for #{from}")
       # FIXME maybe save all needed attributes in hash ????

@@ -50,16 +50,20 @@ class Sirius.BindHelper
     elements = if tmp_a.length == 0
       # extract sub elements
       @logger.info("BindHelper: use user setting for work with elements")
-      Object.keys(user_setting).map((k) -> adapter.get("#{element} #{k}"))
+      # return [element, key]
+      Object.keys(user_setting).map((k) -> [adapter.get("#{element} #{k}"), k])
     else
       # fixme optimize this need extract only when element contain data-bind-*
       # need extract main element, and children
       @logger.info("BindHelper: seems `user_setting`: #{tmp_a} contain non object, use extract with queryAll")
+      # return [elements...]
       if is_bind_view_to_model
-        adapter.all("#{element}, #{element}[data-bind-to]") # *
+        adapter.all("#{element}[data-bind-to], #{element} *[data-bind-to]") # *
       else
-        adapter.all("#{element}, #{element}[data-bind-from]")
+        adapter.all("#{element}[data-bind-from], #{element} *[data-bind-from]") # *
 
+
+    logger = @logger
 
     #
     # Extract all elements which contain data-bind-*
@@ -68,17 +72,31 @@ class Sirius.BindHelper
     # and selector
     for element in elements
       do(element) ->
-        tmp_to   = adapter.get_attr(element, to) || default_to
-        tmp_from = adapter.get_attr(element, from) || default_from
-        tmp_strategy = adapter.get_attr(element, strategy) || 'swap'
-        tmp_transform = adapter.get_attr(element, transform)
+        if Sirius.Utils.is_array(element)
+          key = user_setting[element[1]]
+          if !key?
+            msg = "BindHelper: Not found keys for binding for '#{key}' element"
+            logger.error(msg)
+            throw new Error(msg)
+
+          tmp_to = key['to'] || default_to
+          tmp_from = key['from'] || default_from
+          tmp_strategy = key['strategy'] || 'swap'
+          tmp_transform = key['transform']
+          elem = element[0]
+        else
+          elem = element
+          tmp_to   = adapter.get_attr(element, to) || default_to
+          tmp_from = adapter.get_attr(element, from) || default_from
+          tmp_strategy = adapter.get_attr(element, strategy) || 'swap'
+          tmp_transform = adapter.get_attr(element, transform)
         # for view to model, need tmp_to but for model to view need tmp_from
         r = {
           to: tmp_to
           from: tmp_from
           strategy: tmp_strategy
           transform: tmp_transform
-          element: element
+          element: elem
         }
         if is_bind_view_to_model
           if tmp_to
@@ -97,6 +115,8 @@ class Sirius.BindHelper
   # @param [Object]
   # @return [Function] - return transform function from setting
   @transform: (name, setting = {}) ->
+    if Sirius.Utils.is_function(name)
+      return name
     error = (name) -> "Transform method '#{name}' not found in setting"
     logger = Sirius.Application.get_logger()
     if Sirius.Utils.is_function(setting.transform)

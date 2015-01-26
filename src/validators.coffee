@@ -51,7 +51,7 @@ class Sirius.LengthValidator extends Sirius.Validator
         if ((actual_length >= min) && (actual_length <= max))
           true
         else
-          @msg = "Required length in range [#{min}..#{max}], given: #{actual_length}"
+          @msg = "Required length in range [0..#{max}], given: #{actual_length}"
           false
     else
       @msg = "Given null for LengthValidator"

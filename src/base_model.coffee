@@ -605,6 +605,7 @@ class Sirius.BaseModel
   #
   bind: (view, object_setting = {}) ->
     current_model = @
+
     if !(view.name && view.name() == "View")
       msg = "`bind` only work with Sirius.View"
       @logger.error(msg)
@@ -612,10 +613,23 @@ class Sirius.BaseModel
 
     @logger.info("BaseModel: bind with #{view.element}")
 
-    object_setting['transform'] = if object_setting['transform']?
-      object_setting['transform']
+    t = Object.keys(object_setting).map((key) -> Sirius.Utils.is_function(object_setting[key]))
+
+    if t.length == 0
+      @logger.info("BaseModel: Bind: setting empty")
+      object_setting['transform'] = if object_setting['transform']?
+        object_setting['transform']
+      else
+        @logger.info("BaseModel: 'transform' method not found. Use default transform method.")
+        (x) -> x
     else
-      (t) -> t
+      # if not transform for given key define default transform method
+      Object.keys(object_setting).map((key) =>
+        if !object_setting[key]['transform']?
+          @logger.info("BaseModel: bind define default transform method for '#{key}'")
+          object_setting[key]['transform'] = (x) -> x
+      )
+
 
     callbacks = @callbacks
 
@@ -642,6 +656,7 @@ class Sirius.BaseModel
           if !Sirius.View.is_valid_strategy(strategy)
             throw new Error("Strategy #{strategy} not valid")
 
+          # for attributes
           if attributes.indexOf(element.from) != -1
             clb = (attr, value) ->
               result = transform(value)
@@ -673,9 +688,10 @@ class Sirius.BaseModel
 
             callbacks.push(clb)
           else
+            # for bind errors
             from = element.from
             if from.indexOf("errors") != 0
-              throw new Error("For binding errors, need pass property as 'errors.attr.validator'")
+              throw new Error("BaseModel for bind errors need pass 'errors.attr.validator' like: 'errors.name.length'")
 
             element.view.bind(current_model.errors, from.split(".")[1..-1].join("."), {
               to: element.to,
