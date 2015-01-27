@@ -198,13 +198,13 @@ class Sirius.BaseModel
   # @note Method generate add_x, where `x` it's a attribute from `@has_many` or `@has_one`
   constructor: (obj = {}) ->
     @logger = Sirius.Application.get_logger()
-    @_is_valid = false
     @callbacks = []
     # object, which contain all errors, which registers after validation
     @errors = {}
     @attributes = @normalize_attrs()
     name = Sirius.Utils.fn_name(@constructor)
     @errors = {}
+    @_is_valid_attr = {} # save pair attribute and validation state
 
     for attr in @attrs()
       # @attrs: [{key: value}]
@@ -249,6 +249,7 @@ class Sirius.BaseModel
     @_model_validators = @validators()
     for key, value of @_model_validators
       @errors[key] = {}
+      @_is_valid_attr[key] = false
       for validator_name, validator of value
         if @_registered_validators_keys.indexOf(validator_name) == -1 && validator_name != 'validate_with'
           throw new Error("Unregistered validator: #{validator_name}")
@@ -355,7 +356,7 @@ class Sirius.BaseModel
   # Check, if model instance valid
   # @return [Boolean] true, when is valid, otherwise false
   is_valid: () ->
-    @_is_valid
+    Object.keys(@_is_valid_attr).filter((key) => !@_is_valid_attr[key]).length == 0
 
   # Call when you want validate model
   # @nodoc
@@ -385,14 +386,15 @@ class Sirius.BaseModel
 
         if !result # when `validate` return false
           @errors[key][validator_key] = klass.error_message()
+          @_is_valid_attr[key] = false
         else #when true, then need set null for error
           @errors[key][validator_key] = ""
+          @_is_valid_attr[key] = true
 
     )
 
-    for key, value of @errors
-      for k, v of value when v != ""
-        @_is_valid = true
+
+    return
 
   # @param [String] - attr name, if attr not given then return `errors` object,
   # otherwise return array with errors for give field
@@ -419,8 +421,8 @@ class Sirius.BaseModel
   save: (exception = false) ->
     @validate()
     name = @constructor.name
-    throw new Error("#{name} model not valid!") if exception && !@_is_valid
-    return false if @_is_valid
+    throw new Error("#{name} model not valid!") if exception && !@is_valid()
+    return false if @is_valid()
     true
 
   #
