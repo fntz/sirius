@@ -19,7 +19,7 @@
     "doc": "cake doc"
   },
   "main"          : "sirius.min.js",
-  "version"       : "0.6.6",
+  "version"       : "0.6.7",
   "license"       : "MIT",
   "repository": {
     "type": "git",

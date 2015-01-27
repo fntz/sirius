@@ -1,10 +1,7 @@
-# Are you sirius?
-
 
 [Sirius.js](http://fntzr.github.com/sirius) a coffeescript MVC framework.
 [post: Writing Todo App with Sirius.js](http://fntzr.github.io/coffeescript/2014/12/18/writing-todo-app-with-sirius.html)
 
-### current version: 0.6.5
 ### browser support: IE9+, FF, Opera, Chrome
 
 
@@ -357,7 +354,3 @@ Use `rake` for run task. Before work run `rake install` for installing dependenc
 
 
 ### LICENSE : MIT
-
-<p align="center">
-  <img src="http://makeameme.org/media/created/YEAH-I-AM-n5trg3.jpg?raw=true" alt="I am Sirius"/>
-</p>
