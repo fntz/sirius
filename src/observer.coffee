@@ -1,9 +1,4 @@
 
-# @class
-# @private
-class Sirius.StateContain
-  constructor: (@object, @clb) ->
-
 # hacks for observer when property or text changed into DOM
 
 # #TODO not need create new observer, just subscribe for the currents
@@ -46,11 +41,10 @@ class Sirius.Observer
 
       current_prop = from.prop.split(".").join("-")
       if @constructor._clbs[current_prop]?
-        @constructor._clbs[current_prop].push(clb)
+        @constructor._clbs[current_prop].push([from.object, clb])
         # because already have handler
-        return
       else
-        @constructor._clbs[current_prop] = [clb]
+        @constructor._clbs[current_prop] = [[from.object, clb]]
 
       clbs = @constructor._clbs
 
@@ -60,7 +54,7 @@ class Sirius.Observer
           text: newvalue
           previous: oldvalue
 
-        clbs[current_prop].forEach((f) -> f.call(null, result))
+        clbs[current_prop].filter((a) -> a[0] == from.object).forEach((a) -> a[1].call(null, result))
         newvalue
 
       my_watch = (object, prop, handler) ->
