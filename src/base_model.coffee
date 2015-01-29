@@ -353,6 +353,31 @@ class Sirius.BaseModel
 
     @["_#{attr}"]
 
+
+  # reset all attributes and validators in initial state
+  # @param [String...] - attributes for reset, by default reset all attributes
+  # for string into ""
+  # for num into 0
+  # for array into []
+  # fixme default attributes
+  # @return [Void]
+  reset: (args...) ->
+    attrs = @attributes
+    for attr in args
+      throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model") if attrs.indexOf(attr) == -1
+      key = "_#{attr}"
+      if typeof(@[key]) is 'number'
+        @[key] = 0
+      if Sirius.Utils.is_string(@[key])
+        @[key] = ""
+      if Sirius.Utils.is_array(@[key])
+        @[key] = []
+      if @errors[key]?
+        @errors[key] = {}
+
+    return
+
+
   # Check, if model instance valid
   # @return [Boolean] true, when is valid, otherwise false
   is_valid: () ->
@@ -427,8 +452,7 @@ class Sirius.BaseModel
 
   #
   # Convert model instance in json
-  # @param root [Boolean] when true generated json as { model_name : { attrs } }
-  # otherwise as { attrs }
+  # @param [Array] - excluded attributes
   # @return [JSON]
   #
   # @example
@@ -452,10 +476,10 @@ class Sirius.BaseModel
   #   //   ]
   #   // }
   #
-  to_json: (root = false) ->
+  to_json: (args...) ->
     z = {}
 
-    for attr in @attributes
+    for attr in @attributes when args.indexOf(attr) == -1
       value = @get("#{attr}")
       z["#{attr}"] = if @has_many().indexOf(attr) > -1
         for v in value then JSON.parse(v.to_json())
@@ -464,13 +488,7 @@ class Sirius.BaseModel
       else
         value
 
-    if root
-      o = {}
-      name = @normal_name()
-      o[name] = z
-      JSON.stringify(o)
-    else
-      JSON.stringify(z)
+    JSON.stringify(z)
 
   # Create a new model instance from json structure.
   # @param json [JSON] - json object
@@ -634,6 +652,8 @@ class Sirius.BaseModel
 
 
     callbacks = @callbacks
+    errors = @errors
+    logger = @logger
 
     Sirius.Application.get_adapter().and_then (adapter) =>
       current = view.element
@@ -656,6 +676,7 @@ class Sirius.BaseModel
           transform = Sirius.BindHelper.transform(element.transform, object_setting)
           strategy = element.strategy
           if !Sirius.View.is_valid_strategy(strategy)
+            logger.error("BaseModel: Not valid strategy: '#{strategy}'")
             throw new Error("Strategy #{strategy} not valid")
 
           # for attributes
@@ -695,11 +716,30 @@ class Sirius.BaseModel
             if from.indexOf("errors") != 0
               throw new Error("BaseModel for bind errors need pass 'errors.attr.validator' like: 'errors.name.length'")
 
-            element.view.bind(current_model.errors, from.split(".")[1..-1].join("."), {
-              to: element.to,
-              strategy: strategy,
-              transform: transform
-            })
+            prop = from.split(".")
+
+            logger.info("BaseModel bind '#{element.from}' for model")
+
+            if prop.length == 3
+              element.view.bind(current_model.errors, prop[1..-1].join("."), {
+                to: element.to,
+                strategy: strategy,
+                transform: transform
+              })
+            else if prop.length == 2
+              key = prop[1]
+              Object.keys(errors[key]).forEach((validator_name) ->
+                 element.view.bind(current_model.errors, "#{key}.#{validator_name}", {
+                   to: element.to,
+                   strategy: strategy,
+                   transform: transform
+                })
+              )
+            else
+              throw new Error("Impossible bind '#{from}' with model")
+
+              # aggregate bind all errors for on attribute
+
 
       # set default attributes, if present
       # FIXME possible stackoverflow in IE9
