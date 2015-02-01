@@ -438,6 +438,22 @@ class Sirius.BaseModel
     else
       @errors
 
+  # @param [String] - error string
+  # Use for after server side validation
+  # @example
+  #   ajax.request
+  #     onError: (xhr) ->
+  #       model.set_error("title.length", xhr.responseText)
+  #
+  #
+  set_error: (error, txt) ->
+    keys = error.split(".")
+    if keys.length != 2
+      throw new Error("Error must be pass as 'attr.validator' like 'name.length'")
+
+    @errors[keys[0]][keys[1]] = txt
+    @_is_valid_attr[keys[0]] = false
+
   # @note must be redefine in descendants
   # @param exception [Boolean] throw exception, when true and instance not valid,
   # otherwise return false if not valid
