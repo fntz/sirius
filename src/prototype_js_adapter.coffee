@@ -1,8 +1,17 @@
 #
 #  Adapter for [prototype.js framework](http://prototypejs.org}).
 #  For methods {@see Adapter}
-#  @waning: need tests for it
+#  @note use selectors
 class PrototypeAdapter extends Adapter
+
+  _get_element_from_selector: (selector) ->
+    if (typeof(selector) == "object" && selector.nodeType == 1)
+      return $(selector)
+    e = @all(selector)
+    if e.length == 0
+      throw new Error("Selector `#{selector}` not found")
+    e[0]
+
 
   bind: (element, selector, event, fn) ->
     if selector == null
@@ -22,42 +31,44 @@ class PrototypeAdapter extends Adapter
     )
 
   get_attr: (element, attr) ->
-    r = $(element).readAttribute(attr)
+    elem = @_get_element_from_selector(element)
+    r = elem.readAttribute(attr)
     if !r?
-      r = $(element)[attr]
+      r = elem[attr]
     r
 
   set_attr: (element, attr, value) ->
-    $(element).writeAttribute(attr, value)
+    @_get_element_from_selector(element).writeAttribute(attr, value)
 
   set_prop: (element, prop, value) ->
-    $(element).prop = value
+    @_get_element_from_selector(element).prop = value
 
   swap: (element, content) ->
-    element = $(element)
-    tag = element.tagName
+    elem = @_get_element_from_selector(element)
+    tag = elem.tagName
     if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
-      element.setValue("")
-      element.clear()
-      element.setValue(content)
+      elem.setValue("")
+      elem.clear()
+      elem.setValue(content)
     else
-      $(element).update(content)
+      @_get_element_from_selector(element).update(content)
 
   append: (element, content) ->
-    $(element).insert(top: content)
+    @_get_element_from_selector(element).insert(bottom: content)
 
   prepend: (element, content) ->
-    $(element).insert(bottom: content)
+    @_get_element_from_selector(element).insert(top: content)
 
   clear: (element) ->
-    tag = $(element).tagName
+    elem = @_get_element_from_selector(element)
+    tag = elem.tagName
     if $w("INPUT TEXTAREA").include(tag)
-      $(element).clear()
+      elem.clear()
     else
-      $(element).update("")
+      elem.update("")
 
   text: (element) ->
-    elem = $(element)
+    elem = @_get_element_from_selector(element)
     tag = elem.tagName
     if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
       elem.getValue()
@@ -68,4 +79,4 @@ class PrototypeAdapter extends Adapter
         elem.textContent
 
   get_state: (element) ->
-    $(element).checked
+    @_get_element_from_selector(element).checked

@@ -51,7 +51,17 @@ class Sirius.BindHelper
       # extract sub elements
       @logger.info("BindHelper: use user setting for work with elements")
       # return [element, key]
-      Object.keys(user_setting).map((k) -> [adapter.get("#{element} #{k}"), k])
+      tmp = []
+      Object.keys(user_setting).map (k) ->
+        tag = adapter.get_attr("#{element} #{k}", 'tagName')
+        type = adapter.get_attr("#{element} #{k}", 'type')
+        if tag == "OPTION" || type == "checkbox"
+          z = adapter.all("#{element} #{k}")
+          for x in z
+            tmp.push([x, k])
+        else
+          tmp.push([adapter.get("#{element} #{k}"), k])
+      tmp  # need [[element, selector], ... ]
     else
       # fixme optimize this need extract only when element contain data-bind-*
       # need extract main element, and children
@@ -62,9 +72,7 @@ class Sirius.BindHelper
       else
         adapter.all("#{element}[data-bind-from], #{element} *[data-bind-from]") # *
 
-
     logger = @logger
-
     #
     # Extract all elements which contain data-bind-*
     # with data-bind-strategy
@@ -84,6 +92,12 @@ class Sirius.BindHelper
           tmp_strategy = key['strategy'] || 'swap'
           tmp_transform = key['transform']
           elem = element[0]
+
+          if !elem?
+            msg = "Element '#{element[1]}' not found. Check please."
+            throw new Error(msg)
+            logger.error(msg)
+
         else
           elem = element
           tmp_to   = adapter.get_attr(element, to) || default_to

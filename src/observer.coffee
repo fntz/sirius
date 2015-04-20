@@ -32,8 +32,6 @@ class Sirius.Observer
     logger  = Sirius.Application.get_logger()
     clb  = @clb
     from = @from_element
-    tag  = adapter.get_attr(from, 'tagName')
-    type = adapter.get_attr(from, 'type')
     current_value = null
 
     if typeof(from) == 'object' && from.object && from.prop
@@ -73,6 +71,9 @@ class Sirius.Observer
 
 
     else
+      tag  = adapter.get_attr(from, 'tagName')
+      type = adapter.get_attr(from, 'type')
+
       logger.info("Observer: for #{from}")
       # FIXME maybe save all needed attributes in hash ????
       handler = (e) ->
@@ -86,7 +87,6 @@ class Sirius.Observer
         if e.type == "input" || e.type == "childList" || e.type == "change" || e.type == "DOMNodeInserted" || e.type == "selectionchange"
           result['text'] = txt
           current_value = txt
-
 
         if e.type == "change" # get a state for input enable or disable
           result['state'] = adapter.get_state(from)
@@ -143,14 +143,11 @@ class Sirius.Observer
           characterDataOldValue: true
           subtree: false # FIXME subtree: true
 
-
         if Sirius.Utils.is_string(from)
           elements = adapter.get(from) # fixme : all
           observer.observe(elements, cnf)
         else
-          observer.observe(from, cnf)
-
-
+          observer.observe(from, cnf) # FIXME when it works?
 
       else # when null, need register event with routes
         # FIXME stackoverflow

@@ -33,9 +33,8 @@ describe "BaseModel", ->
 
       expect(json).toEqual(expected)
 
-      json = model.to_json(true)
-      expected = JSON.stringify({"my_model" : JSON.parse(expected)})
-
+      json = model.to_json("title")
+      expected = JSON.stringify({"id" : 10, "description" : "text"})
       expect(json).toEqual(expected)
 
     it "from_json", ->

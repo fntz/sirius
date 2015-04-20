@@ -1,10 +1,16 @@
 describe "View2ObjectProperty", ->
+  adapter = if JQueryAdapter?
+    new JQueryAdapter()
+  else
+    new PrototypeAdapter()
+
   element = ".view2object span"
   object = {
     id: {
       num: ""
     }
   }
+
   view = new Sirius.View(element)
   view.bind(object, "id.num", {transform: (x) -> "#{x}!!!"})
 
@@ -13,7 +19,8 @@ describe "View2ObjectProperty", ->
     done()
 
   it "should change element content when bind with property", ->
-    expect($(element).text()).toEqual("new!!!")
+    expect(adapter.text(element)).toEqual("new!!!")
+
 
 
 
