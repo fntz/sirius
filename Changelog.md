@@ -46,6 +46,18 @@ Sirius.Application.run
 
 ```
 
+`data-bind-to`, `data-bind-from` removed from code. Use object setting like
+
+```js
+model.bind(view, {
+  '.model-id'         : {from: "id", to: "data-name"}
+  '.model-title'      : {from: "title", to: "data-name"}
+  '.model-description': {from: "description", to: "data-name"}
+})
+
+```
+
+
 
 
 
