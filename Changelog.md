@@ -57,6 +57,25 @@ model.bind(view, {
 
 ```
 
+`skip` options for `Sirius.BaseModel`:
+
+```coffee
+class ModelA extends Sirius.BaseModel
+  @attrs: ["id"]
+
+class ModelB extends Sirius.BaseModel
+  @attrs: ["id"]
+  @skip : true
+
+obj = {"id": 1, "foo" : "bar" }
+new ModelA(obj) # => error
+new ModelB(obj) # => ok
+
+```
+
+
+
+
 
 
 
