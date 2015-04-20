@@ -1,5 +1,5 @@
 describe "View2View", ->
-  adapter =
+
   adapter = if JQueryAdapter?
     new JQueryAdapter()
   else
@@ -7,18 +7,11 @@ describe "View2View", ->
 
   Sirius.Application.adapter = adapter
 
-  if JQueryAdapter?
-    element = ".attribute2text .element"
-    related_div = ".attribute2text .related-div"
-    related_input = ".attribute2text .related-input"
-    related_select = ".attribute2text .related-select"
-  else
-    element = "attribute2text-element"
-    related_div = "attribute2text-related-div"
-    related_input = "attribute2text-related-input"
-    related_select = "attribute2text-related-select"
 
-
+  element = ".attribute2text .element"
+  related_div = ".attribute2text .related-div"
+  related_input = ".attribute2text .related-input"
+  related_select = ".attribute2text .related-select"
 
   view = new Sirius.View(element)
   view_div = new Sirius.View(related_div)
@@ -33,14 +26,15 @@ describe "View2View", ->
     txt = 'val3'
 
     beforeAll (done) ->
-      adapter.set_attr(element, 'data-name', txt)
+      adapter.get(element).setAttribute('data-name', txt)
+
       setTimeout(
         () ->
           done()
         100
       )
 
-    pending "change attribute in element should change text in related elements", ()->
+    it "change attribute in element should change text in related elements", ()->
       expect(adapter.text(related_div)).toEqual(txt)
       expect(adapter.text(related_input)).toEqual(txt)
       expect(adapter.text(related_select)).toEqual(txt)
@@ -53,7 +47,7 @@ describe "View2View", ->
     txt = 'another-value'
 
     beforeAll (done) ->
-      adapter.set_attr(element, 'data-attr', txt)
+      adapter.get(element).setAttribute('data-attr', txt)
 
       setTimeout(
         () ->
@@ -69,12 +63,8 @@ describe "View2View", ->
 
   describe "/text to attribute/", ->
     # from text to data-name attribute
-    if JQueryAdapter?
-      div = ".text2attribute .div"
-      for_div = ".text2attribute .for-div"
-    else
-      div = "text2attribute-div"
-      for_div = "text2attribute-for-div"
+    div = ".text2attribute .div"
+    for_div = ".text2attribute .for-div"
 
     #FIXME add an input element
     divView = new Sirius.View(div)
@@ -88,7 +78,7 @@ describe "View2View", ->
       if JQueryAdapter?
         jQuery(div).html(value)
       else
-        $(div).update(value)
+        $$(div)[0].update(value)
 
       setTimeout(
         () ->

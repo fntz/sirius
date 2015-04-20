@@ -1,5 +1,5 @@
 ###!
-#  Sirius.js v0.7.0
+#  Sirius.js v0.7.1
 #  (c) 2014-2015 fntzr
 #  license: MIT
 ###
@@ -69,12 +69,9 @@ class Adapter
   all: (selector) ->
     document.querySelectorAll(selector)
 
+
   # first from selector
   get: (selector) ->
-    q = document.querySelector(selector)
-    # when work with prototype.js, then possible work with 'id-element' instead of '#id-element'
-    if !q?
-      q = document.querySelector("\##{selector}")
-    q
+    document.querySelector(selector)
 
   state: (selector) ->

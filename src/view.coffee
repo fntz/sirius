@@ -138,6 +138,8 @@ class Sirius.View
   # text content or value if it an input or textarea element), then changes the related
   # attributes for second view.
   #
+  # Data flow: view1[from] ~> transform ~> view2[to] with strategy
+  #
   # @example
   #    // html source
   #    <input type='text' id='v1' />
@@ -159,11 +161,11 @@ class Sirius.View
   #    v4 = new Sirius.View('#v4')
   #    v5 = new Sirius.View('#v5')
   #
-  #    r1 = new Sirius.View('#v1')
-  #    r2 = new Sirius.View('#v2')
-  #    r3 = new Sirius.View('#v3')
-  #    r4 = new Sirius.View('#v4')
-  #    r5 = new Sirius.View('#v5')
+  #    r1 = new Sirius.View('#r1')
+  #    r2 = new Sirius.View('#r2')
+  #    r3 = new Sirius.View('#r3')
+  #    r4 = new Sirius.View('#r4')
+  #    r5 = new Sirius.View('#r5')
   #
   #    # bind
   #    v1.bind(r1)
@@ -511,6 +513,12 @@ Sirius.View.register_strategy('swap',
 Sirius.View.register_strategy('append',
   transform: (oldvalue, newvalue) -> newvalue
   render: (adapter, element, result, attribute) ->
+    tag = adapter.get_attr(element, 'tagName')
+    type = adapter.get_attr(element, 'type')
+    if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
+      # FIXME
+      throw new Error("'append' strategy not work for `input` or `textarea` or `select` elements")
+
     if attribute == 'text'
       adapter.append(element, result)
     else
@@ -520,6 +528,12 @@ Sirius.View.register_strategy('append',
 Sirius.View.register_strategy('prepend',
   transform: (oldvalue, newvalue) -> newvalue
   render: (adapter, element, result, attribute) ->
+    tag = adapter.get_attr(element, 'tagName')
+    type = adapter.get_attr(element, 'type')
+    if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
+      # FIXME
+      throw new Error("'prepend' strategy not work for `input` or `textarea` or `select` elements")
+
     if attribute == 'text'
       adapter.prepend(element, result)
     else

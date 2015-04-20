@@ -15,7 +15,6 @@
 
 <div id="my-div" class="abc"></div>
 
-
 <div id="views">
   <input type='text' id='txt' class="input-class" data-name="input" value="default" />
   <select id="views-select">
@@ -25,12 +24,13 @@
   </select>
   <div id="content"></div>
 </div>
+
 <div class="view2view">
   <div class="attribute2text">
-    <div id="attribute2text-element" data-name="element"></div>
-    <div id="attribute2text-related-div"></div>
-    <input id="attribute2text-related-input" />
-    <select id="attribute2text-related-select">
+    <div class="element" data-name="element"></div>
+    <div class="related-div"></div>
+    <input class="related-input" />
+    <select class="related-select">
       <option value="val1">val1</option>
       <option value="val2">val2</option>
       <option value="val3">val3</option>
@@ -38,17 +38,17 @@
   </div>
 
   <div class="text2attribute">
-    <div id="text2attribute-div"></div>
-    <input id="text2attribute-input" />
-    <select id="text2attribute-select">
+    <div class="div"></div>
+    <input class="input" />
+    <select class="select">
       <option value="val1">val1</option>
       <option value="val2">val2</option>
       <option value="val3">val3</option>
     </select>
 
-    <div id="text2attribute-for-input"></div>
-    <div id="text2attribute-for-div"></div>
-    <div id="text2attribute-for-select"></div>
+    <div class="for-input"></div>
+    <div class="for-div"></div>
+    <div class="for-select"></div>
   </div>
 
   <div class="view2model">
@@ -61,11 +61,12 @@
   </div>
 </div>
 
+
 <div class="model2view">
   <div class="attribute2text">
-    <div class="model-id" data-bind-view-from='id'></div>
-    <div class="model-title" data-bind-view-from='title'></div>
-    <div class="model-description" data-bind-view-from='description'></div>
+    <div class="model-id"></div>
+    <div class="model-title"></div>
+    <div class="model-description"></div>
     <span></span>
   </div>
 
@@ -135,17 +136,17 @@
 <script type="text/javascript" src="../lib/sirius.js"></script>
 <script type="text/javascript" src="fixtures.js"></script>
 <!-- include spec files here... -->
-
 <script type="text/javascript" src="specs/compile/collection_spec.js"></script>
 <script type="text/javascript" src="specs/compile/validation_spec.js"></script>
 <script type="text/javascript" src="specs/compile/control_flow_spec.js"></script>
 <script type="text/javascript" src="specs/compile/base_model_spec.js"></script>
-
 <script type="text/javascript" src="specs/compile/view2view_spec.js"></script>
-<script type="text/javascript" src="specs/compile/routing_spec.js"></script>
 <script type="text/javascript" src="specs/compile/views_spec.js"></script>
-<script type="text/javascript" src="specs/compile/model2view_spec.js"></script>
+
 <script type="text/javascript" src="specs/compile/view2prop_spec.js"></script>
+<script type="text/javascript" src="specs/compile/model2view_spec.js"></script>
+
+<script type="text/javascript" src="specs/compile/routing_spec.js"></script>
 
 </body>
 </html>

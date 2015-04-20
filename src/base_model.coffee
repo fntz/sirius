@@ -632,10 +632,27 @@ class Sirius.BaseModel
   # @example
   #     <span data-bind-view-from='title' data-bind-view-transform='wrap' data-bind-view-strategy='append'></span>
   #
-  # Then flow will be
+  # From js code use css selectors for binding
+  # @example
+  #
+  #    // html
+  #    <div class='some-class'>
+  #       <input type="text" />
+  #       <div class="description"></div>
+  #    </div>
+  #
+  #    # coffee
+  #    model = new MyModel() # with id, title, description fields
+  #    view = new Sirius.View(".some-class")
+  #    model.bind(view, {
+  #       'input[type="text"]': {from: "title"},
+  #       '.description' : {from: "description"}
+  #    })
+  #
+  # Binding flow will be
   # set new title in model -> transform with wrap method -> apply strategy -> result
   #
-  # TODO pass parameters with object_setting
+  # @note when you bind logical elements (option, radio or checkbox) value not changes if not present in `value` attribute
   #
   # @note when you use double side binding, and set the new value which equal previous, value has not changed
   #
@@ -689,6 +706,7 @@ class Sirius.BaseModel
         do(element) ->
           # it attribute or property
           element.view ?= new Sirius.View(element.element)
+
           transform = Sirius.BindHelper.transform(element.transform, object_setting)
           strategy = element.strategy
           if !Sirius.View.is_valid_strategy(strategy)
@@ -699,19 +717,20 @@ class Sirius.BaseModel
           if attributes.indexOf(element.from) != -1
             clb = (attr, value) ->
               result = transform(value)
-
+              tag = adapter.get_attr(element.element, 'tagName')
+              type = adapter.get_attr(element.element, 'type')
               # recursion detect
               # fixme maybe only for double side binding
-              if element.to is 'text'
-                return if adapter.text(element.element) == result
+
+              if element.to is 'text' && tag != "OPTION" && (["checkbox", "radio"].indexOf(type) == -1)
+                if adapter.text(element.element) == result
+                  return
               else
                 # for checked fixme
                 return if adapter.get_attr(element.element, element.to) == result
 
               if attr is element.from
                 if element.to is 'text'
-                  tag = adapter.get_attr(element.element, 'tagName')
-                  type = adapter.get_attr(element.element, 'type')
                   if type == 'checkbox' || type == 'radio'
                     current_value = adapter.get_attr(element.element, 'value')
                     if current_value == value
@@ -724,7 +743,6 @@ class Sirius.BaseModel
                     element.view.render(result)[strategy](element.to)
                 else
                   element.view.render(result)[strategy](element.to)
-
             callbacks.push(clb)
           else
             # for bind errors
