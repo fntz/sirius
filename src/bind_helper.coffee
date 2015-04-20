@@ -47,30 +47,25 @@ class Sirius.BindHelper
     element = @element
     keys = Object.keys(user_setting)
     tmp_a = keys.filter((k) -> !Sirius.Utils.is_object(user_setting[k]))
-    elements = if tmp_a.length == 0
       # extract sub elements
-      @logger.info("BindHelper: use user setting for work with elements", @logger.bind_helper)
+    @logger.info("BindHelper: use user setting for work with elements", @logger.bind_helper)
       # return [element, key]
-      tmp = []
-      Object.keys(user_setting).map (k) ->
-        tag = adapter.get_attr("#{element} #{k}", 'tagName')
-        type = adapter.get_attr("#{element} #{k}", 'type')
-        if tag == "OPTION" || type == "checkbox"
-          z = adapter.all("#{element} #{k}")
-          for x in z
-            tmp.push([x, k])
-        else
-          tmp.push([adapter.get("#{element} #{k}"), k])
-      tmp  # need [[element, selector], ... ]
-    else
-      # fixme optimize this need extract only when element contain data-bind-*
-      # need extract main element, and children
-      @logger.info("BindHelper: seems `user_setting`: #{tmp_a} contain non object, use extract with queryAll", @logger.bind_helper)
-      # return [elements...]
-      if is_bind_view_to_model
-        adapter.all("#{element}[data-bind-to], #{element} *[data-bind-to]") # *
+    elements = []
+    Object.keys(user_setting).map (k) ->
+      tag = adapter.get_attr("#{element} #{k}", 'tagName')
+      type = adapter.get_attr("#{element} #{k}", 'type')
+      if tag == "OPTION" || type == "checkbox"
+        z = adapter.all("#{element} #{k}")
+        for x in z
+          elements.push([x, k])
       else
-        adapter.all("#{element}[data-bind-from], #{element} *[data-bind-from]") # *
+        elements.push([adapter.get("#{element} #{k}"), k])
+
+    if tmp_a.length != 0
+      # need extract main element, and children
+      @logger.error("DEPRECATED: seems `user_setting`: #{tmp_a} contain non object", @logger.bind_helper)
+      @logger.error("Html data-bind-* removed", @logger.bind_helper)
+      throw new Error("Define setting for binding")
 
     logger = @logger
     #
