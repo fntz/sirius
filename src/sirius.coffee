@@ -11,7 +11,7 @@
 #
 Sirius.redirect = (url) ->
   app = Sirius.Application
-  app.logger.info("Redirect to #{url}")
+  app.logger.info("Redirect to #{url}", app.logger.redirect)
 
   if app.use_hash_routing_for_old_browsers && !app.push_state_support
     url = if url.indexOf("#") == 0
@@ -145,11 +145,11 @@ class Sirius.ControlFlow
                 act
               else
                 msg = "Action must be string or function"
-                @logger.error("ControlFlow: #{msg}")
+                @logger.error("ControlFlow: #{msg}", @logger.control_flow)
                 throw new Error(msg)
     if !action
       msg = "action #{act} not found in controller #{controller}"
-      @logger.error("ControlFlow: #{msg}")
+      @logger.error("ControlFlow: #{msg}", @logger.control_flow)
       throw new Error(msg)
 
     @action = wrapper(action)
@@ -194,7 +194,7 @@ class Sirius.ControlFlow
   #
   handle_event: (e, args...) ->
     #when e defined it's a Event, otherwise it's call from url_routes
-    @logger.info("ControlFlow: Start event processing")
+    @logger.info("ControlFlow: Start event processing", @logger.control_flow)
     if e
       data   = if Sirius.Utils.is_array(@data) then @data else if @data then [@data] else []
       result   = Sirius.Application.adapter.get_property(e, data) #FIXME use Promise
@@ -256,11 +256,11 @@ Sirius.RouteSystem =
         event_name = z[1]
         selector   = z[3] || document #when it a custom event: 'custom:event' for example
         adapter.bind(document, selector, event_name, handler)
-        logger.info("RouteSystem: define event route: '#{event_name}' for '#{selector}'")
+        logger.info("RouteSystem: define event route: '#{event_name}' for '#{selector}'", logger.route_system)
 
   _get_hash_routes: (routes, wrapper, adapter, logger) ->
     for url, action of routes when @_hash_route(url)
-      logger.info("RouteSystem: define hash route: '#{url}'")
+      logger.info("RouteSystem: define hash route: '#{url}'", logger.route_system)
       url    = new Sirius.RoutePart(url)
       action = if Sirius.Utils.is_function(action)
         wrapper(action)
@@ -270,7 +270,7 @@ Sirius.RouteSystem =
 
   _get_plain_routes: (routes, wrapper, adapter, logger) ->
     for url, action of routes when @_plain_route(url)
-      logger.info("RouteSystem: define route: '#{url}'")
+      logger.info("RouteSystem: define route: '#{url}'", logger.route_system)
       url    = new Sirius.RoutePart(url)
       action = if Sirius.Utils.is_function(action)
         wrapper(action)
@@ -293,7 +293,7 @@ Sirius.RouteSystem =
 
     Sirius.Application.get_adapter().and_then (adapter) =>
       if redirect_to_hash and !push_state_support
-        logger.info("RouteSystem: Convert plain routing into hash routing")
+        logger.info("RouteSystem: Convert plain routing into hash routing", logger.route_system)
         # convert to new routing
         urls = [] #save urls into array, for check collision
         route = {}
@@ -302,7 +302,7 @@ Sirius.RouteSystem =
           if @_plain_route(url)
             url = "\##{url}"
             if urls.indexOf(url) != -1
-              logger.warn("RouteSystem: Routes already have '#{url}' url")
+              logger.warn("RouteSystem: Routes already have '#{url}' url", logger.route_system)
           route[url] = action
         routes = route
 
@@ -328,7 +328,7 @@ Sirius.RouteSystem =
         route_array = []
         result      = false
 
-        logger.info("RouteSystem: start processing route: '#{current}'")
+        logger.info("RouteSystem: start processing route: '#{current}'", logger.route_system)
 
         if e.type == "hashchange"
           # hashchange
@@ -367,7 +367,7 @@ Sirius.RouteSystem =
               flow.apply(null, f.args)
 
         if !result
-          logger.warn("RouteSystem: route '#{current}' not found. Generate 404 event")
+          logger.warn("RouteSystem: route '#{current}' not found. Generate 404 event", logger.route_system)
           adapter.fire(document, "application:404", current, prev)
           r404 = routes['404'] || routes[404]
           if r404
@@ -377,7 +377,7 @@ Sirius.RouteSystem =
               (new Sirius.ControlFlow(r404, wrapper)).handle_event(null, current)
           return
 
-        logger.info("RouteSystem: Url change to: #{current}")
+        logger.info("RouteSystem: Url change to: #{current}", logger.route_system)
         adapter.fire(document, "application:urlchange", current, prev)
 
 
@@ -389,7 +389,7 @@ Sirius.RouteSystem =
       # convert only when
       links = adapter.all(@_selector)
       if redirect_to_hash && !push_state_support
-        logger.info("RouteSystem: Found #{links.length} link. Convert href into hash based routing")
+        logger.info("RouteSystem: Found #{links.length} link. Convert href into hash based routing", logger.route_system)
         for link in links
           href = link.getAttribute('href')
           if href.indexOf("http") == -1
@@ -397,7 +397,7 @@ Sirius.RouteSystem =
               "\##{href}"
             else
               "\#/#{href}"
-            logger.info("RouteSystem: Convert '#{href}' -> '#{new_href}'")
+            logger.info("RouteSystem: Convert '#{href}' -> '#{new_href}'", logger.route_system)
             link.setAttribute('href', new_href)
 
       if plain_routes.length != 0
@@ -419,7 +419,7 @@ Sirius.RouteSystem =
 
 
       if array_of_routes.length != 0 && plain_routes.length != 0
-        logger.warn("RouteSystem: Seems you use plain routing and hashbased routing at the same time")
+        logger.warn("RouteSystem: Seems you use plain routing and hashbased routing at the same time", logger.route_system)
 
       fn()
 
@@ -466,6 +466,11 @@ Sirius.Application =
   }
 
   ###
+    add logger into controller wrapper
+  ###
+  mix_logger_into_controller: true
+
+  ###
     when, false, then hash will be add into last for url, for true, no
     false:
       "http://example.com/" - start
@@ -498,6 +503,36 @@ Sirius.Application =
     else
       alert "Not supported `console`. You should define own `logger` function for Sirius.Application"
 
+  ###
+   Array with classes for logs
+   Possible classes:
+      BaseModel   = 0
+      BindHelper  = 1
+      Collection  = 2
+      Observer    = 3
+      View        = 4
+      RouteSystem = 5
+      ControlFlow = 6
+      Application = 7
+      Redirect    = 8
+      Validator   = 9
+
+   Use as:
+
+    ```
+       log_filters : [0, 1, 2]
+       # or
+       lf = Sirius.Logger.Location
+       log_filters : [lf.BaseModel, lf.Application, lf.View]
+       # or
+       log_filters : ['BaseModel', 'Application', 'View']
+    ```
+    @note If you use Sirius.Logger in you controller, not need define this controller for filters.
+  Just use it.
+    @note empty array eq without filter (log all)
+  ###
+  log_filters: []
+
   # @private
   _wait: []
 
@@ -511,7 +546,7 @@ Sirius.Application =
       q = @_messages_queue
       for l in lvls
         do(l) ->
-          o[l] = (msg) -> q.push([l, msg])
+          o[l] = (msg, location) -> q.push([l, msg, location])
       o
     else
       @logger
@@ -527,7 +562,6 @@ Sirius.Application =
       new Sirius.Promise(@adapter)
 
 
-
   #
   # @method #run(options)
   # @param options [Object] - base options for application
@@ -536,8 +570,33 @@ Sirius.Application =
     @log     = options["log"]     || @log
     @adapter = options["adapter"] || throw new Error("Specify adapter")
     @route   = options["route"]   || @route
-    @logger  = new Sirius.Logger(@log, options['logger'] || @default_log_function)
+    @mix_logger_into_controller = options['mix_logger_into_controller'] || @mix_logger_into_controller
+    @log_filters = options["log_filters"] || @log_filters
+
+    # check filters
+    if @log_filters.length > 0
+      lf = Sirius.Logger.Filters
+      user_filter = @log_filters
+      # when pass numbers
+      if typeof(@log_filters[0]) == "number" #fixme check all collection
+        max = user_filter.sort()[user_filter.length-1]
+        min = user_filter.sort()[0]
+        if min < 0
+          throw new Error("Undefined index for log filters #{min}")
+        if max > lf.length
+          throw new Error("Undefined index for log filters #{max}")
+        @log_filters = user_filter.map (index) -> lf[index]
+      else
+        xs = @log_filters.filter (x) -> lf.indexOf(x) == -1
+        if xs.length != 0
+         throw new Error("Check log filters given `#{user_filter}`. Allow #{lf}")
+    else
+      @log_filters = Sirius.Logger.Filters
+
+
+    @logger  = new Sirius.Logger(@log, @log_filters, options['logger'] || @default_log_function)
     @start   = options["start"]   || @start
+
 
     for key, value of (options["controller_wrapper"] || {})
       @controller_wrapper[key] = value
@@ -552,18 +611,27 @@ Sirius.Application =
                                          else
                                            @use_hash_routing_for_old_browsers
 
-    @logger.info("Application: Logger enabled? #{@log}")
-
-    @logger.info("Application: Adapter: #{Sirius.Utils.fn_name(@adapter.constructor)}")
-    @logger.info("Application: Hash always on top: #{@hash_always_on_top}")
-    @logger.info("Application: Use hash routing for old browsers: #{@use_hash_routing_for_old_browsers}")
-    @logger.info("Application: Current browser: #{navigator.userAgent}")
+    @logger.info("Logger enabled? #{@log}", @logger.application)
+    @logger.info("Log filters: #{@log_filters}", @logger.application)
+    @logger.info("Adapter: #{Sirius.Utils.fn_name(@adapter.constructor)}", @logger.application)
+    @logger.info("Hash always on top: #{@hash_always_on_top}", @logger.application)
+    @logger.info("Use hash routing for old browsers: #{@use_hash_routing_for_old_browsers}", @logger.application)
+    @logger.info("Current browser: #{navigator.userAgent}", @logger.application)
 
     @push_state_support = if history.pushState then true else false
-    @logger.info("Application: History pushState support: #{@push_state_support}")
+    @logger.info("History pushState support: #{@push_state_support}", @logger.application)
 
     if !@push_state_support && @use_hash_routing_for_old_browsers
-      @logger.warn("Application: You browser not support pushState, and you disable hash routing for old browser")
+      @logger.warn("You browser not support pushState, and you disable hash routing for old browser", @logger.application)
+
+    @logger.info("Mix logger in controllers #{@mix_logger_into_controller}", @logger.application)
+
+    if @mix_logger_into_controller
+      if @controller_wrapper['logger']
+        throw new Error("Logger method already in `controller_wrapper`")
+      @controller_wrapper['logger'] = @logger
+
+
 
     setting =
       old: @use_hash_routing_for_old_browsers
@@ -576,7 +644,7 @@ Sirius.Application =
         p.set_value(@adapter)
       @adapter.fire(document, "application:run", new Date())
       for message in @_messages_queue
-        @logger[message[0]].call(null, message[1])
+        @logger[message[0]].call(null, message[1], message[2])
 
     if @start
       Sirius.redirect(@start)

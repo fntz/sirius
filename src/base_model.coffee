@@ -208,12 +208,12 @@ class Sirius.BaseModel
 
     for attr in @attrs()
       # @attrs: [{key: value}]
-      @logger.info("BaseModel: define '#{attr}' attribute for '#{name}'")
+      @logger.info("BaseModel: define '#{attr}' attribute for '#{name}'", @logger.base_model)
       if typeof(attr) is "object"
         [key, ...] = Object.keys(attr)
         if !key
           msg = "Attributes should have a key and value"
-          @logger.error("BaseModel: #{msg}")
+          @logger.error("BaseModel: #{msg}", @logger.base_model)
           throw new Error(msg)
         @["_#{key}"] = attr[key]
         @_gen_method_name_for_attribute(key)
@@ -223,14 +223,14 @@ class Sirius.BaseModel
         @["_#{attr}"] = null
 
     for klass in @has_many()
-      @logger.info("BaseModel: has many attribute: #{klass}")
+      @logger.info("BaseModel: has many attribute: #{klass}", @logger.base_model)
       @["_#{klass}"] = []
       @attributes.push("#{klass}")
       @_has_create(klass)
       @_gen_method_name_for_attribute(klass, true)
 
     for klass in @has_one()
-      @logger.info("BaseModel: has one attribute: #{klass}")
+      @logger.info("BaseModel: has one attribute: #{klass}", @logger.base_model)
       @["_#{klass}"] = null
       @attributes.push("#{klass}")
       @_has_create(klass, true)
@@ -664,22 +664,22 @@ class Sirius.BaseModel
       @logger.error(msg)
       throw new Error(msg)
 
-    @logger.info("BaseModel: bind with #{view.element}")
+    @logger.info("BaseModel: bind with #{view.element}", @logger.base_model)
 
     t = Object.keys(object_setting).map((key) -> Sirius.Utils.is_function(object_setting[key]))
 
     if t.length == 0
-      @logger.info("BaseModel: Bind: setting empty")
+      @logger.info("BaseModel: Bind: setting empty", @logger.base_model)
       object_setting['transform'] = if object_setting['transform']?
         object_setting['transform']
       else
-        @logger.info("BaseModel: 'transform' method not found. Use default transform method.")
+        @logger.info("BaseModel: 'transform' method not found. Use default transform method.", @logger.base_model)
         (x) -> x
     else
       # if not transform for given key define default transform method
       Object.keys(object_setting).map((key) =>
         if !object_setting[key]['transform']?
-          @logger.info("BaseModel: bind define default transform method for '#{key}'")
+          @logger.info("BaseModel: bind define default transform method for '#{key}'", @logger.base_model)
           object_setting[key]['transform'] = (x) -> x
       )
 
@@ -710,7 +710,7 @@ class Sirius.BaseModel
           transform = Sirius.BindHelper.transform(element.transform, object_setting)
           strategy = element.strategy
           if !Sirius.View.is_valid_strategy(strategy)
-            logger.error("BaseModel: Not valid strategy: '#{strategy}'")
+            logger.error("BaseModel: Not valid strategy: '#{strategy}'", logger.base_model)
             throw new Error("Strategy #{strategy} not valid")
 
           # for attributes
@@ -752,7 +752,7 @@ class Sirius.BaseModel
 
             prop = from.split(".")
 
-            logger.info("BaseModel bind '#{element.from}' for model")
+            logger.info("BaseModel bind '#{element.from}' for model", logger.base_model)
 
             if prop.length == 3
               element.view.bind(current_model.errors, prop[1..-1].join("."), {
@@ -852,7 +852,7 @@ class Sirius.BaseModel
   # @return [Void]
   @register_validator: (name, klass) ->
     logger = Sirius.Application.get_logger()
-    logger.info("BaseModel: register validator: #{name}")
+    logger.info("register validator: #{name}", "BaseModel")
     @_Validators.push([name, klass])
     null
 

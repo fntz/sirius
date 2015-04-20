@@ -88,7 +88,7 @@ class Sirius.Collection
   # @private
   _start_sync: (every) ->
     if (every != 0)
-      @logger.info("Collection: start synchronization")
+      @logger.info("Collection: start synchronization", @logger.collection)
       @_timer = setInterval(@remote, every)
       @_gen('sync')
     return
@@ -97,7 +97,7 @@ class Sirius.Collection
   # @return [Void]
   unsync: () ->
     if @_timer
-      @logger.info("Collection: end synchronization")
+      @logger.info("Collection: end synchronization", @logger.collection)
       clearInterval(@_timer)
       @_gen('unsync')
     return
@@ -129,7 +129,7 @@ class Sirius.Collection
     type = Sirius.Utils.fn_name(model.constructor)
     if @_type isnt type
       msg = "Require `#{@_type}`, but given `#{type}`"
-      @logger.error("Collection: #{msg}")
+      @logger.error("Collection: #{msg}", @logger.collection)
       throw new Error(msg)
     @_array.push(model) #maybe it's a hash ? because hash have a keys, and simple remove, but need a unique id
     @length++
@@ -277,7 +277,7 @@ class Sirius.Collection
       throw new Error("For 'subscribe' method available only [#{@constructor._EVENTS}], but given '#{event}'")
 
     if Sirius.Utils.is_string(fn_or_event) or Sirius.Utils.is_function(fn_or_event)
-      @logger.info("Collection: Add new subscriber for '#{event}' event")
+      @logger.info("Collection: Add new subscriber for '#{event}' event", @logger.collection)
       @_subscribers[event].push(fn_or_event)
     else
       throw new Error("Second parameter for 'subscribe' method must be Function or String, but '#{typeof(fn_or_event)}' given")

@@ -38,18 +38,18 @@ class Sirius.BindHelper
     default_to = @setting['default_to']
     is_bind_view_to_model = @is_bind_view_to_model
     result = []
-    @logger.info("BindHelper: to: #{to}, from: #{from}")
-    @logger.info("BindHelper: strategy: #{strategy}")
+    @logger.info("BindHelper: to: #{to}, from: #{from}", @logger.bind_helper)
+    @logger.info("BindHelper: strategy: #{strategy}", @logger.bind_helper)
     @logger.info("BindHelper: transform: #{transform}")
-    @logger.info("BindHelper: default from: #{default_from}")
-    @logger.info("BindHelper: default to: #{default_to}")
+    @logger.info("BindHelper: default from: #{default_from}", @logger.bind_helper)
+    @logger.info("BindHelper: default to: #{default_to}", @logger.bind_helper)
 
     element = @element
     keys = Object.keys(user_setting)
     tmp_a = keys.filter((k) -> !Sirius.Utils.is_object(user_setting[k]))
     elements = if tmp_a.length == 0
       # extract sub elements
-      @logger.info("BindHelper: use user setting for work with elements")
+      @logger.info("BindHelper: use user setting for work with elements", @logger.bind_helper)
       # return [element, key]
       tmp = []
       Object.keys(user_setting).map (k) ->
@@ -65,7 +65,7 @@ class Sirius.BindHelper
     else
       # fixme optimize this need extract only when element contain data-bind-*
       # need extract main element, and children
-      @logger.info("BindHelper: seems `user_setting`: #{tmp_a} contain non object, use extract with queryAll")
+      @logger.info("BindHelper: seems `user_setting`: #{tmp_a} contain non object, use extract with queryAll", @logger.bind_helper)
       # return [elements...]
       if is_bind_view_to_model
         adapter.all("#{element}[data-bind-to], #{element} *[data-bind-to]") # *
@@ -84,7 +84,7 @@ class Sirius.BindHelper
           key = user_setting[element[1]]
           if !key?
             msg = "BindHelper: Not found keys for binding for '#{key}' element"
-            logger.error(msg)
+            logger.error(msg, logger.bind_helper)
             throw new Error(msg)
 
           tmp_to = key['to'] || default_to
@@ -95,8 +95,8 @@ class Sirius.BindHelper
 
           if !elem?
             msg = "Element '#{element[1]}' not found. Check please."
+            logger.error(msg, logger.bind_helper)
             throw new Error(msg)
-            logger.error(msg)
 
         else
           elem = element
@@ -136,7 +136,7 @@ class Sirius.BindHelper
     if Sirius.Utils.is_function(setting.transform)
       if name
         msg = error(name)
-        logger.error("BindHelper: #{msg}")
+        logger.error("BindHelper: #{msg}", logger.bind_helper)
         throw new Error(msg)
       else
         setting.transform
@@ -144,5 +144,5 @@ class Sirius.BindHelper
       if setting.transform[name]?
         setting.transform[name]
       else
-        logger.warn("BindHelper: Transform method not found use default transform method: '(x) -> x'")
+        logger.warn("BindHelper: Transform method not found use default transform method: '(x) -> x'", logger.bind_helper)
         (x) -> x

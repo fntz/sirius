@@ -38,7 +38,7 @@ class Sirius.View
     @logger = Sirius.Application.get_logger()
     @_result_fn = (args...) =>
       clb.apply(null, args...)
-    @logger.info("View: Create a new View for #{@element}")
+    @logger.info("View: Create a new View for #{@element}", @logger.view)
 
 
 
@@ -53,7 +53,7 @@ class Sirius.View
           # and we have @_result
           result = @_result
           element = @element
-          @logger.info("View: Start processing strategy for #{element}")
+          @logger.info("View: Start processing strategy for #{element}", @logger.view)
           Sirius.Application.get_adapter().and_then (adapter) ->
             # need extract old value
             oldvalue = if attribute is 'text'
@@ -70,7 +70,7 @@ class Sirius.View
   # By default transform function take arguments and return it `(x) -> x`
   # @return [Sirius.View]
   render: (args...) ->
-    @logger.info("View: Call render for #{args}")
+    @logger.info("View: Call render for #{args}", @logger.view)
     @_result = @_result_fn(args)
     @
 
@@ -101,7 +101,7 @@ class Sirius.View
                  selector
                else
                  "#{@element} #{selector}"
-    @logger.info("View: Bind event for #{selector}, event name: #{event_name}, will be called : #{custom_event_name}")
+    @logger.info("View: Bind event for #{selector}, event name: #{event_name}, will be called : #{custom_event_name}", @logger.view)
 
     if Sirius.Utils.is_string(custom_event_name)
       handler = (e) ->
@@ -312,7 +312,7 @@ class Sirius.View
     setting = args[0] || {}
     extra = args[1] || {}
 
-    @logger.info("View: Call bind for #{klass}")
+    @logger.info("View: Call bind for #{klass}", @logger.view)
     if klass
 
       if (typeof(klass) == 'object') && Sirius.Utils.is_string(setting)
@@ -341,7 +341,7 @@ class Sirius.View
     #     transform: '' # or default transform
     #     strategy: '' # or default strategy
     #
-    @logger.info("View: Bind #{@element} and model: #{Sirius.Utils.fn_name(model.constructor)}")
+    @logger.info("View: Bind #{@element} and model: #{Sirius.Utils.fn_name(model.constructor)}", @logger.view)
 
     logger = @logger
 
@@ -352,17 +352,17 @@ class Sirius.View
       t = Object.keys(setting).map((key) -> Sirius.Utils.is_function(setting[key]))
 
       if t.length == 0
-        logger.info("View: Bind: setting empty")
+        logger.info("View: Bind: setting empty", @logger.view)
         setting['transform'] = if setting['transform']?
           setting['transform']
         else
-          logger.info("View: 'transform' method not found. Use default transform method.")
+          logger.info("View: 'transform' method not found. Use default transform method.", @logger.view)
           (x) -> x
       else
         # if not transform for given key define default transform method
         Object.keys(setting).map((key) ->
           if !setting[key]['transform']?
-            logger.info("View: define default transform method for '#{key}'")
+            logger.info("View: define default transform method for '#{key}'", @logger.view)
             setting[key]['transform'] = (x) -> x
         )
 
@@ -397,7 +397,7 @@ class Sirius.View
   # @private
   # @nodoc
   _bind_prop: (object, prop, setting = {}) ->
-    @logger.info("View: Bind '#{@element}' and object #{object} with property: #{prop}")
+    @logger.info("View: Bind '#{@element}' and object #{object} with property: #{prop}", @logger.view)
     to = setting['to'] || 'text'
     strategy  = setting['strategy'] || 'swap'
     transform = setting['transform'] || (x) -> x
@@ -413,11 +413,11 @@ class Sirius.View
   # @private
   # @nodoc
   _bind_view: (view, setting) ->
-    @logger.info("View: Bind '#{@element}' with '#{view.element}'")
+    @logger.info("View: Bind '#{@element}' with '#{view.element}'", @logger.view)
     to   = setting['to']   || 'text'
     from = setting['from'] || 'text'
     strategy = setting['strategy'] || 'swap'
-    @logger.info("View: for '#{view.element}' use to: '#{to}' and from: '#{from}', strategy: #{strategy}")
+    @logger.info("View: for '#{view.element}' use to: '#{to}' and from: '#{from}', strategy: #{strategy}", @logger.view)
     current = @element
     # {text: null, attribute: null}
     clb = (result) ->
@@ -467,22 +467,22 @@ class Sirius.View
   # @return [Void]
   @register_strategy: (name, object = {}) ->
     logger = Sirius.Application.get_logger()
-    logger.info("View: Register new Strategy #{name}")
+    logger.info("View: Register new Strategy #{name}", "View")
     transform = object.transform
     render = object.render
     if !Sirius.Utils.is_function(transform)
       msg = "Strategy must be Function, but #{typeof transform} given."
-      logger.error("View: #{msg}")
+      logger.error("View: #{msg}", logger.view)
       throw new Error(msg)
 
     if !Sirius.Utils.is_function(render)
       msg = "Strategy must be Function, but #{typeof render} given."
-      logger.error("View: #{msg}")
+      logger.error("View: #{msg}", logger.view)
       throw new Error(msg)
 
     if !Sirius.Utils.is_string(name)
       msg = "Strategy name must be String, but #{typeof name} given."
-      logger.error("View: #{msg}")
+      logger.error("View: #{msg}", logger.view)
       throw new Error(msg)
 
     @_Strategies.push([name, transform, render])
