@@ -629,7 +629,13 @@ Sirius.Application =
     if @mix_logger_into_controller
       if @controller_wrapper['logger']
         throw new Error("Logger method already in `controller_wrapper`")
-      @controller_wrapper['logger'] = @logger
+      l = @logger
+      @controller_wrapper['logger'] = {
+        info  : l.info
+        debug : l.debug
+        warn  : l.warn
+        error : l.error
+      }
 
 
 
