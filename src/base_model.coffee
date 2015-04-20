@@ -54,6 +54,24 @@ class Sirius.BaseModel
   @attrs: []
 
   ###
+   Skip fields, when it not define in model
+
+   @example
+
+      class ModelA extends Sirius.BaseModel
+        @attrs: ["id"]
+
+      class ModelB extends Sirius.BaseModel
+        @attrs: ["id"]
+        @skip : true
+
+      obj = {"id": 1, "foo" : "bar" }
+      new ModelA(obj) # => error
+      new ModelB(obj) # => ok
+  ###
+  @skip: false
+
+  ###
     model names for relations.
 
     From this property, will be generated helper methods: `add_x`, where `x` is a model name
@@ -236,9 +254,14 @@ class Sirius.BaseModel
       @_has_create(klass, true)
       @_gen_method_name_for_attribute(klass, true)
 
+
+    skip = @constructor.skip
+    attributes = @attributes
+    # @attributes.indexOf(attr)
     if Object.keys(obj).length != 0
       for attr in Object.keys(obj)
-        @set(attr, obj[attr])
+        if !(attributes.indexOf(attr) == -1 && skip)
+          @set(attr, obj[attr])
 
     if g = @guid_for()
       @set(g, @_generate_guid())

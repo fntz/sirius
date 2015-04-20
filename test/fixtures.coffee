@@ -101,7 +101,9 @@ Controller0 =
   action1 : () ->
     "action1"
 
-
+class SkipFieldsModel extends Sirius.BaseModel
+  @attrs: ["id"]
+  @skip : true
 
 
 

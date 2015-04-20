@@ -170,9 +170,12 @@ describe "BaseModel", ->
         expect(m.get_errors('title').length + m.get_errors('description').length).toEqual(5)
 
 
-
-
-
+  describe "SkipFields", ->
+    it "work without errors when json contain another fields", ->
+      obj = {"id": 1, "another_field": "foobar"}
+  
+      expect(() -> new SkipFieldsModel(obj)).not.toThrow()
+      expect(() -> new MyModel(obj)).toThrow()
 
 
 
