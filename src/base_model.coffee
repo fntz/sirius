@@ -875,7 +875,7 @@ class Sirius.BaseModel
   # @return [Void]
   @register_validator: (name, klass) ->
     logger = Sirius.Application.get_logger()
-    logger.info("register validator: #{name}", "BaseModel")
+    logger.info("register validator: #{name}", logger.base_model)
     @_Validators.push([name, klass])
     null
 

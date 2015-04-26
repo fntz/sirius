@@ -467,7 +467,7 @@ class Sirius.View
   # @return [Void]
   @register_strategy: (name, object = {}) ->
     logger = Sirius.Application.get_logger()
-    logger.info("View: Register new Strategy #{name}", "View")
+    logger.info("View: Register new Strategy #{name}", logger.view)
     transform = object.transform
     render = object.render
     if !Sirius.Utils.is_function(transform)
@@ -516,7 +516,6 @@ Sirius.View.register_strategy('append',
     tag = adapter.get_attr(element, 'tagName')
     type = adapter.get_attr(element, 'type')
     if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
-      # FIXME
       throw new Error("'append' strategy not work for `input` or `textarea` or `select` elements")
 
     if attribute == 'text'

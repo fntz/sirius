@@ -547,6 +547,8 @@ Sirius.Application =
       for l in lvls
         do(l) ->
           o[l] = (msg, location) -> q.push([l, msg, location])
+      for f in Sirius.Logger.Filters
+        o[Sirius.Utils.underscore(f).toLowerCase()] = f
       o
     else
       @logger
