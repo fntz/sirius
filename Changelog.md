@@ -73,7 +73,15 @@ new ModelB(obj) # => ok
 
 ```
 
+`index` for collection. For unique fields you might use indexes with collections.
+This improve search by feild.
 
+```coffee
+# MyModel = id, title, description
+
+models = new Sirius.Collection(MyModel, {index: ["id"]})
+
+```
 
 
 
