@@ -2,8 +2,10 @@ describe "View2View", ->
 
   adapter = if JQueryAdapter?
     new JQueryAdapter()
-  else
+  else if PrototypeAdapter?
     new PrototypeAdapter()
+  else
+    new VanillaJsAdapter()
 
   Sirius.Application.adapter = adapter
 
@@ -75,10 +77,7 @@ describe "View2View", ->
     value = "val3"
 
     beforeAll (done) ->
-      if JQueryAdapter?
-        jQuery(div).html(value)
-      else
-        $$(div)[0].update(value)
+      adapter.get(div).textContent = value
 
       setTimeout(
         () ->

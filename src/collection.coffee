@@ -77,7 +77,7 @@ class Sirius.Collection
     @_klass = klass
     @_type  = Sirius.Utils.fn_name(klass)
 
-    @_indexes = options.index
+    @_indexes = options['index'] || []
     if @_indexes.length > 0
       # check that field name is exist and generate additional object
       attrs = klass::attrs().map (attr) ->

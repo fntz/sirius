@@ -36,7 +36,6 @@ class Sirius.Observer
 
     if typeof(from) == 'object' && from.object && from.prop
       logger.info("Observer: for #{from.object}", logger.observer)
-
       current_prop = from.prop.split(".").join("-")
       if @constructor._clbs[current_prop]?
         @constructor._clbs[current_prop].push([from.object, clb])

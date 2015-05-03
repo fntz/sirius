@@ -194,6 +194,7 @@ class Sirius.ControlFlow
   #
   handle_event: (e, args...) ->
     #when e defined it's a Event, otherwise it's call from url_routes
+    # not need call for CustomEvent
     @logger.info("ControlFlow: Start event processing", @logger.control_flow)
     if e
       data   = if Sirius.Utils.is_array(@data) then @data else if @data then [@data] else []

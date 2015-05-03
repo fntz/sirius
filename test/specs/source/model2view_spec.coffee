@@ -1,8 +1,10 @@
 describe "Model2View", ->
   Sirius.Application.adapter = if JQueryAdapter?
     new JQueryAdapter()
-  else
+  else if PrototypeAdapter?
     new PrototypeAdapter()
+  else
+    new VanillaJsAdapter()
 
   adapter = Sirius.Application.adapter
 
@@ -77,14 +79,9 @@ describe "Model2View", ->
 
 
     it "should have attributes as model attributes", ->
-      if JQueryAdapter?
-        e_id = jQuery(id_element).data('name')
-        e_t = jQuery(title_element).data('name')
-        e_d = jQuery(desc_element).data('name')
-      else
-        e_id = $$(id_element).first().readAttribute("data-name")
-        e_t = $$(title_element).first().readAttribute("data-name")
-        e_d = $$(desc_element).first().readAttribute("data-name")
+      e_id = adapter.get_attr(id_element, 'data-name')
+      e_t = adapter.get_attr(title_element, 'data-name')
+      e_d = adapter.get_attr(desc_element, 'data-name')
 
       expect(e_id).toEqual(id)
       expect(e_t).toEqual(title)
@@ -112,12 +109,8 @@ describe "Model2View", ->
 
 
     it "should have values as model attributes", ->
-      if JQueryAdapter?
-        t = jQuery(title_element).val()
-        d = jQuery(desc_element).val()
-      else
-        t = $$(title_element).first().getValue()
-        d = $$(desc_element).first().getValue()
+      t = adapter.get(title_element).value
+      d = adapter.get(desc_element).value
 
       expect(t).toEqual(title)
       expect(d).toEqual(descrption)

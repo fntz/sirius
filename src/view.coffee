@@ -53,7 +53,7 @@ class Sirius.View
           # and we have @_result
           result = @_result
           element = @element
-          @logger.info("View: Start processing strategy for #{element}", @logger.view)
+          @logger.info("Start processing strategy for #{element}", @logger.view)
           Sirius.Application.get_adapter().and_then (adapter) ->
             # need extract old value
             oldvalue = if attribute is 'text'
@@ -70,7 +70,7 @@ class Sirius.View
   # By default transform function take arguments and return it `(x) -> x`
   # @return [Sirius.View]
   render: (args...) ->
-    @logger.info("View: Call render for #{args}", @logger.view)
+    @logger.info("Call render for #{args}", @logger.view)
     @_result = @_result_fn(args)
     @
 
@@ -409,6 +409,7 @@ class Sirius.View
       view.render(txt)[strategy](to)
 
     new Sirius.Observer({object: object, prop: prop}, clb)
+    return
 
   # @private
   # @nodoc
@@ -514,7 +515,6 @@ Sirius.View.register_strategy('append',
   transform: (oldvalue, newvalue) -> newvalue
   render: (adapter, element, result, attribute) ->
     tag = adapter.get_attr(element, 'tagName')
-    type = adapter.get_attr(element, 'type')
     if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
       throw new Error("'append' strategy not work for `input` or `textarea` or `select` elements")
 
@@ -528,9 +528,7 @@ Sirius.View.register_strategy('prepend',
   transform: (oldvalue, newvalue) -> newvalue
   render: (adapter, element, result, attribute) ->
     tag = adapter.get_attr(element, 'tagName')
-    type = adapter.get_attr(element, 'type')
     if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
-      # FIXME
       throw new Error("'prepend' strategy not work for `input` or `textarea` or `select` elements")
 
     if attribute == 'text'

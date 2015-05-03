@@ -2,8 +2,10 @@ describe "View", ->
 
   adapter = if JQueryAdapter?
     new JQueryAdapter()
-  else
+  else if PrototypeAdapter?
     new PrototypeAdapter()
+  else
+    new VanillaJsAdapter()
 
   Sirius.Application.adapter = adapter
 
@@ -97,7 +99,7 @@ describe "View", ->
           expect(get_text(element)).toEqual("text: contentdefault")
 
     if JQueryAdapter?
-      #FIXME for prototype
+      #FIXME for prototype and for vanillajs
       describe "Event", ->
         element = "#content"
         view = new Sirius.View(element)
@@ -105,13 +107,19 @@ describe "View", ->
         pp2 = null
 
         beforeAll (done) ->
+          adapter = if JQueryAdapter?
+            new JQueryAdapter()
+          else if PrototypeAdapter?
+            new PrototypeAdapter()
+          else
+            new VanillaJsAdapter()
 
           Sirius.Application.run
             route :
               "event:click": (e1, e2, p1, p2) ->
                 pp1 = p1
                 pp2 = p2
-            adapter: if JQueryAdapter? then new JQueryAdapter() else new PrototypeAdapter()
+            adapter: adapter
 
           p1 = 1
           p2 = "abc"
@@ -121,8 +129,10 @@ describe "View", ->
             () ->
               if JQueryAdapter?
                 jQuery(element).trigger("click")
-              else
+              else if PrototypeAdapter?
                 $(element).simulate("click")
+              else
+                adapter.get(element).click()
               done()
             400
           )

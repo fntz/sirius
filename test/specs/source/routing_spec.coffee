@@ -2,8 +2,10 @@ describe "Routing", ->
   R = Sirius.RoutePart
   j = if JQueryAdapter?
     new JQueryAdapter()
-  else
+  else if PrototypeAdapter?
     new PrototypeAdapter()
+  else
+    new VanillaJsAdapter()
 
   Sirius.Application.adapter = j
 
@@ -147,9 +149,10 @@ describe "Routing", ->
       j.fire(document, "event:custom", 0)
       if JQueryAdapter?
         jQuery("#my-div").trigger("click")
-      else
+      else if PrototypeAdapter?
         $("my-div").simulate("click")
-
+      else
+        jQuery("#my-div").trigger("click")
 
     it "test", (done)->
       expect(postValue).toEqual("12")
@@ -172,7 +175,7 @@ describe "Routing", ->
 
       beforeEach (done) ->
         arr = ["/", "/post/12", "/post/abc", "/post/x/a/b/c", "/static", "/error", "/"]
-        if JQueryAdapter?
+        if JQueryAdapter? || VanillaJsAdapter?
           jQuery("body").append("<div id='links'></div>")
           for a in arr
             jQuery('#links').append($("<a></a>").attr({'href':a}).text(a))
@@ -181,13 +184,13 @@ describe "Routing", ->
           for a in arr
             $("links").insert("<a href='#{a}'>#{a}</a>")
 
+
         Controller =
           error: (current) -> errorValue = current
           title: (title) -> titleValue = title
 
         r =
-          "/": () ->
-            emptyValue = arguments.length
+          "/": () -> emptyValue = arguments.length
           "/post/[0-9]+" : (id) -> postValue = id
           "/post/:title" : {controller: Controller, action: "title"}
           "/post/x/*": () -> postXValue = arguments.length
@@ -199,14 +202,17 @@ describe "Routing", ->
           adapter: j
         })
 
+        links = j.all("#links a")
         if JQueryAdapter?
-          links = $("#links a")
           for l in links
             jQuery(l).trigger("click")
-        else
-          links = $("links").childElements()
+        else if PrototypeAdapter?
           for l in links
             $(l).simulate("click")
+        else
+          for l in links
+            l.click()
+
         done()
 
       it "test", (done) ->

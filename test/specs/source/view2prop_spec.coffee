@@ -1,8 +1,10 @@
 describe "View2ObjectProperty", ->
   adapter = if JQueryAdapter?
     new JQueryAdapter()
-  else
+  else if PrototypeAdapter?
     new PrototypeAdapter()
+  else
+    new VanillaJsAdapter()
 
   element = ".view2object span"
   object = {
@@ -10,7 +12,7 @@ describe "View2ObjectProperty", ->
       num: ""
     }
   }
-
+  Sirius.Application.adapter = adapter
   view = new Sirius.View(element)
   view.bind(object, "id.num", {transform: (x) -> "#{x}!!!"})
 

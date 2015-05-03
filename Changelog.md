@@ -83,7 +83,7 @@ models = new Sirius.Collection(MyModel, {index: ["id"]})
 
 ```
 
-
+#### add VanillaJs Adapter.
 
 
 

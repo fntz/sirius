@@ -1,0 +1,154 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <title>Jasmine Spec Runner v2.0.3</title>
+
+  <link rel="shortcut icon" type="image/png" href="jasmine/lib/jasmine_favicon.png">
+  <link rel="stylesheet" type="text/css" href="jasmine/lib/jasmine.css">
+
+
+
+</head>
+
+<body>
+
+<div id="my-div" class="abc"></div>
+
+
+<div id="views">
+  <input type='text' id='txt' class="input-class" data-name="input" value="default" />
+  <select id="views-select">
+    <option value="val1">1</option>
+    <option value="val2">2</option>
+    <option value="val3">3</option>
+  </select>
+  <div id="content"></div>
+</div>
+
+<div class="view2view">
+  <div class="attribute2text">
+    <div class="element" data-name="element"></div>
+    <div class="related-div"></div>
+    <input class="related-input" />
+    <select class="related-select">
+      <option value="val1">val1</option>
+      <option value="val2">val2</option>
+      <option value="val3">val3</option>
+    </select>
+  </div>
+
+  <div class="text2attribute">
+    <div class="div"></div>
+    <input class="input" />
+    <select class="select">
+      <option value="val1">val1</option>
+      <option value="val2">val2</option>
+      <option value="val3">val3</option>
+    </select>
+
+    <div class="for-input"></div>
+    <div class="for-div"></div>
+    <div class="for-select"></div>
+  </div>
+
+  <div class="view2model">
+    <div class="form2model">
+      <form class="my-form">
+        <input type="text" data-bind-to="title" />
+        <textarea data-bind-to="description"></textarea>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="model2view">
+  <div class="attribute2text">
+    <div class="model-id"></div>
+    <div class="model-title"></div>
+    <div class="model-description"></div>
+    <span></span>
+  </div>
+
+  <div class="attribute2attribute">
+    <div class="model-id" data-bind-view-from='id' data-bind-view-to='data-name'></div>
+    <div class="model-title" data-bind-view-from='title' data-bind-view-to='data-name'></div>
+    <div class="model-description" data-bind-view-from='description' data-bind-view-to='data-name'></div>
+    <span></span>
+  </div>
+
+  <div class="attribute2form">
+    <input type="text"  data-bind-view-from='title' />
+    <textarea  data-bind-view-from='description'></textarea>
+  </div>
+
+  <div class="forms">
+    <form class="simple">
+      <span class="title-attr" data-bind-view-from='title' data-bind-view-to='data-name'></span>
+      <span class='title-text' data-bind-view-from='title'></span>
+      <input type="text" data-bind-view-from='title' />
+    </form>
+
+    <hr/>
+
+    <form class="select">
+      <span></span>
+      <select class="select">
+        <option value="title1" data-bind-view-from='title'>title1</option>
+        <option value="title2" data-bind-view-from='title'>title2</option>
+        <option value="title3" data-bind-view-from='title'>title3</option>
+      </select>
+    </form>
+
+
+    <form class="check">
+      <span></span>
+
+      <input type="checkbox" data-bind-view-from='title' value="title1" />title1
+      <input type="checkbox" data-bind-view-from='title' value="title2" />title2
+      <input type="checkbox" data-bind-view-from='title' value="title3" />title3
+
+    </form>
+    <hr/>
+    <form class="radio">
+      <span></span>
+      <input type="radio" name="n" data-bind-view-from='title' value="title1" />title1
+      <input type="radio" name="n" data-bind-view-from='title' value="title2" />title2
+      <input type="radio" name="n" data-bind-view-from='title' value="title3" />title3
+
+    </form>
+  </div>
+
+</div>
+
+<div class="view2object">
+  <span></span>
+</div>
+
+
+<script type="text/javascript" src="../vendor/bililiteRange.js"></script>
+<script type="text/javascript" src="jasmine/lib/jasmine.js"></script>
+<script type="text/javascript" src="jasmine/lib/jasmine-html.js"></script>
+<script type="text/javascript" src="jasmine/lib/boot.js"></script>
+
+<!-- for event trigger -->
+<script type="text/javascript" src="../vendor/jquery.min.js"></script>
+<!-- include source files here... -->
+
+<script type="text/javascript" src="../lib/vanillajs_adapter.js"></script>
+<script type="text/javascript" src="../lib/sirius.js"></script>
+<script type="text/javascript" src="fixtures.js"></script>
+<!-- include spec files here... -->
+
+<script type="text/javascript" src="specs/compile/collection_spec.js"></script>
+<script type="text/javascript" src="specs/compile/validation_spec.js"></script>
+<script type="text/javascript" src="specs/compile/control_flow_spec.js"></script>
+<script type="text/javascript" src="specs/compile/base_model_spec.js"></script>
+<script type="text/javascript" src="specs/compile/view2view_spec.js"></script>
+<script type="text/javascript" src="specs/compile/view2prop_spec.js"></script>
+<script type="text/javascript" src="specs/compile/model2view_spec.js"></script>
+<script type="text/javascript" src="specs/compile/views_spec.js"></script>
+<script type="text/javascript" src="specs/compile/routing_spec.js"></script>
+
+</body>
+</html>
