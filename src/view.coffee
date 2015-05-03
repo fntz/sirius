@@ -356,13 +356,13 @@ class Sirius.View
         setting['transform'] = if setting['transform']?
           setting['transform']
         else
-          logger.info("View: 'transform' method not found. Use default transform method.", @logger.view)
+          logger.info("View: 'transform' method not found. Use default transform method.", logger.view)
           (x) -> x
       else
         # if not transform for given key define default transform method
         Object.keys(setting).map((key) ->
           if !setting[key]['transform']?
-            logger.info("View: define default transform method for '#{key}'", @logger.view)
+            logger.info("View: define default transform method for '#{key}'", logger.view)
             setting[key]['transform'] = (x) -> x
         )
 
@@ -385,7 +385,7 @@ class Sirius.View
           transform = Sirius.BindHelper.transform(element.transform, setting)
 
           clb = (result) =>
-            if result['text']? && !element.from
+            if result['text']? && (!element.from || element.from == 'text')
               model.set(element.to, transform(result['text']))
             if element.from == result['attribute']
               model.set(element.to, transform(result['text']))
