@@ -51,7 +51,7 @@ class Sirius.BindHelper
     keys = Object.keys(user_setting)
     tmp_a = keys.filter((k) -> !Sirius.Utils.is_object(user_setting[k]))
       # extract sub elements
-    @logger.info("BindHelper: use user setting for work with elements", @logger.bind_helper)
+    @logger.info("BindHelper: use user setting for work with elements", @logger.binding)
       # return [element, key]
     elements = []
     Object.keys(user_setting).map (k) ->
@@ -78,7 +78,7 @@ class Sirius.BindHelper
         key = user_setting[element[1]]
         if !key?
           msg = "BindHelper: Not found keys for binding for '#{key}' element"
-          logger.error(msg, logger.bind_helper)
+          logger.error(msg, logger.binding)
           throw new Error(msg)
 
         tmp_to = key['to'] || default_to
@@ -90,7 +90,7 @@ class Sirius.BindHelper
 
         if !elem?
           msg = "Element '#{element[1]}' not found. Check please."
-          logger.error(msg, logger.bind_helper)
+          logger.error(msg, logger.binding)
           throw new Error(msg)
 
         r = {
@@ -125,7 +125,7 @@ class Sirius.BindHelper
     if Sirius.Utils.is_function(setting.transform)
       if name
         msg = error(name)
-        logger.error("#{msg}", logger.bind_helper)
+        logger.error("#{msg}", logger.binding)
         throw new Error(msg)
       else
         setting.transform
@@ -133,5 +133,5 @@ class Sirius.BindHelper
       if setting.transform[name]?
         setting.transform[name]
       else
-        logger.warn("Transform method not found use default transform method: '(x) -> x'", logger.bind_helper)
+        logger.warn("Transform method not found use default transform method: '(x) -> x'", logger.binding)
         (x) -> x

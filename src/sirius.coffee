@@ -147,11 +147,11 @@ class Sirius.ControlFlow
       act
     else
       msg = "Action must be string or function"
-      @logger.error("ControlFlow: #{msg}", @logger.control_flow)
+      @logger.error("ControlFlow: #{msg}", @logger.routing)
       throw new Error(msg)
     if !action
       msg = "action #{act} not found in controller #{controller}"
-      @logger.error("ControlFlow: #{msg}", @logger.control_flow)
+      @logger.error("ControlFlow: #{msg}", @logger.routing)
       throw new Error(msg)
 
     @action = wrapper(action)
@@ -197,7 +197,7 @@ class Sirius.ControlFlow
   handle_event: (e, args...) ->
     #when e defined it's a Event, otherwise it's call from url_routes
     # not need call for CustomEvent
-    @logger.info("ControlFlow: Start event processing", @logger.control_flow)
+    @logger.info("ControlFlow: Start event processing", @logger.routing)
     if e
       data   = if Sirius.Utils.is_array(@data) then @data else if @data then [@data] else []
       result   = Sirius.Application.adapter.get_property(e, data) #FIXME use Promise
@@ -259,11 +259,11 @@ Sirius.RouteSystem =
         event_name = z[1]
         selector   = z[3] || document #when it a custom event: 'custom:event' for example
         adapter.bind(document, selector, event_name, handler)
-        logger.info("RouteSystem: define event route: '#{event_name}' for '#{selector}'", logger.route_system)
+        logger.info("RouteSystem: define event route: '#{event_name}' for '#{selector}'", logger.routing)
 
   _get_hash_routes: (routes, wrapper, adapter, logger) ->
     for url, action of routes when @_hash_route(url)
-      logger.info("RouteSystem: define hash route: '#{url}'", logger.route_system)
+      logger.info("RouteSystem: define hash route: '#{url}'", logger.routing)
       url    = new Sirius.RoutePart(url)
       action = if Sirius.Utils.is_function(action)
         wrapper(action)
@@ -273,7 +273,7 @@ Sirius.RouteSystem =
 
   _get_plain_routes: (routes, wrapper, adapter, logger) ->
     for url, action of routes when @_plain_route(url)
-      logger.info("RouteSystem: define route: '#{url}'", logger.route_system)
+      logger.info("RouteSystem: define route: '#{url}'", logger.routing)
       url    = new Sirius.RoutePart(url)
       action = if Sirius.Utils.is_function(action)
         wrapper(action)
@@ -296,7 +296,7 @@ Sirius.RouteSystem =
 
     Sirius.Application.get_adapter().and_then (adapter) =>
       if redirect_to_hash and !push_state_support
-        logger.info("RouteSystem: Convert plain routing into hash routing", logger.route_system)
+        logger.info("RouteSystem: Convert plain routing into hash routing", logger.routing)
         # convert to new routing
         urls = [] #save urls into array, for check collision
         route = {}
@@ -305,7 +305,7 @@ Sirius.RouteSystem =
           if @_plain_route(url)
             url = "\##{url}"
             if urls.indexOf(url) != -1
-              logger.warn("RouteSystem: Routes already have '#{url}' url", logger.route_system)
+              logger.warn("RouteSystem: Routes already have '#{url}' url", logger.routing)
           route[url] = action
         routes = route
 
@@ -331,7 +331,7 @@ Sirius.RouteSystem =
         route_array = []
         result      = false
 
-        logger.info("RouteSystem: start processing route: '#{current}'", logger.route_system)
+        logger.info("RouteSystem: start processing route: '#{current}'", logger.routing)
 
         if e.type == "hashchange"
           # hashchange
@@ -370,7 +370,7 @@ Sirius.RouteSystem =
               flow.apply(null, f.args)
 
         if !result
-          logger.warn("RouteSystem: route '#{current}' not found. Generate 404 event", logger.route_system)
+          logger.warn("RouteSystem: route '#{current}' not found. Generate 404 event", logger.routing)
           adapter.fire(document, "application:404", current, prev)
           r404 = routes['404'] || routes[404]
           if r404
@@ -380,7 +380,7 @@ Sirius.RouteSystem =
               (new Sirius.ControlFlow(r404, wrapper)).handle_event(null, current)
           return
 
-        logger.info("RouteSystem: Url change to: #{current}", logger.route_system)
+        logger.info("RouteSystem: Url change to: #{current}", logger.routing)
         adapter.fire(document, "application:urlchange", current, prev)
 
 
@@ -392,7 +392,7 @@ Sirius.RouteSystem =
       # convert only when
       links = adapter.all(@_selector)
       if redirect_to_hash && !push_state_support
-        logger.info("RouteSystem: Found #{links.length} link. Convert href into hash based routing", logger.route_system)
+        logger.info("RouteSystem: Found #{links.length} link. Convert href into hash based routing", logger.routing)
         for link in links
           href = link.getAttribute('href')
           if href.indexOf("http") == -1
@@ -400,7 +400,7 @@ Sirius.RouteSystem =
               "\##{href}"
             else
               "\#/#{href}"
-            logger.info("RouteSystem: Convert '#{href}' -> '#{new_href}'", logger.route_system)
+            logger.info("RouteSystem: Convert '#{href}' -> '#{new_href}'", logger.routing)
             link.setAttribute('href', new_href)
 
       if plain_routes.length != 0
@@ -422,7 +422,7 @@ Sirius.RouteSystem =
 
 
       if array_of_routes.length != 0 && plain_routes.length != 0
-        logger.warn("RouteSystem: Seems you use plain routing and hashbased routing at the same time", logger.route_system)
+        logger.warn("RouteSystem: Seems you use plain routing and hashbased routing at the same time", logger.routing)
 
       fn()
 
@@ -510,15 +510,13 @@ Sirius.Application =
    Array with classes for logs
    Possible classes:
       BaseModel   = 0
-      BindHelper  = 1
+      Binding     = 1
       Collection  = 2
-      Observer    = 3
       View        = 4
-      RouteSystem = 5
-      ControlFlow = 6
+      Routing     = 5
       Application = 7
       Redirect    = 8
-      Validator   = 9
+      Validation  = 9
 
    Use as:
 

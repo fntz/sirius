@@ -7,15 +7,13 @@ class Sirius.Logger
 
   @Filters = [
       "BaseModel"
-      "BindHelper"
+      "Binding"
       "Collection"
-      "Observer"
       "View"
-      "RouteSystem"
-      "ControlFlow"
+      "Routing"
       "Application"
       "Redirect"
-      "Validator"
+      "Validation"
     ]
 
   # @param [Boolean] - true, when log enabled

@@ -12,15 +12,13 @@ In `log_filters` need define filters for logs from different places of Sirius. E
 
 ```coffee
 # BaseModel   = 0
-# BindHelper  = 1
+# Binding     = 1
 # Collection  = 2
-# Observer    = 3
 # View        = 4
-# RouteSystem = 5
-# ControlFlow = 6
+# Routing     = 5
 # Application = 7
 # Redirect    = 8
-# Validator   = 9
+# Validation  = 9
  
 Sirius.Application.run
   log_filters: [0, 1, 9] # in console logs only from BaseModel, BindHelper, and Validators
@@ -85,7 +83,7 @@ models = new Sirius.Collection(MyModel, {index: ["id"]})
 
 #### add VanillaJs Adapter.
 
-
+#### improvement for work with logical element in binding
 
 
 
