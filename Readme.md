@@ -241,7 +241,7 @@ and model to view. And it support all strategies or transform methods.
 # view to view
  # html
  <input type='text' id='v1' />
- <span id='r1' data-bind-to='data-name'></span>
+ <span id='r1'></span>
 
  # coffee
  view1 = new Sirius.View('#v1')
@@ -257,14 +257,17 @@ and model to view. And it support all strategies or transform methods.
 # view to model
   # html
   <form id="form">
-    <input type='text' data-bind-to='title'>
-    <textarea data-bind-to='description'></textarea>
+    <input type='text'>
+    <textarea></textarea>
   </form>
 
   # coffee
   view = new Sirius.View("#form")
   my_model = new MyModel()
-  view.bind(my_model)
+  view.bind(my_model, {
+    'input': {to: "title"}
+    'textarea': {to: "description"} 
+  })
 
   # When we enter input, then
   my_model.title() # => user input
@@ -289,15 +292,17 @@ and model to view. And it support all strategies or transform methods.
 ```
 # model to view
 <form id='my-form'>
-  <input type="checkbox" value="val1" data-bind-view-from='model_value' />
-  <input type="checkbox" value="val2" data-bind-view-from='model_value' />
-  <input type="checkbox" value="val3" data-bind-view-from='model_value' />
+  <input name="cgroup" type="checkbox" value="val1" />
+  <input name="cgroup" type="checkbox" value="val2" />
+  <input name="cgroup" type="checkbox" value="val3" />
 </form>
 
 # you model is only Model with one attribute `model_value`
-model = new Model()
+model = new Model({choice: {}})
 view = new Sirius.View("#my-form")
-model.bind(view)
+model.bind(view, {
+  "input[type='checkbox']" : { from: "choice", to: "checked" } # for logical element use checked 
+})
 
 # use it
 model.model_value("val3")
