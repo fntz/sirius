@@ -1,12 +1,12 @@
 class MyModel extends Sirius.BaseModel
   @attrs: ["id", {title: "default title"}, "description"]
-  @to:
-    id          : tag: "b", class: 'my-model-id'
-    title       : tag: "span", class: "my-model-title"
 
   compare: (other) ->
     @.get("id") == other.get("id")
 
+
+class MyModel0 extends Sirius.BaseModel
+  @attrs: ["id", {title: {}}, "description"]
 
 class MyCustomValidator extends Sirius.Validator
   validate: (value, attrs) ->
@@ -54,14 +54,11 @@ class Person extends Sirius.BaseModel
   @attrs: ["id"]
   @has_many : ["group"]
   @has_one : ["name"]
-  @to:
-    group: tag: "p", class: "group"
+
 
 class Group extends Sirius.BaseModel
   @attrs: ["name", "person_id"]
   @belongs_to: [{model: "person", back: "id"}]
-  @to:
-    name: tag: "span"
 
 class Name extends Sirius.BaseModel
   @attrs: ["name", "person_id"]
@@ -74,7 +71,7 @@ class UModel extends Sirius.BaseModel
 
 
 class TodoList extends Sirius.BaseModel
-  @attrs: ["title", {completed: false}, "id"]
+  @attrs: ["title", {completed: {}}, "id"]
   @guid_for : "id"
   is_active: () ->
     !@completed()

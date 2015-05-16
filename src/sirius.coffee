@@ -101,7 +101,7 @@ class Sirius.RoutePart
         args.push(parts[i])
         continue
       if is_regexp_part(cp)
-        r = new RegExp("^#{cp}$");
+        r = new RegExp("^#{cp}$")
         return false if !r.test(gp)
         args.push(r.exec(gp)[0])
         continue
@@ -131,7 +131,9 @@ class Sirius.ControlFlow
   # @note `before`must be a string, where string is a method from `controller` or function
   # @note `after` must be a string, where string is a method from `controller` or function
   # @note `guard` must be a string, where string is a method from `controller` or function
-  # @note you might create in controller method with name: `before_x`, where `x` you action, then you may not specify `before` into params, it automatically find and assigned as `before` method, the same for `after` and `guard`
+  # @note you might create in controller method with name: `before_x`,
+  # where `x` you action, then you may not specify `before` into params,
+  # it automatically find and assigned as `before` method, the same for `after` and `guard`
   # @note `data` must be a string, or array of string
   constructor: (params, wrapper = (x) -> x) ->
     @logger = Sirius.Application.get_logger()
@@ -140,13 +142,13 @@ class Sirius.ControlFlow
     act = params['action']
 
     action = if Sirius.Utils.is_string(act)
-                controller[act]
-              else if Sirius.Utils.is_function(act)
-                act
-              else
-                msg = "Action must be string or function"
-                @logger.error("ControlFlow: #{msg}", @logger.control_flow)
-                throw new Error(msg)
+      controller[act]
+    else if Sirius.Utils.is_function(act)
+      act
+    else
+      msg = "Action must be string or function"
+      @logger.error("ControlFlow: #{msg}", @logger.control_flow)
+      throw new Error(msg)
     if !action
       msg = "action #{act} not found in controller #{controller}"
       @logger.error("ControlFlow: #{msg}", @logger.control_flow)
@@ -154,7 +156,7 @@ class Sirius.ControlFlow
 
     @action = wrapper(action)
 
-    extract = (property, is_guard = false) =>
+    extract = (property, is_guard = false) ->
       p = params[property]
       k = controller["#{property}_#{act}"]
       err = (a) ->
@@ -592,7 +594,7 @@ Sirius.Application =
       else
         xs = @log_filters.filter (x) -> lf.indexOf(x) == -1
         if xs.length != 0
-         throw new Error("Check log filters given `#{user_filter}`. Allow #{lf}")
+          throw new Error("Check log filters given `#{user_filter}`. Allow #{lf}")
     else
       @log_filters = Sirius.Logger.Filters
 
@@ -605,14 +607,14 @@ Sirius.Application =
       @controller_wrapper[key] = value
 
     @hash_always_on_top = if options["hash_always_on_top"]?
-                            options["hash_always_on_top"]
-                          else
-                            @hash_always_on_top
+      options["hash_always_on_top"]
+    else
+      @hash_always_on_top
 
     @use_hash_routing_for_old_browsers = if options["use_hash_routing_for_old_browsers"]?
-                                           options["use_hash_routing_for_old_browsers"]
-                                         else
-                                           @use_hash_routing_for_old_browsers
+      options["use_hash_routing_for_old_browsers"]
+    else
+      @use_hash_routing_for_old_browsers
 
     @logger.info("Logger enabled? #{@log}", @logger.application)
     @logger.info("Log filters: #{@log_filters}", @logger.application)
@@ -631,7 +633,7 @@ Sirius.Application =
 
     if @mix_logger_into_controller
       if @controller_wrapper['logger']
-        throw new Error("Logger method already in `controller_wrapper`")
+        @logger.warn("Logger method already in `controller_wrapper`", @logger.application)
       l = @logger
       @controller_wrapper['logger'] = {
         info  : l.info

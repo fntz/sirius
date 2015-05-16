@@ -173,7 +173,7 @@ describe "Routing", ->
     if history.pushState
       emptyValue = postValue = titleValue = postXValue = staticValue = errorValue = null
 
-      beforeEach (done) ->
+      beforeAll (done) ->
         arr = ["/", "/post/12", "/post/abc", "/post/x/a/b/c", "/static", "/error", "/"]
         if JQueryAdapter? || VanillaJsAdapter?
           jQuery("body").append("<div id='links'></div>")
@@ -199,7 +199,9 @@ describe "Routing", ->
 
         Sirius.Application.run({
           route: r,
-          adapter: j
+          adapter: j,
+          mix_logger_into_controller: false,
+          controller_wrapper: {}
         })
 
         links = j.all("#links a")

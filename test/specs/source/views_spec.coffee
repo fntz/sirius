@@ -113,8 +113,8 @@ describe "View", ->
             new PrototypeAdapter()
           else
             new VanillaJsAdapter()
-
-          Sirius.Application.run
+          SA = Sirius.Application
+          SA.run
             route :
               "event:click": (e1, e2, p1, p2) ->
                 pp1 = p1

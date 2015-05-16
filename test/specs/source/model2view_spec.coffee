@@ -117,44 +117,45 @@ describe "Model2View", ->
 
   describe "attribute to form for logical attributes", ->
     element = "div.model2view div.forms"
+
     model = new MyModel()
+    model0 = new MyModel0()
 
     simpleForm = new Sirius.View("#{element} form.simple")
-#    selectForm = new Sirius.View("#{element} form.select")
-#    checkForm = new Sirius.View("#{element} form.check")
-#    radioForm = new Sirius.View("#{element} form.radio")
+    selectForm = new Sirius.View("#{element} form.select")
+    checkForm = new Sirius.View("#{element} form.check")
+    radioForm = new Sirius.View("#{element} form.radio")
 
     model.bind(simpleForm, {
       ".title-attr" : {from: "title", to: "data-name"}
       ".title-text" : {from: "title"}
       "input[type='text']": {from: "title"}
     })
-#    model.bind(selectForm, {
-#      'option': {from: "title"}
-#    })
-#    model.bind(checkForm, {
-#      'input': {from: "title"}
-#    })
-#    model.bind(radioForm, {
-#      'input': {from: "title"}
-#    })
 
-    title = "title3"
+    model.bind(selectForm, {
+      'select': {from: "title"}
+    })
+
+    model0.bind(checkForm, {
+      'input[type="checkbox"]': {from: "title", to: "checked"}
+    })
+
+    model0.bind(radioForm, {
+      'input[type="radio"]': {from: "title", to: "checked"}
+    })
+
+    expected = "title2"
+    title = {"title2" : true}
 
     beforeAll () ->
-      model.title(title)
-
-    it "should have correct attributes", ->
-      if JQueryAdapter?
-        expect($("#{element} form.simple span.title-attr").data('name')).toEqual(title)
-        expect($("#{element} form.simple span.title-text").text()).toEqual(title)
-        expect($("#{element} form.simple input").val()).toEqual(title)
-#        expect($("#{element} form.check").find(":checked").val()).toEqual(title)
-#        expect($("#{element} form.radio").find(":checked").val()).toEqual(title)
-#        expect($("#{element} form.select").find(":selected").text()).toEqual(title)
-      else
-        1
+      model0.title(title)
+      model.title(expected)
 
 
-
-
+    it "should have correct attributes",  ->
+      expect(adapter.all("#{element} form.check input:checked")[0].value).toEqual(expected)
+      expect(adapter.all("#{element} form.radio input:checked")[0].value).toEqual(expected)
+      select = adapter.all("#{element} form.select select")[0]
+      sIndex = select.options.selectedIndex
+      expect(select[sIndex].value).toEqual(expected)
+      expect(adapter.text("#{element} form.simple span.title-text")).toEqual(expected)

@@ -29,7 +29,6 @@ class Sirius.BindHelper
   extract: (adapter, user_setting = {}) ->
     # when it contain only one element (no children)
     # it's a single mode
-
     to = @setting['to']
     from = @setting['from']
     strategy = @setting['strategy']
@@ -38,11 +37,15 @@ class Sirius.BindHelper
     default_to = @setting['default_to']
     is_bind_view_to_model = @is_bind_view_to_model
     result = []
-    @logger.info("BindHelper: to: #{to}, from: #{from}", @logger.bind_helper)
-    @logger.info("BindHelper: strategy: #{strategy}", @logger.bind_helper)
+    @logger.info("BindHelper: to: #{to}, from: #{from}")
+    @logger.info("BindHelper: strategy: #{strategy}")
     @logger.info("BindHelper: transform: #{transform}")
-    @logger.info("BindHelper: default from: #{default_from}", @logger.bind_helper)
-    @logger.info("BindHelper: default to: #{default_to}", @logger.bind_helper)
+    @logger.info("BindHelper: default from: #{default_from}")
+    @logger.info("BindHelper: default to: #{default_to}")
+
+
+    is_bind_view_to_model = @is_bind_view_to_model
+    result = []
 
     element = @element
     keys = Object.keys(user_setting)
@@ -54,7 +57,7 @@ class Sirius.BindHelper
     Object.keys(user_setting).map (k) ->
       tag = adapter.get_attr("#{element} #{k}", 'tagName')
       type = adapter.get_attr("#{element} #{k}", 'type')
-      if tag == "OPTION" || type == "checkbox"
+      if tag == "OPTION" || type == "checkbox" || type == "radio"
         z = adapter.all("#{element} #{k}")
         for x in z
           elements.push([x, k])
@@ -63,49 +66,40 @@ class Sirius.BindHelper
 
     if tmp_a.length != 0
       # need extract main element, and children
-      @logger.error("DEPRECATED: seems `user_setting`: #{tmp_a} contain non object", @logger.bind_helper)
-      @logger.error("Html data-bind-* removed", @logger.bind_helper)
-      throw new Error("Define setting for binding")
+      @logger.error("DEPRECATED: seems `user_setting`: #{tmp_a} contain non object")
+      @logger.error("Html data-bind-* removed")
+      throw new Error("Define setting for binding with javascript object")
 
     logger = @logger
-    #
-    # Extract all elements which contain data-bind-*
-    # with data-bind-strategy
-    # with data-bind-transform
-    # and selector
+    top = element
+
     for element in elements
       do(element) ->
-        if Sirius.Utils.is_array(element)
-          key = user_setting[element[1]]
-          if !key?
-            msg = "BindHelper: Not found keys for binding for '#{key}' element"
-            logger.error(msg, logger.bind_helper)
-            throw new Error(msg)
+        key = user_setting[element[1]]
+        if !key?
+          msg = "BindHelper: Not found keys for binding for '#{key}' element"
+          logger.error(msg, logger.bind_helper)
+          throw new Error(msg)
 
-          tmp_to = key['to'] || default_to
-          tmp_from = key['from'] || default_from
-          tmp_strategy = key['strategy'] || 'swap'
-          tmp_transform = key['transform']
-          elem = element[0]
+        tmp_to = key['to'] || default_to
+        tmp_from = key['from'] || default_from
+        tmp_strategy = key['strategy'] || 'swap'
+        tmp_transform = key['transform']
+        tmp_original = "#{top} #{element[1]}"
+        elem = element[0]
 
-          if !elem?
-            msg = "Element '#{element[1]}' not found. Check please."
-            logger.error(msg, logger.bind_helper)
-            throw new Error(msg)
+        if !elem?
+          msg = "Element '#{element[1]}' not found. Check please."
+          logger.error(msg, logger.bind_helper)
+          throw new Error(msg)
 
-        else
-          elem = element
-          tmp_to   = adapter.get_attr(element, to) || default_to
-          tmp_from = adapter.get_attr(element, from) || default_from
-          tmp_strategy = adapter.get_attr(element, strategy) || 'swap'
-          tmp_transform = adapter.get_attr(element, transform)
-        # for view to model, need tmp_to but for model to view need tmp_from
         r = {
           to: tmp_to
           from: tmp_from
           strategy: tmp_strategy
           transform: tmp_transform
           element: elem
+          selector: tmp_original
         }
         if is_bind_view_to_model
           if tmp_to
@@ -131,7 +125,7 @@ class Sirius.BindHelper
     if Sirius.Utils.is_function(setting.transform)
       if name
         msg = error(name)
-        logger.error("BindHelper: #{msg}", logger.bind_helper)
+        logger.error("#{msg}", logger.bind_helper)
         throw new Error(msg)
       else
         setting.transform
@@ -139,5 +133,5 @@ class Sirius.BindHelper
       if setting.transform[name]?
         setting.transform[name]
       else
-        logger.warn("BindHelper: Transform method not found use default transform method: '(x) -> x'", logger.bind_helper)
+        logger.warn("Transform method not found use default transform method: '(x) -> x'", logger.bind_helper)
         (x) -> x

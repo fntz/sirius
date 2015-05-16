@@ -227,7 +227,7 @@ class Sirius.BaseModel
     for attr in @attrs()
       # @attrs: [{key: value}]
       @logger.info("BaseModel: define '#{attr}' attribute for '#{name}'", @logger.base_model)
-      if typeof(attr) is "object"
+      if Sirius.Utils.is_object(attr)
         [key, ...] = Object.keys(attr)
         if !key
           msg = "Attributes should have a key and value"
@@ -350,18 +350,25 @@ class Sirius.BaseModel
   # Base setter
   # @param attr [String] - attribute
   # @param value [Any]   - value
+  # @note if attribute is object, then and value should be object, if value keys and values copy into attribute object
   # @throw Error, when attributes not defined for current model
   # @return [Void]
   set: (attr, value) ->
     throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model") if @attributes.indexOf(attr) == -1
 
     oldvalue = @.get(attr)
-    @["_#{attr}"] = value
+    if Sirius.Utils.is_object(oldvalue)
+      if !Sirius.Utils.is_object(value)
+        throw new Error("Attribute '#{attr}' is object, but value '#{value}' not object.")
+      for k, v of value
+        oldvalue[k] = v
+    else
+      @["_#{attr}"] = value
 
     @validate(attr)
 
     for clb in @callbacks
-      clb.apply(null, [attr, value])
+      clb.apply(null, [attr, value, oldvalue])
 
     @after_update(attr, value, oldvalue)
 
@@ -411,7 +418,7 @@ class Sirius.BaseModel
   validate: (field = null) ->
     #FIXME work with relations
     Object.keys(@_model_validators || {}).filter(
-      (key) =>
+      (key) ->
         if field?
           key == field
         else
@@ -724,7 +731,7 @@ class Sirius.BaseModel
       }, false).extract(adapter, object_setting)
 
       attributes = @attributes
-
+      self = @
       for element in elements
         do(element) ->
           # it attribute or property
@@ -738,14 +745,14 @@ class Sirius.BaseModel
 
           # for attributes
           if attributes.indexOf(element.from) != -1
-            clb = (attr, value) ->
+            clb = (attr, value, oldvalue) ->
               result = transform(value)
               tag = adapter.get_attr(element.element, 'tagName')
               type = adapter.get_attr(element.element, 'type')
               # recursion detect
               # fixme maybe only for double side binding
 
-              if element.to is 'text' && tag != "OPTION" && (["checkbox", "radio"].indexOf(type) == -1)
+              if element.to is 'text' && tag != "SELECT" && (["checkbox", "radio"].indexOf(type) == -1)
                 if adapter.text(element.element) == result
                   return
               else
@@ -754,16 +761,23 @@ class Sirius.BaseModel
 
               if attr is element.from
                 if element.to is 'text'
-                  if type == 'checkbox' || type == 'radio'
-                    current_value = adapter.get_attr(element.element, 'value')
-                    if current_value == value
-                      adapter.set_prop(element.element, 'checked', true)
                   if tag == 'OPTION'
                     current_value = adapter.get_attr(element.element, 'value')
                     if current_value == value
                       adapter.set_prop(element.element, 'selected', true)
                   else
                     element.view.render(result)[strategy](element.to)
+                else if element.to is 'checked'
+                  current_value = adapter.get_attr(element.element, 'value')
+                  if value[current_value]?
+                    if value[current_value] == true
+                      adapter.set_prop(element.element, 'checked', true)
+                    else
+                      adapter.set_prop(element.element, 'checked', false)
+                    if type == 'radio'
+                      # need reset oldvalue manually
+                      for k, v of oldvalue when current_value != k
+                        self["_#{attr}"][k] = false
                 else
                   element.view.render(result)[strategy](element.to)
             callbacks.push(clb)
@@ -786,10 +800,10 @@ class Sirius.BaseModel
             else if prop.length == 2
               key = prop[1]
               Object.keys(errors[key]).forEach((validator_name) ->
-                 element.view.bind(current_model.errors, "#{key}.#{validator_name}", {
-                   to: element.to,
-                   strategy: strategy,
-                   transform: transform
+                element.view.bind(current_model.errors, "#{key}.#{validator_name}", {
+                  to: element.to,
+                  strategy: strategy,
+                  transform: transform
                 })
               )
             else
