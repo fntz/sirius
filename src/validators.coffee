@@ -34,7 +34,7 @@ class Sirius.LengthValidator extends Sirius.Validator
   #
   # @return [Boolean]
   validate: (value, attributes) ->
-    @logger.info("LengthValidator: start validate '#{value}'")
+    @logger.info("LengthValidator: start validate '#{value}'", @logger.validation)
     if value?
       max = attributes['max'] || Number.POSITIVE_INFINITY
       min = attributes['min'] || Number.NEGATIVE_INFINITY
@@ -68,7 +68,7 @@ class Sirius.ExclusionValidator extends Sirius.Validator
   # @param [Object] attributes - object with range, range define with `within`
   # @return [Boolean]
   validate: (value, attributes) ->
-    @logger.info("ExclusionValidator: start validate '#{value}'")
+    @logger.info("ExclusionValidator: start validate '#{value}'", @logger.validation)
     range = attributes['within'] || []
     if range.indexOf(value) == -1
       true
@@ -86,7 +86,7 @@ class Sirius.InclusionValidator extends Sirius.Validator
   # @param [Object] attributes - object with range, range define with `within`
   # @return [Boolean]
   validate: (value, attributes) ->
-    @logger.info("InclusionValidator: start validate '#{value}'")
+    @logger.info("InclusionValidator: start validate '#{value}'", @logger.validation)
     range = attributes['within'] || []
     if range.indexOf(value) > -1
       true
@@ -104,7 +104,7 @@ class Sirius.FormatValidator extends Sirius.Validator
   # @param [Object] attributes - object with format, format define with `format` key.
   # @return [Boolean]
   validate: (value, attributes) ->
-    @logger.info("FormatValidator: start validate '#{value}'")
+    @logger.info("FormatValidator: start validate '#{value}'", @logger.validation)
     format = attributes['with'] || throw new Error("format attribute required")
     if value?
       if format.test(value)
@@ -127,7 +127,7 @@ class Sirius.NumericalityValidator extends Sirius.Validator
   # @param [Object] attributes - object which might contain, `only_integers` key
   # @return [Boolean]
   validate: (value, attributes = {}) ->
-    @logger.info("NumericalityValidator: start validate '#{value}'")
+    @logger.info("NumericalityValidator: start validate '#{value}'", @logger.validation)
     if attributes['only_integers']
       if /^\d+$/.test(value)
         true
@@ -152,7 +152,7 @@ class Sirius.PresenceValidator extends Sirius.Validator
   # @param [Boolean] attributes
   # @return [Boolean]
   validate: (value, attributes = true) ->
-    @logger.info("PresenceValidator: start validate '#{value}'")
+    @logger.info("PresenceValidator: start validate '#{value}'", @logger.validation)
     if value
       true
     else

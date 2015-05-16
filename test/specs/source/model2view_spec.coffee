@@ -1,8 +1,10 @@
 describe "Model2View", ->
   Sirius.Application.adapter = if JQueryAdapter?
     new JQueryAdapter()
-  else
+  else if PrototypeAdapter?
     new PrototypeAdapter()
+  else
+    new VanillaJsAdapter()
 
   adapter = Sirius.Application.adapter
 
@@ -77,14 +79,9 @@ describe "Model2View", ->
 
 
     it "should have attributes as model attributes", ->
-      if JQueryAdapter?
-        e_id = jQuery(id_element).data('name')
-        e_t = jQuery(title_element).data('name')
-        e_d = jQuery(desc_element).data('name')
-      else
-        e_id = $$(id_element).first().readAttribute("data-name")
-        e_t = $$(title_element).first().readAttribute("data-name")
-        e_d = $$(desc_element).first().readAttribute("data-name")
+      e_id = adapter.get_attr(id_element, 'data-name')
+      e_t = adapter.get_attr(title_element, 'data-name')
+      e_d = adapter.get_attr(desc_element, 'data-name')
 
       expect(e_id).toEqual(id)
       expect(e_t).toEqual(title)
@@ -112,56 +109,53 @@ describe "Model2View", ->
 
 
     it "should have values as model attributes", ->
-      if JQueryAdapter?
-        t = jQuery(title_element).val()
-        d = jQuery(desc_element).val()
-      else
-        t = $$(title_element).first().getValue()
-        d = $$(desc_element).first().getValue()
+      t = adapter.get(title_element).value
+      d = adapter.get(desc_element).value
 
       expect(t).toEqual(title)
       expect(d).toEqual(descrption)
 
   describe "attribute to form for logical attributes", ->
     element = "div.model2view div.forms"
+
     model = new MyModel()
+    model0 = new MyModel0()
 
     simpleForm = new Sirius.View("#{element} form.simple")
-#    selectForm = new Sirius.View("#{element} form.select")
-#    checkForm = new Sirius.View("#{element} form.check")
-#    radioForm = new Sirius.View("#{element} form.radio")
+    selectForm = new Sirius.View("#{element} form.select")
+    checkForm = new Sirius.View("#{element} form.check")
+    radioForm = new Sirius.View("#{element} form.radio")
 
     model.bind(simpleForm, {
       ".title-attr" : {from: "title", to: "data-name"}
       ".title-text" : {from: "title"}
       "input[type='text']": {from: "title"}
     })
-#    model.bind(selectForm, {
-#      'option': {from: "title"}
-#    })
-#    model.bind(checkForm, {
-#      'input': {from: "title"}
-#    })
-#    model.bind(radioForm, {
-#      'input': {from: "title"}
-#    })
 
-    title = "title3"
+    model.bind(selectForm, {
+      'select': {from: "title"}
+    })
+
+    model0.bind(checkForm, {
+      'input[type="checkbox"]': {from: "title", to: "checked"}
+    })
+
+    model0.bind(radioForm, {
+      'input[type="radio"]': {from: "title", to: "checked"}
+    })
+
+    expected = "title2"
+    title = {"title2" : true}
 
     beforeAll () ->
-      model.title(title)
-
-    it "should have correct attributes", ->
-      if JQueryAdapter?
-        expect($("#{element} form.simple span.title-attr").data('name')).toEqual(title)
-        expect($("#{element} form.simple span.title-text").text()).toEqual(title)
-        expect($("#{element} form.simple input").val()).toEqual(title)
-#        expect($("#{element} form.check").find(":checked").val()).toEqual(title)
-#        expect($("#{element} form.radio").find(":checked").val()).toEqual(title)
-#        expect($("#{element} form.select").find(":selected").text()).toEqual(title)
-      else
-        1
+      model0.title(title)
+      model.title(expected)
 
 
-
-
+    it "should have correct attributes",  ->
+      expect(adapter.all("#{element} form.check input:checked")[0].value).toEqual(expected)
+      expect(adapter.all("#{element} form.radio input:checked")[0].value).toEqual(expected)
+      select = adapter.all("#{element} form.select select")[0]
+      sIndex = select.options.selectedIndex
+      expect(select[sIndex].value).toEqual(expected)
+      expect(adapter.text("#{element} form.simple span.title-text")).toEqual(expected)

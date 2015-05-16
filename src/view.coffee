@@ -36,16 +36,16 @@ class Sirius.View
       view[0]
 
     @logger = Sirius.Application.get_logger()
-    @_result_fn = (args...) =>
+    @_result_fn = (args...) ->
       clb.apply(null, args...)
-    @logger.info("View: Create a new View for #{@element}")
+    @logger.info("Create a new View for #{@element}", @logger.view)
 
 
 
     for strategy in @constructor._Strategies
       do(strategy) =>
         name = strategy[0]
-        @logger.info("View: Define #{name} strategy")
+        @logger.info("Define #{name} strategy", @logger.view)
         transform = strategy[1]
         render = strategy[2]
         @[name] = (attribute = "text") =>
@@ -53,7 +53,7 @@ class Sirius.View
           # and we have @_result
           result = @_result
           element = @element
-          @logger.info("View: Start processing strategy for #{element}")
+          @logger.info("Start processing strategy for #{element}", @logger.view)
           Sirius.Application.get_adapter().and_then (adapter) ->
             # need extract old value
             oldvalue = if attribute is 'text'
@@ -70,7 +70,7 @@ class Sirius.View
   # By default transform function take arguments and return it `(x) -> x`
   # @return [Sirius.View]
   render: (args...) ->
-    @logger.info("View: Call render for #{args}")
+    @logger.info("Call render for #{args}", @logger.view)
     @_result = @_result_fn(args)
     @
 
@@ -98,20 +98,20 @@ class Sirius.View
   #         # you code
   on: (selector, event_name, custom_event_name, params...) ->
     selector = if selector == @element
-                 selector
-               else
-                 "#{@element} #{selector}"
-    @logger.info("View: Bind event for #{selector}, event name: #{event_name}, will be called : #{custom_event_name}")
+      selector
+    else
+      "#{@element} #{selector}"
+    @logger.info("View: Bind event for #{selector}, event name: #{event_name}, will be called : #{custom_event_name}", @logger.view)
 
     if Sirius.Utils.is_string(custom_event_name)
       handler = (e) ->
-        Sirius.Application.get_adapter().and_then((adapter) =>
+        Sirius.Application.get_adapter().and_then((adapter) ->
           adapter.fire.call(null, document, custom_event_name, e, params...)
         )
-      Sirius.Application.get_adapter().and_then((adapter) => adapter.bind(document, selector, event_name, handler))
+      Sirius.Application.get_adapter().and_then((adapter) -> adapter.bind(document, selector, event_name, handler))
     else
       if Sirius.Utils.is_function(custom_event_name)
-        Sirius.Application.get_adapter().and_then((adapter) =>
+        Sirius.Application.get_adapter().and_then((adapter) ->
           adapter.bind(document, selector, event_name, custom_event_name)
         )
         #custom_event_name
@@ -312,7 +312,7 @@ class Sirius.View
     setting = args[0] || {}
     extra = args[1] || {}
 
-    @logger.info("View: Call bind for #{klass}")
+    @logger.info("View: Call bind for #{klass}", @logger.view)
     if klass
 
       if (typeof(klass) == 'object') && Sirius.Utils.is_string(setting)
@@ -341,7 +341,7 @@ class Sirius.View
     #     transform: '' # or default transform
     #     strategy: '' # or default strategy
     #
-    @logger.info("View: Bind #{@element} and model: #{Sirius.Utils.fn_name(model.constructor)}")
+    @logger.info("Bind #{@element} and model: #{Sirius.Utils.fn_name(model.constructor)}", @logger.view)
 
     logger = @logger
 
@@ -352,17 +352,17 @@ class Sirius.View
       t = Object.keys(setting).map((key) -> Sirius.Utils.is_function(setting[key]))
 
       if t.length == 0
-        logger.info("View: Bind: setting empty")
+        logger.info("View: Bind: setting empty", logger.view)
         setting['transform'] = if setting['transform']?
           setting['transform']
         else
-          logger.info("View: 'transform' method not found. Use default transform method.")
+          logger.info("View: 'transform' method not found. Use default transform method.", logger.view)
           (x) -> x
       else
         # if not transform for given key define default transform method
         Object.keys(setting).map((key) ->
           if !setting[key]['transform']?
-            logger.info("View: define default transform method for '#{key}'")
+            logger.info("View: define default transform method for '#{key}'", logger.view)
             setting[key]['transform'] = (x) -> x
         )
 
@@ -384,20 +384,52 @@ class Sirius.View
 
           transform = Sirius.BindHelper.transform(element.transform, setting)
 
-          clb = (result) =>
-            if result['text']? && !element.from
+          clb = (result) ->
+            if result['text']? && (!element.from || element.from == 'text')
               model.set(element.to, transform(result['text']))
+              return
             if element.from == result['attribute']
               model.set(element.to, transform(result['text']))
-            if element.from == "checked" # FIXME maybe add array with boolean attributes
-              model.set(element.to, result['state'])
+              return
+            if element.from == "checked" # // "selected"
+              # work with logical elements: checkbox, radio and select
+              # for checkbox or radio need define in model attribute as object
+              # TODO cache this
+              nms = element.element
+              type = adapter.get_attr(nms, 'type')
+              selector = element.selector
+              state = result['state']
+              actual_attribute = model.get(element.to)
+              value = adapter.get_attr(nms, 'value')
+              if value.length == 0
+                throw new Error("value attribute for #{selector} is empty, check please")
+
+              if type == 'radio'
+                if Sirius.Utils.is_object(actual_attribute)
+                  logger.info("attribute #{element.to} is object, change property #{value} to #{state}", logger.view)
+                  o = {}
+                  o[value] = state
+                  model.set(element.to, o)
+                else
+                  if state is true
+                    throw new Error("For bind radio '#{selector}' need define attribute '#{element.to}' in model as object")
+              else if type == 'checkbox'
+                if Sirius.Utils.is_object(actual_attribute)
+                  logger.info("attribute #{element.to} is object, change property #{value} to #{state}", logger.view)
+                  o = {}
+                  o[value] = state
+                  model.set(element.to, o)
+                else
+                  throw new Error("For bind checkbox '#{selector}' need define attribute '#{element.to}' in model as object")
+              else
+                model.set(element.to, result['state'])
 
           new Sirius.Observer(element.element, clb)
 
   # @private
   # @nodoc
   _bind_prop: (object, prop, setting = {}) ->
-    @logger.info("View: Bind '#{@element}' and object #{object} with property: #{prop}")
+    @logger.info("View: Bind '#{@element}' and object #{object} with property: #{prop}", @logger.view)
     to = setting['to'] || 'text'
     strategy  = setting['strategy'] || 'swap'
     transform = setting['transform'] || (x) -> x
@@ -409,15 +441,16 @@ class Sirius.View
       view.render(txt)[strategy](to)
 
     new Sirius.Observer({object: object, prop: prop}, clb)
+    return
 
   # @private
   # @nodoc
   _bind_view: (view, setting) ->
-    @logger.info("View: Bind '#{@element}' with '#{view.element}'")
+    @logger.info("Bind '#{@element}' with '#{view.element}'", @logger.view)
     to   = setting['to']   || 'text'
     from = setting['from'] || 'text'
     strategy = setting['strategy'] || 'swap'
-    @logger.info("View: for '#{view.element}' use to: '#{to}' and from: '#{from}', strategy: #{strategy}")
+    @logger.info("for '#{view.element}' use to: '#{to}' and from: '#{from}', strategy: #{strategy}", @logger.view)
     current = @element
     # {text: null, attribute: null}
     clb = (result) ->
@@ -467,22 +500,22 @@ class Sirius.View
   # @return [Void]
   @register_strategy: (name, object = {}) ->
     logger = Sirius.Application.get_logger()
-    logger.info("View: Register new Strategy #{name}")
+    logger.info("View: Register new Strategy #{name}", logger.view)
     transform = object.transform
     render = object.render
     if !Sirius.Utils.is_function(transform)
       msg = "Strategy must be Function, but #{typeof transform} given."
-      logger.error("View: #{msg}")
+      logger.error("View: #{msg}", logger.view)
       throw new Error(msg)
 
     if !Sirius.Utils.is_function(render)
       msg = "Strategy must be Function, but #{typeof render} given."
-      logger.error("View: #{msg}")
+      logger.error("View: #{msg}", logger.view)
       throw new Error(msg)
 
     if !Sirius.Utils.is_string(name)
       msg = "Strategy name must be String, but #{typeof name} given."
-      logger.error("View: #{msg}")
+      logger.error("View: #{msg}", logger.view)
       throw new Error(msg)
 
     @_Strategies.push([name, transform, render])
@@ -498,12 +531,12 @@ Sirius.View.register_strategy('swap',
       if attribute == 'checked'
         # for boolean attributes need remove it when result is false
         r = if Sirius.Utils.is_string(result)
-              if result == 'true'
-                true
-              else
-                false
-            else
-              !!result
+          if result == 'true'
+            true
+          else
+            false
+        else
+          !!result
 
         adapter.set_prop(element, 'checked', r)
       else
@@ -514,9 +547,7 @@ Sirius.View.register_strategy('append',
   transform: (oldvalue, newvalue) -> newvalue
   render: (adapter, element, result, attribute) ->
     tag = adapter.get_attr(element, 'tagName')
-    type = adapter.get_attr(element, 'type')
     if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
-      # FIXME
       throw new Error("'append' strategy not work for `input` or `textarea` or `select` elements")
 
     if attribute == 'text'
@@ -529,9 +560,7 @@ Sirius.View.register_strategy('prepend',
   transform: (oldvalue, newvalue) -> newvalue
   render: (adapter, element, result, attribute) ->
     tag = adapter.get_attr(element, 'tagName')
-    type = adapter.get_attr(element, 'type')
     if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
-      # FIXME
       throw new Error("'prepend' strategy not work for `input` or `textarea` or `select` elements")
 
     if attribute == 'text'

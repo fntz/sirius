@@ -95,6 +95,8 @@ task :build do
 
   prototype_files = coffee(src, %w(adapter prototype_js_adapter))
   jquery_files = coffee(src, %w(adapter jquery_adapter))
+  vanilla_files = coffee(src, %w(adapter vanilla_js_adapter))
+
   lib_files = coffee(src, %w(
     version ext logger promise utils
     sirius validators observer
@@ -104,6 +106,7 @@ task :build do
   system("cat #{lib_files} | coffee -c -b --stdio > #{path}/sirius.js")
   system("cat #{prototype_files} | coffee -c -b --stdio > #{path}/prototypejs_adapter.js")
   system("cat #{jquery_files} | coffee -c -b --stdio > #{path}/jquery_adapter.js")
+  system("cat #{vanilla_files} | coffee -c -b --stdio > #{path}/vanillajs_adapter.js")
 end
 
 desc "Create doc"

@@ -35,8 +35,7 @@ class Sirius.Observer
     current_value = null
 
     if typeof(from) == 'object' && from.object && from.prop
-      logger.info("Observer: for #{from.object}")
-
+      logger.info("Observer: for #{from.object}", logger.binding)
       current_prop = from.prop.split(".").join("-")
       if @constructor._clbs[current_prop]?
         @constructor._clbs[current_prop].push([from.object, clb])
@@ -74,10 +73,10 @@ class Sirius.Observer
       tag  = adapter.get_attr(from, 'tagName')
       type = adapter.get_attr(from, 'type')
 
-      logger.info("Observer: for #{from}")
+      logger.info("for #{from}", logger.binding)
       # FIXME maybe save all needed attributes in hash ????
       handler = (e) ->
-        logger.info("Observer: Handler Function: given #{e.type} event")
+        logger.info("Handler Function: given #{e.type} event", logger.binding)
         result = {text: null, attribute: null}
         return if ['focusout', 'focusin'].indexOf(e.type) != -1
         txt = adapter.text(from)
@@ -112,8 +111,8 @@ class Sirius.Observer
 
       #FIXME need only when 'from text' expected
       if ONCHANGE_TAGS.indexOf(tag) != -1
-        if type == "checkbox" || type == "radio"
-          logger.info("Observer: Get a #{type} element")
+        if type == "checkbox" || type == "radio" || tag == "OPTION"
+          logger.info("Get a #{type} & #{tag} element", logger.binding)
           adapter.bind(document, @from_element, 'change', handler)
         else
           current_value = adapter.text(@from_element)
@@ -121,7 +120,7 @@ class Sirius.Observer
           #instead of using input event, which not work correctly in ie9
           #use own implementation of input event for form
           if Sirius.Utils.ie_version() == 9
-            logger.warn("Observer: Hook for work with IE9 browser")
+            logger.warn("Hook for work with IE9 browser", logger.binding)
             adapter.bind(document, document, 'selectionchange', handler)
 
         # return, because for input element seems this events enough
@@ -129,7 +128,7 @@ class Sirius.Observer
         return
 
       if MO
-        logger.info("Observer: MutationObserver support")
+        logger.info("MutationObserver support", logger.binding)
         # TODO from element should not be input\textarea\select
         observer = new MO( (mutations) ->
           mutations.forEach handler
@@ -151,8 +150,8 @@ class Sirius.Observer
 
       else # when null, need register event with routes
         # FIXME stackoverflow
-        logger.warn("Observer: MutationObserver not support")
-        logger.info("Observer: Use Deprecated events for observe")
+        logger.warn("MutationObserver not support", logger.binding)
+        logger.info("Use Deprecated events for observe", logger.binding)
         adapter.bind(document, @from_element, 'DOMNodeInserted', handler)
         adapter.bind(document, @from_element, 'DOMAttrModified', handler)
 

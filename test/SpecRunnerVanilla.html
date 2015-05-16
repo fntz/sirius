@@ -55,7 +55,7 @@
   <div class="view2model">
     <div class="form2model">
       <form class="my-form">
-        <input type="text" data-bind-to="title" />
+        <input type="text" />
         <textarea></textarea>
       </form>
     </div>
@@ -86,7 +86,7 @@
     <form class="simple">
       <span class="title-attr"></span>
       <span class='title-text'></span>
-      <input type="text" data-bind-view-from='title' />
+      <input type="text" />
     </form>
 
     <hr/>
@@ -104,9 +104,9 @@
     <form class="check">
       <span></span>
 
-      <input name="check" type="checkbox" value="title1" />title1
-      <input name="check" type="checkbox" value="title2" />title2
-      <input name="check" type="checkbox" value="title3" />title3
+      <input type="checkbox" value="title1" />title1
+      <input type="checkbox" value="title2" />title2
+      <input type="checkbox" value="title3" />title3
 
     </form>
     <hr/>
@@ -126,26 +126,28 @@
 </div>
 
 
-<script type="text/javascript" src="../vendor/jquery.min.js"></script>
 <script type="text/javascript" src="../vendor/bililiteRange.js"></script>
-<script type="text/javascript" src="../vendor/jquery.sendkeys.js"></script>
 <script type="text/javascript" src="jasmine/lib/jasmine.js"></script>
 <script type="text/javascript" src="jasmine/lib/jasmine-html.js"></script>
 <script type="text/javascript" src="jasmine/lib/boot.js"></script>
 
+<!-- for event trigger -->
+<script type="text/javascript" src="../vendor/jquery.min.js"></script>
 <!-- include source files here... -->
-<script type="text/javascript" src="../lib/jquery_adapter.js"></script>
+
+<script type="text/javascript" src="../lib/vanillajs_adapter.js"></script>
 <script type="text/javascript" src="../lib/sirius.js"></script>
 <script type="text/javascript" src="fixtures.js"></script>
 <!-- include spec files here... -->
+
 <script type="text/javascript" src="specs/compile/collection_spec.js"></script>
 <script type="text/javascript" src="specs/compile/validation_spec.js"></script>
 <script type="text/javascript" src="specs/compile/control_flow_spec.js"></script>
 <script type="text/javascript" src="specs/compile/base_model_spec.js"></script>
 <script type="text/javascript" src="specs/compile/view2view_spec.js"></script>
-<script type="text/javascript" src="specs/compile/views_spec.js"></script>
 <script type="text/javascript" src="specs/compile/view2prop_spec.js"></script>
 <script type="text/javascript" src="specs/compile/model2view_spec.js"></script>
+<script type="text/javascript" src="specs/compile/views_spec.js"></script>
 <script type="text/javascript" src="specs/compile/routing_spec.js"></script>
 
 </body>

@@ -41,7 +41,7 @@ class PrototypeAdapter extends Adapter
     @_get_element_from_selector(element).writeAttribute(attr, value)
 
   set_prop: (element, prop, value) ->
-    @_get_element_from_selector(element).prop = value
+    @_get_element_from_selector(element)[prop] = value
 
   swap: (element, content) ->
     elem = @_get_element_from_selector(element)

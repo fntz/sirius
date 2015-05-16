@@ -67,6 +67,7 @@ class Adapter
 
   # return all selectors
   all: (selector) ->
+    return selector if (typeof(selector) == "object" && selector.nodeType == 1 || selector.nodeType == 9)
     document.querySelectorAll(selector)
 
 

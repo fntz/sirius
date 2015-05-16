@@ -58,7 +58,7 @@ class JQueryAdapter extends Adapter
       else
         jQuery(element).val()
     else if tag == "SELECT"
-      jQuery("#{element} option:selected").val()
+      jQuery(element).find("option:selected").val()
     else
       jQuery(element).text()
 

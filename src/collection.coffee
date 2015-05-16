@@ -35,6 +35,18 @@
 #
 #  @note for listen changes in collection use `subscribe` method
 #
+# Indexes
+#
+# Sirius.Collection support indexes. For create index you might pass field name for model:
+#
+# @example
+#
+#   mICollection = new Sirius.Collection(MyModel, [], { index: ["id"] }
+#
+# This increases the search speed, in comparison with default search.
+#
+# @note index fields with unique values.
+#
 class Sirius.Collection
   @_EVENTS = ['add', 'remove', 'sync', 'unsync']
   #
@@ -43,6 +55,7 @@ class Sirius.Collection
   # @param options [Object] - with keys necessary
   # @attr every [Numberic] - ms for remote call
   # @attr remote [Function] - callback, which will be call when synchronize collection, must be return json
+  # @attr index [Array<String>] - fields for index
   constructor: (klass, args...) ->
     if klass.__super__.__name isnt 'BaseModel'
       throw new Error("Collection must be used only with `BaseModel` inheritor")
@@ -63,6 +76,34 @@ class Sirius.Collection
     @_klasses = klasses
     @_klass = klass
     @_type  = Sirius.Utils.fn_name(klass)
+
+    @_indexes = options['index'] || []
+    if @_indexes.length > 0
+      # check that field name is exist and generate additional object
+      attrs = klass::attrs().map (attr) ->
+        if Sirius.Utils.is_object(attr)
+          Object.keys(attr)[0]
+        else
+          attr
+
+
+      @_indexes.forEach (field) ->
+        if attrs.indexOf(field) == -1
+          throw new Error("Collection: field #{field} from indexes: [#{@_indexes}] not exist in #{@_type}")
+
+      # i save models into array
+      # index is a hash structure
+      # with pairs: field_name : array_index
+      # [ Model[id:100, title: some_title#1], Model[id:200, title: title#2], Model[id:300, title: title#3] ]
+      # in array: [0, 1, 2]
+      #
+      # and create index for `id`:
+      # index_id: {100 => 0, 200 => 1, 300 => 2}
+      #
+      @_indexes.forEach (field) =>
+        @logger.info("create index for #{field} field in #{@_type}", @logger.collection)
+        @["index_#{field}"] = {}
+
 
     @_subscribers = {}
     for e in @constructor._EVENTS
@@ -88,7 +129,7 @@ class Sirius.Collection
   # @private
   _start_sync: (every) ->
     if (every != 0)
-      @logger.info("Collection: start synchronization")
+      @logger.info("start synchronization", @logger.collection)
       @_timer = setInterval(@remote, every)
       @_gen('sync')
     return
@@ -97,7 +138,7 @@ class Sirius.Collection
   # @return [Void]
   unsync: () ->
     if @_timer
-      @logger.info("Collection: end synchronization")
+      @logger.info("Collection: end synchronization", @logger.collection)
       clearInterval(@_timer)
       @_gen('unsync')
     return
@@ -129,10 +170,17 @@ class Sirius.Collection
     type = Sirius.Utils.fn_name(model.constructor)
     if @_type isnt type
       msg = "Require `#{@_type}`, but given `#{type}`"
-      @logger.error("Collection: #{msg}")
+      @logger.error("Collection: #{msg}", @logger.collection)
       throw new Error(msg)
     @_array.push(model) #maybe it's a hash ? because hash have a keys, and simple remove, but need a unique id
+
+    # index
+    if @_indexes.length > 0
+      @_indexes.forEach (field) =>
+        @["index_#{field}"][model.get(field)] = @length
+
     @length++
+
     @_gen('add', model)
 
   # remove model from collection
@@ -144,6 +192,17 @@ class Sirius.Collection
       @_array.splice(inx, 1)
       @_gen('remove', other)
       @length--
+
+      # need rebuild index
+      if @_indexes.length > 0
+        @_indexes.forEach (field) =>
+          delete @["index_#{field}"][other.get(field)]
+          fields = Object.keys(@["index_#{field}"])
+          fields.filter( (x) => @["index_#{field}"][x] > inx ).map (x) =>
+            z = @["index_#{field}"][x]
+            @["index_#{field}"][x] = z - 1
+
+
     return
 
   #
@@ -169,7 +228,10 @@ class Sirius.Collection
   # @param value [Any] - actual value
   # @return [Array<Model>]
   find_all: (key, value) ->
-    for model in @_array when model.get(key) == value then model
+    if @_indexes.length > 0 && @_indexes.indexOf(key) != -1
+      [@_array[@["index_#{key}"][value]]] # find first for index is ok, because index is unique
+    else
+      for model in @_array when model.get(key) == value then model
 
   #
   # filter collection with `fn`, which must return boolean
@@ -203,6 +265,10 @@ class Sirius.Collection
   clear: () ->
     @length = 0
     @_array = []
+    # remove all from index
+    if @_indexes.length > 0
+      @_indexes.forEach (field) =>
+        @["index_#{field}"] = {}
 
   # @alias collect
   map: (f) ->
@@ -277,7 +343,7 @@ class Sirius.Collection
       throw new Error("For 'subscribe' method available only [#{@constructor._EVENTS}], but given '#{event}'")
 
     if Sirius.Utils.is_string(fn_or_event) or Sirius.Utils.is_function(fn_or_event)
-      @logger.info("Collection: Add new subscriber for '#{event}' event")
+      @logger.info("Collection: Add new subscriber for '#{event}' event", @logger.collection)
       @_subscribers[event].push(fn_or_event)
     else
       throw new Error("Second parameter for 'subscribe' method must be Function or String, but '#{typeof(fn_or_event)}' given")

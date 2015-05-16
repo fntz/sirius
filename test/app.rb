@@ -16,6 +16,10 @@ get '/jquery' do
   File.read("#{File.dirname(__FILE__)}/SpecRunner.html")
 end
 
+get '/vanilla' do
+  system("rake test_compile")
+  File.read("#{File.dirname(__FILE__)}/SpecRunnerVanilla.html")
+end
 
 get '/:dir/:file' do
   file = params[:file]
