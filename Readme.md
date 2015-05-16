@@ -10,11 +10,13 @@
 + Template free — you may use any template engine or use any at all
 + MVC style
 + MVVM binding (view to view, model to view, view to model, object property to view)
-+ Build-in Collections, Validators
-+ Adapters for jQuery and Prototype.js
++ Build-in Collections 
++ Build-in Validators
++ Simple for customization
++ Adapters for jQuery, Prototype.js and for Vanillajs
 + Support html5 routing, and converters to html5 routing
-+ Log all actions in application.
-+ Share actions between controllers.
++ Log all actions in application
++ Share actions between controllers
 + And many others
 
 # Install
