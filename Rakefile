@@ -49,7 +49,7 @@ task :vendor_install do
   vendor = "vendor"
   deps = [
            "https://ajax.googleapis.com/ajax/libs/prototype/1.7.2.0/prototype.js",
-           "http://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js",
+           "https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js",
            "https://raw.githubusercontent.com/dwachss/bililiteRange/master/bililiteRange.js",
            "https://raw.githubusercontent.com/dwachss/bililiteRange/master/jquery.sendkeys.js",
            "https://github.com/yui/yuicompressor/releases/download/v2.4.8/yuicompressor-2.4.8.jar",
@@ -119,6 +119,7 @@ task :minify => [:build] do
   %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js --nomunge lib/sirius.js -o sirius.min.js)
   %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js --nomunge lib/jquery_adapter.js -o jquery_adapter.min.js)
   %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js --nomunge lib/prototypejs_adapter.js -o prototypejs_adapter.min.js)
+  %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js --nomunge lib/vanillajs_adapter.js -o vanillajs_adapter.min.js)
 end
 
 
