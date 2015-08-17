@@ -196,7 +196,7 @@ class Sirius.BaseModel
   normalize_attrs: () ->
     for a in @constructor.attrs
       do(a) ->
-        if typeof(a) is "object"
+        if Sirius.Utils.is_object(a)
           Object.keys(a)[0]
         else
           a
@@ -223,19 +223,19 @@ class Sirius.BaseModel
     name = Sirius.Utils.fn_name(@constructor)
     @errors = {}
     @_is_valid_attr = {} # save pair attribute and validation state
+    attrs0 = @attrs()
 
-    for attr in @attrs()
+    for attr in attrs0
       # @attrs: [{key: value}]
-      @logger.info("BaseModel: define '#{attr}' attribute for '#{name}'", @logger.base_model)
+      @logger.info("define '#{JSON.stringify(attr)}' attribute for '#{name}'", @logger.base_model)
       if Sirius.Utils.is_object(attr)
         [key, ...] = Object.keys(attr)
         if !key
           msg = "Attributes should have a key and value"
-          @logger.error("BaseModel: #{msg}", @logger.base_model)
+          @logger.error("#{msg}", @logger.base_model)
           throw new Error(msg)
         @["_#{key}"] = attr[key]
         @_gen_method_name_for_attribute(key)
-      # @attrs: [key1, key2, key3]
       else
         @_gen_method_name_for_attribute(attr)
         @["_#{attr}"] = null
@@ -254,14 +254,17 @@ class Sirius.BaseModel
       @_has_create(klass, true)
       @_gen_method_name_for_attribute(klass, true)
 
-
     skip = @constructor.skip
     attributes = @attributes
     # @attributes.indexOf(attr)
     if Object.keys(obj).length != 0
       for attr in Object.keys(obj)
         if !(attributes.indexOf(attr) == -1 && skip)
-          @set(attr, obj[attr])
+          @_attribute_present(attr)
+          oldvalue = @["_#{attr}"]
+          @["_#{attr}"] = obj[attr]
+          @_call_callbacks(attr, obj[attr], oldvalue)
+
 
     if g = @guid_for()
       @set(g, @_generate_guid())
@@ -277,7 +280,6 @@ class Sirius.BaseModel
         if @_registered_validators_keys.indexOf(validator_name) == -1 && validator_name != 'validate_with'
           throw new Error("Unregistered validator: #{validator_name}")
         @errors[key][validator_name] = ""
-
 
 
     @after_create()
@@ -296,6 +298,7 @@ class Sirius.BaseModel
           @set(attribute, value)
       else
         @get(attribute)
+
 
   # @private
   # @nodoc
@@ -346,6 +349,16 @@ class Sirius.BaseModel
   get_attributes: () ->
     @attributes
 
+
+  _attribute_present: (attr) ->
+    throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model") if @attributes.indexOf(attr) == -1
+
+  _call_callbacks: (attr, value, oldvalue) ->
+    for clb in @callbacks
+      if clb[0] is attr
+        clb[1].apply(null, [attr, value, oldvalue])
+
+    @after_update(attr, value, oldvalue)
   #
   # Base setter
   # @param attr [String] - attribute
@@ -354,9 +367,10 @@ class Sirius.BaseModel
   # @throw Error, when attributes not defined for current model
   # @return [Void]
   set: (attr, value) ->
-    throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model") if @attributes.indexOf(attr) == -1
+    @_attribute_present(attr)
 
-    oldvalue = @.get(attr)
+    oldvalue = @["_#{attr}"]
+
     if Sirius.Utils.is_object(oldvalue)
       if !Sirius.Utils.is_object(value)
         throw new Error("Attribute '#{attr}' is object, but value '#{value}' not object.")
@@ -367,10 +381,9 @@ class Sirius.BaseModel
 
     @validate(attr)
 
-    for clb in @callbacks
-      clb.apply(null, [attr, value, oldvalue])
+    @_call_callbacks(attr, value, oldvalue)
 
-    @after_update(attr, value, oldvalue)
+
 
 
   #
@@ -379,8 +392,7 @@ class Sirius.BaseModel
   # @throw Error, when attributes not defined for current model
   # @return [Any]
   get: (attr) ->
-    throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model") if @attributes.indexOf(attr) == -1
-
+    @_attribute_present(attr)
     @["_#{attr}"]
 
 
@@ -694,24 +706,14 @@ class Sirius.BaseModel
       @logger.error(msg)
       throw new Error(msg)
 
-    @logger.info("BaseModel: bind with #{view.element}", @logger.base_model)
+    @logger.info("Bind with #{view.element}", @logger.base_model)
 
-    t = Object.keys(object_setting).map((key) -> Sirius.Utils.is_function(object_setting[key]))
-
-    if t.length == 0
-      @logger.info("BaseModel: Bind: setting empty", @logger.base_model)
-      object_setting['transform'] = if object_setting['transform']?
-        object_setting['transform']
-      else
-        @logger.info("BaseModel: 'transform' method not found. Use default transform method.", @logger.base_model)
-        (x) -> x
-    else
-      # if not transform for given key define default transform method
-      Object.keys(object_setting).map((key) =>
-        if !object_setting[key]['transform']?
-          @logger.info("BaseModel: bind define default transform method for '#{key}'", @logger.base_model)
-          object_setting[key]['transform'] = (x) -> x
-      )
+    # if not transform for given key define default transform method
+    Object.keys(object_setting).map((key) =>
+      if !object_setting[key]['transform']?
+        @logger.info("BaseModel: bind define default transform method for '#{key}'", @logger.base_model)
+        object_setting[key]['transform'] = (x) -> x
+    )
 
 
     callbacks = @callbacks
@@ -732,21 +734,21 @@ class Sirius.BaseModel
 
       attributes = @attributes
       self = @
+
       for element in elements
         do(element) ->
           # it attribute or property
           element.view ?= new Sirius.View(element.element)
-
-          transform = Sirius.BindHelper.transform(element.transform, object_setting)
           strategy = element.strategy
+          transform = element.transform
           if !Sirius.View.is_valid_strategy(strategy)
-            logger.error("BaseModel: Not valid strategy: '#{strategy}'", logger.base_model)
+            logger.error("Not valid strategy: '#{strategy}'", logger.base_model)
             throw new Error("Strategy #{strategy} not valid")
 
           # for attributes
           if attributes.indexOf(element.from) != -1
             clb = (attr, value, oldvalue) ->
-              result = transform(value)
+              result = element.transform(value)
               tag = adapter.get_attr(element.element, 'tagName')
               type = adapter.get_attr(element.element, 'type')
               # recursion detect
@@ -780,7 +782,7 @@ class Sirius.BaseModel
                         self["_#{attr}"][k] = false
                 else
                   element.view.render(result)[strategy](element.to)
-            callbacks.push(clb)
+            callbacks.push([element.from, clb])
           else
             # for bind errors
             from = element.from

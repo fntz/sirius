@@ -1,14 +1,14 @@
 {
   "name"          : "sirius",
   "description"   : "A light weight javascript MVC framework",
-  "url"           : "http://fntzr.github.io/sirius/",
+  "url"           : "http://fntz.github.io/sirius/",
   "keywords"      : ["router", "browser", "client", "mvc"],
-  "author"        : "fntzr <fantazuor@gmail.com>",
+  "author"        : "fntz <mike.fch1@gmail.com>",
   "dependencies"  : {
 
   },
   "bugs": {
-    "url": "https://github.com/fntzr/sirius/issues"
+    "url": "https://github.com/fntz/sirius/issues"
   },
   "files": ["sirius.min.js", "jquery_adapter.min.js", "prototypejs_adapter.min.js"],
   "devDependencies": {
@@ -19,11 +19,11 @@
     "doc": "cake doc"
   },
   "main"          : "sirius.min.js",
-  "version"       : "0.8.0",
+  "version"       : "0.8.1",
   "license"       : "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/fntzr/sirius.git"
+    "url": "https://github.com/fntz/sirius.git"
   }
 }
 

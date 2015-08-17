@@ -54,19 +54,25 @@ class Sirius.BindHelper
     @logger.info("BindHelper: use user setting for work with elements", @logger.binding)
       # return [element, key]
     elements = []
+
     Object.keys(user_setting).map (k) ->
-      tag = adapter.get_attr("#{element} #{k}", 'tagName')
-      type = adapter.get_attr("#{element} #{k}", 'type')
+      realElement = if k is element
+        element
+      else
+        "#{element} #{k}"
+      tag = adapter.get_attr(realElement, 'tagName')
+      type = adapter.get_attr(realElement, 'type')
+
       if tag == "OPTION" || type == "checkbox" || type == "radio"
-        z = adapter.all("#{element} #{k}")
+        z = adapter.all(realElement)
         for x in z
           elements.push([x, k])
       else
-        elements.push([adapter.get("#{element} #{k}"), k])
+        elements.push([adapter.get(realElement), k])
 
     if tmp_a.length != 0
       # need extract main element, and children
-      @logger.error("DEPRECATED: seems `user_setting`: #{tmp_a} contain non object")
+      @logger.error("DEPRECATED: seems `user_setting`: '#{tmp_a}' in #{Object.keys(user_setting)} contain non object")
       @logger.error("Html data-bind-* removed")
       throw new Error("Define setting for binding with javascript object")
 
@@ -85,7 +91,7 @@ class Sirius.BindHelper
         tmp_from = key['from'] || default_from
         tmp_strategy = key['strategy'] || 'swap'
         tmp_transform = key['transform']
-        tmp_original = "#{top} #{element[1]}"
+        tmp_original = if top is element[1] then "#{top}" else "#{top} #{element[1]}"
         elem = element[0]
 
         if !elem?
@@ -110,28 +116,3 @@ class Sirius.BindHelper
 
     result
 
-
-
-
-  # @throw [Error] when transform method not defined
-  # @param [String] - function name
-  # @param [Object]
-  # @return [Function] - return transform function from setting
-  @transform: (name, setting = {}) ->
-    if Sirius.Utils.is_function(name)
-      return name
-    error = (name) -> "Transform method '#{name}' not found in setting"
-    logger = Sirius.Application.get_logger()
-    if Sirius.Utils.is_function(setting.transform)
-      if name
-        msg = error(name)
-        logger.error("#{msg}", logger.binding)
-        throw new Error(msg)
-      else
-        setting.transform
-    else #when it object need extract necessary method
-      if setting.transform[name]?
-        setting.transform[name]
-      else
-        logger.warn("Transform method not found use default transform method: '(x) -> x'", logger.binding)
-        (x) -> x

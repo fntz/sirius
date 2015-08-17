@@ -1,21 +1,30 @@
 "use strict"
 
+`var c = function(m){console.log(m);};`
+
 class Task extends Sirius.BaseModel
-  @attrs: ["title", {completed: false}, "id"]
+  @attrs: ["title", completed: {completed: false}, "id"]
 
   constructor: (obj = {}) ->
     super(obj)
     @_id = "todo-#{Math.random().toString(36).substring(7)}"
 
-  is_active: () -> !@completed()
+  is_active: () -> !@is_completed()
   
-  is_completed: () -> @completed()
+  is_completed: () -> @completed().completed
+
+  cancel: () -> @completed({completed: true})
+  renew: () -> @completed({completed: false})
 
   after_update: (attribute, newvalue, oldvalue) ->
-    if attribute == "completed" || newvalue == true
-      Sirius.Application.get_adapter().and_then((adapter) -> adapter.fire(document, "collection:length"))
+    if attribute == "completed"
+      Sirius.Application.get_adapter().and_then (adapter) ->
+        adapter.fire(document, "collection:change")
 
   compare: (other) -> other.id() == @id()
+
+  toString: () ->
+    "Todo[id=#{@id()}, title=#{@title()}, completed=#{@completed().completed}]"
 
 Renderer =
   todo_template: new EJS({url: 'js/todo.ejs'})
@@ -27,17 +36,28 @@ Renderer =
     for todo in todo_list
       @append(todo)
 
-
-
   append: (todo) ->
     template = @todo_template.render({todo: todo})
     @view.render(template).append()
-    todo_view = new Sirius.View("li\##{todo.id()}")
+    id = "li\##{todo.id()}"
+
+    todo_view = new Sirius.View(id)
+
     todo.bind(todo_view, {
-      transform:
-        mark_as_completed: (t) -> if t then "completed" else ""
+      "#{id}": {
+        from: "completed",
+        to: "class",
+        transform: (t) ->
+          if t.completed then "completed" else ""
+      }
+      "input[type='checkbox']": {from: "completed", to: "checked"}
+      "label": {from: "title"}
     })
-    todo_view.bind(todo)
+
+    todo_view.bind(todo, {
+      ".view input": {from: "checked", to: "completed"}
+      "input.edit": {to: "title"}
+    })
 
     todo_view.on('div', 'dblclick', (x) ->
       todo_view.render("editing").swap('class')
@@ -73,7 +93,12 @@ MainController =
   start: () ->
     view  = new Sirius.View("#todoapp")
     model = new Task()
-    view.bind2(model)
+    view.bind(model, {
+      "#new-todo": {to: "title"}
+    })
+    model.bind(view, {
+      "#new-todo": {from: "title"}
+    })
     view.on("#new-todo", "keypress", "todo:create", model)
 
     length_view = new Sirius.View("#todo-count strong")
@@ -88,8 +113,7 @@ MainController =
         else
           ""
     })
-
-    TodoList.add(new Task({title : "Create a TodoMVC template", completed: true}))
+    TodoList.add(new Task({title : "Create a TodoMVC template", completed: {completed: true}}))
     TodoList.add(new Task(title: "Rule the web"))
 
 
@@ -107,9 +131,9 @@ TodoController =
 
   mark_all: (e, state) ->
     if state == 'completed'
-      TodoList.filter((t) -> t.is_completed()).map((t) -> t.completed(false))
+      TodoList.filter((t) -> t.is_completed()).map((t) -> t.renew())
     else
-      TodoList.filter((t) -> t.is_active()).map((t) -> t.completed(true))
+      TodoList.filter((t) -> t.is_active()).map((t) -> t.cancel())
 
     $("#toggle-all").toggleClass('completed')
 
@@ -119,13 +143,20 @@ TodoController =
     TodoList.remove(todo)
 
 BottomController =
-  change: () ->
+  change: (ev) ->
     Renderer.clear(TodoList.filter((t) -> t.is_completed()).length)
 
 
   clear: () ->
     TodoList.filter((t) -> t.is_completed()).map((t) -> TodoList.remove(t))
     Renderer.clear(0)
+
+
+LinkController =
+  url: (event, current, prev) ->
+    prev = if prev == "" then "/" else prev
+    document.querySelector("a[href='#{current}']").className = "selected"
+    document.querySelector("a[href='#{prev}']").className = ""
 
 
 # ----------------------- Routing ----------------- #
@@ -136,8 +167,9 @@ routes =
   "/completed"     :  {controller: MainController, action: "completed"}
   "application:run" : {controller: MainController, action: "start"}
   "todo:create" :     {controller: TodoController, action: "create", guard: "is_enter"}
+  "application:urlchange": {controller: LinkController, action: "url"}
   "click #toggle-all"     : {controller: TodoController, action: "mark_all", data: 'class'}
-  "collection:length" : {controller: BottomController, action: "change"}
+  "collection:change" : {controller: BottomController, action: "change"}
   "click button.destroy"  : {controller: TodoController, action: "destroy", data: "data-id"}
   "click #clear-completed": {controller: BottomController, action: "clear"}
 
@@ -147,8 +179,9 @@ $ ->
   Sirius.Application.run
     route   : routes
     adapter : new JQueryAdapter()
-    class_name_for_active_link: 'selected'
     log: false
+    log_filters: [0]
+
 
 
 

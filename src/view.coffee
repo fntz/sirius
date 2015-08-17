@@ -101,7 +101,7 @@ class Sirius.View
       selector
     else
       "#{@element} #{selector}"
-    @logger.info("View: Bind event for #{selector}, event name: #{event_name}, will be called : #{custom_event_name}", @logger.view)
+    @logger.info("Bind event for #{selector}, event name: #{event_name}, will be called : #{custom_event_name}", @logger.view)
 
     if Sirius.Utils.is_string(custom_event_name)
       handler = (e) ->
@@ -382,7 +382,7 @@ class Sirius.View
           if model.get_attributes().indexOf(element.to) == -1
             throw new Error("Error attribute '#{element.to}' not exist in model class '#{model_name}'")
 
-          transform = Sirius.BindHelper.transform(element.transform, setting)
+          transform = element.transform
 
           clb = (result) ->
             if result['text']? && (!element.from || element.from == 'text')
