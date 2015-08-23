@@ -19,6 +19,7 @@ class PrototypeAdapter extends Adapter
     else
       $(element).on(event, selector, fn)
 
+
   fire: (element, event, params...) ->
     $(element).fire(event, params)
 

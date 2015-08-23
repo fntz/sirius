@@ -1,5 +1,5 @@
 ###!
-#  Sirius.js v0.8.1
+#  Sirius.js v0.8.2
 #  (c) 2014-2015 fntz
 #  license: MIT
 ###
@@ -19,6 +19,10 @@ class Adapter
   #   @return [Void]
   #
   bind: (element, selector, event, fn) ->
+
+
+    
+
 
   #   Call custom event with params
   #   @param [String] element - selector for event

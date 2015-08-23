@@ -711,7 +711,7 @@ class Sirius.BaseModel
     # if not transform for given key define default transform method
     Object.keys(object_setting).map((key) =>
       if !object_setting[key]['transform']?
-        @logger.info("BaseModel: bind define default transform method for '#{key}'", @logger.base_model)
+        @logger.info("bind define default transform method for '#{key}'", @logger.base_model)
         object_setting[key]['transform'] = (x) -> x
     )
 
@@ -791,7 +791,7 @@ class Sirius.BaseModel
 
             prop = from.split(".")
 
-            logger.info("BaseModel bind '#{element.from}' for model", logger.base_model)
+            logger.info("bind '#{element.from}' for model", logger.base_model)
 
             if prop.length == 3
               element.view.bind(current_model.errors, prop[1..-1].join("."), {

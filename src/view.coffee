@@ -23,23 +23,36 @@ class Sirius.View
 
   @_Cache = [] # cache for all views
 
+  # @private
+  class EventHandlerParams
+    constructor: (@selector, @event_name, @custom_event_name) ->
+
+    eq: (another) ->
+      @selector == another.selector and
+      @event_name == another.event_name and
+      # last arguments is function
+      @custom_event_name.toString == another.custom_event_name.toString
+
+
   # @param [String] - selector for element
   # @param [Function] - transform function for new content
   #
   constructor: (@element, @clb = (txt) -> txt) ->
     element = @element
-    clb = @clb
 
-    view = @constructor._Cache.filter((v) -> v.element == element && "#{v.clb}" == "#{clb}")
+    clb = @clb
+    view = Sirius.View._Cache.filter (v) ->
+      v.element == element && "#{v.clb}" == "#{clb}"
 
     if view.length != 0
-      view[0]
+      return view[0]
 
+
+    @_cache_event_handlers = []
     @logger = Sirius.Application.get_logger()
     @_result_fn = (args...) ->
       clb.apply(null, args...)
     @logger.info("Create a new View for #{@element}", @logger.view)
-
 
 
     for strategy in @constructor._Strategies
@@ -63,7 +76,8 @@ class Sirius.View
             res = transform(oldvalue, result)
             render(adapter, element, res, attribute)
 
-    @constructor._Cache.push(@)
+    Sirius.View._Cache.push(@)
+    @
 
   # compile function
   # @param [Array] with arguments, which pass into transform function
@@ -101,22 +115,35 @@ class Sirius.View
       selector
     else
       "#{@element} #{selector}"
-    @logger.info("Bind event for #{selector}, event name: #{event_name}, will be called : #{custom_event_name}", @logger.view)
 
-    if Sirius.Utils.is_string(custom_event_name)
-      handler = (e) ->
-        Sirius.Application.get_adapter().and_then((adapter) ->
-          adapter.fire.call(null, document, custom_event_name, e, params...)
-        )
-      Sirius.Application.get_adapter().and_then((adapter) -> adapter.bind(document, selector, event_name, handler))
+    type = if Sirius.Utils.is_string(custom_event_name)
+      0
+    else if Sirius.Utils.is_function(custom_event_name)
+      1
     else
-      if Sirius.Utils.is_function(custom_event_name)
-        Sirius.Application.get_adapter().and_then((adapter) ->
-          adapter.bind(document, selector, event_name, custom_event_name)
-        )
-        #custom_event_name
+      throw new Error("View: 'custom_event_name' must be string or function, #{typeof(custom_event_name)} given")
+
+    current = new EventHandlerParams(selector, event_name, custom_event_name)
+
+    is_present = @_cache_event_handlers.filter (x) ->
+      x.eq(current)
+
+    if is_present.length == 0
+      @_cache_event_handlers.push(current)
+
+      @logger.info("Bind event for #{selector}, event name: #{event_name}, will be called : #{custom_event_name}", @logger.view)
+
+      if type == 0
+        handler = (e) ->
+          Sirius.Application.get_adapter().and_then (adapter) ->
+            adapter.fire.call(null, document, custom_event_name, e, params...)
+
+        Sirius.Application.get_adapter().and_then (adapter) ->
+          adapter.bind(document, selector, event_name, handler)
+
       else
-        throw new Error("View: 'custom_event_name' must be string or function, #{typeof(custom_event_name)} given")
+        Sirius.Application.get_adapter().and_then (adapter) ->
+          adapter.bind(document, selector, event_name, custom_event_name)
 
     return
 
