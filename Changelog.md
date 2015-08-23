@@ -1,6 +1,23 @@
-=== 0.7.1 
+=== 0.8.2
 
-tests for prototypejs
+add cache for prevent memory leak, in code like:
+
+```
+Controller =
+  action: () ->
+    model = new MyModel()
+    view = new Sirius.View("element")
+    model.bind(v, {
+      ...
+    })
+    
+    view.on "input[type='button']", "click", (e) ->
+      #code
+    
+```
+
+Now Sirius use cache, and with every action will be created only one handler.
+
 
 === 0.7.2 
 
@@ -85,6 +102,10 @@ models = new Sirius.Collection(MyModel, {index: ["id"]})
 
 #### improvement for work with logical element in binding
 
+
+=== 0.7.1 
+
+tests for prototypejs
 
 
 
