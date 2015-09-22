@@ -130,7 +130,7 @@ my_model.instance_method() // => call
 ### 4. Run Application
 
 ```coffee
-  Sirius.Application.run({route: routes, adapter: new YouAdapter()})
+  Sirius.Application.run({route: routes, adapter: new YourAdapter()})
 ```
 
 ### 5. Use Validators

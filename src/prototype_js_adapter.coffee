@@ -4,6 +4,9 @@
 #  @note use selectors
 class PrototypeAdapter extends Adapter
 
+  constructor: () ->
+    @__handlers = [] # {selector:'', event_name:'', fun: '', handler: ''}
+
   _get_element_from_selector: (selector) ->
     if (typeof(selector) == "object" && selector.nodeType == 1)
       return $(selector)
@@ -14,14 +17,29 @@ class PrototypeAdapter extends Adapter
 
 
   bind: (element, selector, event, fn) ->
-    if selector == null
+    h = if selector == null
       $(document).on(event, fn)
     else
-      $(element).on(event, selector, fn)
+      if (typeof(selector) == "object" && selector.nodeType == 1)
+        $(selector).on(event, fn)
+      else
+        $(element).on(event, selector, fn)
+    @__handlers.push({selector: selector, event_name: event, fun: fn, handler: h})
+    return
+
+
+  off: (element, selector, event, fn) ->
+    for o in @__handlers
+      if o["selector"] == selector && o["event_name"] == event &&
+      o["fun"].toString == fn.toString
+        o["handler"].stop()
+
+    return
 
 
   fire: (element, event, params...) ->
     $(element).fire(event, params)
+    return
 
   get_property: (event, properties...) ->
     element = Event.element(event)
@@ -43,6 +61,7 @@ class PrototypeAdapter extends Adapter
 
   set_prop: (element, prop, value) ->
     @_get_element_from_selector(element)[prop] = value
+    return
 
   swap: (element, content) ->
     elem = @_get_element_from_selector(element)
@@ -53,12 +72,15 @@ class PrototypeAdapter extends Adapter
       elem.setValue(content)
     else
       @_get_element_from_selector(element).update(content)
+    return
 
   append: (element, content) ->
     @_get_element_from_selector(element).insert(bottom: content)
+    return
 
   prepend: (element, content) ->
     @_get_element_from_selector(element).insert(top: content)
+    return
 
   clear: (element) ->
     elem = @_get_element_from_selector(element)
@@ -67,6 +89,7 @@ class PrototypeAdapter extends Adapter
       elem.clear()
     else
       elem.update("")
+    return
 
   text: (element) ->
     elem = @_get_element_from_selector(element)

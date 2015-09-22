@@ -129,8 +129,8 @@ class Sirius.View
       x.eq(current)
 
     if is_present.length == 0
-      @_cache_event_handlers.push(current)
 
+      # TODO possible rebind ?
       @logger.info("Bind event for #{selector}, event name: #{event_name}, will be called : #{custom_event_name}", @logger.view)
 
       if type == 0
@@ -141,9 +141,29 @@ class Sirius.View
         Sirius.Application.get_adapter().and_then (adapter) ->
           adapter.bind(document, selector, event_name, handler)
 
+        tmp = new EventHandlerParams(selector, event_name, handler)
+        @_cache_event_handlers.push(tmp)
+
       else
         Sirius.Application.get_adapter().and_then (adapter) ->
           adapter.bind(document, selector, event_name, custom_event_name)
+        @_cache_event_handlers.push(current)
+
+    else
+      # Safe clojure management in Sirius.
+      # Need remove old references with anon function
+      # And off events for this handler
+
+      f = is_present.shift()
+      idx = @_cache_event_handlers.indexOf(f)
+      if idx > -1
+        @_cache_event_handlers.splice(idx, 1)
+      @_cache_event_handlers.push(current)
+
+      Sirius.Application.get_adapter().and_then (adapter) ->
+        adapter.off(document, selector, event_name, f.custom_event_name)
+        f = null
+        adapter.bind(document, selector, event_name, custom_event_name)
 
     return
 
@@ -393,13 +413,7 @@ class Sirius.View
             setting[key]['transform'] = (x) -> x
         )
 
-      elements = new Sirius.BindHelper(@element, {
-        to: 'data-bind-to',
-        from: 'data-bind-from'
-        strategy: 'data-bind-strategy'
-        transform: 'data-bind-transform'
-        default_from : null
-      }).extract(adapter, setting)
+      elements = new Sirius.BindHelper(@element).extract(adapter, setting)
 
       model_name = Sirius.Utils.fn_name(model.constructor)
 
@@ -412,22 +426,26 @@ class Sirius.View
           transform = element.transform
 
           clb = (result) ->
+            # work with logical elements: checkbox, radio and select
+            # for checkbox or radio need define in model attribute as object
+            # TODO cache this
+
+            nms = element.element
+            type = adapter.get_attr(nms, 'type')
+            selector = element.selector
+            state = result['state']
+            value = adapter.get_attr(nms, 'value')
+            actual_attribute = model.get(element.to)
+
             if result['text']? && (!element.from || element.from == 'text')
               model.set(element.to, transform(result['text']))
               return
+
             if element.from == result['attribute']
               model.set(element.to, transform(result['text']))
               return
+
             if element.from == "checked" # // "selected"
-              # work with logical elements: checkbox, radio and select
-              # for checkbox or radio need define in model attribute as object
-              # TODO cache this
-              nms = element.element
-              type = adapter.get_attr(nms, 'type')
-              selector = element.selector
-              state = result['state']
-              actual_attribute = model.get(element.to)
-              value = adapter.get_attr(nms, 'value')
               if value.length == 0
                 throw new Error("value attribute for #{selector} is empty, check please")
 
@@ -449,9 +467,25 @@ class Sirius.View
                 else
                   throw new Error("For bind checkbox '#{selector}' need define attribute '#{element.to}' in model as object")
               else
-                model.set(element.to, result['state'])
+                model.set(element.to, result['state']) # FIXME for select?
 
           new Sirius.Observer(element.element, clb)
+
+          # then need set in model attributes if present and length > 0
+          # result: [text, attribute, state]
+          if !element.from || element.from == 'text'
+            txt = adapter.text(element.element)
+            if txt && txt.length > 0
+              clb({text: txt})
+          else if element.from == "checked"
+            state = adapter.get_state(element.element)
+            clb({state: state})
+          else # attribute
+            txt = adapter.get_attr(element.element, element.from)
+            if txt && txt.length > 0
+              clb({text: txt, attribute: element.from})
+
+
 
   # @private
   # @nodoc

@@ -1,3 +1,37 @@
+=== 0.8.3
+
+Binding one selector with several model attributes:
+
+```javascript
+model.bind(view, { 
+  "#example": [{
+    from: "description"
+  }, {
+    from: "title",
+    to: "class"
+  }]
+});
+```
+
+Set model attributes from view in binding.
+
+Enable logging for developer code.
+
+Now if `log_filters` is `[]`, then all application logs disabled.
+
+Safe memory handling on event defined in controllers, like:
+
+```coffee
+Controller = 
+  method: () ->
+    m = new Mode()
+    v = new Sirius.View("#element")
+    v.on("selector", "click", (e) -> 
+      # ...
+```
+
+
+
 === 0.8.2
 
 add cache for prevent memory leak, in code like:

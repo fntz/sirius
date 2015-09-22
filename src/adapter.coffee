@@ -1,5 +1,5 @@
 ###!
-#  Sirius.js v0.8.2
+#  Sirius.js v0.8.3
 #  (c) 2014-2015 fntz
 #  license: MIT
 ###
@@ -20,8 +20,14 @@ class Adapter
   #
   bind: (element, selector, event, fn) ->
 
-
-    
+  #   Remove event listener for element
+  #   @param [String] main element for bind
+  #   @param [String] selector - selector string
+  #   @param [String] event - event name
+  #   @param [Function] fn - callback, will be called, when event fired
+  #   @return [Void]
+  #
+  off: (element, selector, event, fn) ->
 
 
   #   Call custom event with params

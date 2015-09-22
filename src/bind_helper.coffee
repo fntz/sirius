@@ -1,26 +1,13 @@
 
 # @private
 #
-# This class should extract from element node all elements which contain information
-# about binding (data-bind-*)
-#
-# extracted info:
-# data-bind-from
-# data-bind-to
-# data-bind-strategy
-# data-bind-view
-# element selector
 class Sirius.BindHelper
 
   # @param [String] - selector
-  # @param [Object] - contain information for extract (data-bind-*)
   #                   and contain information from user
   #                   and then merge extracted info and passed
-  #                   {to: 'data-bind-to', from: 'data-bind-from'
-  #                    strategy: 'data-bind-strategy'
-  #                    transform: 'data-bind-transform'
-  #                    }
-  constructor: (@element, @setting, @is_bind_view_to_model = true) ->
+  #
+  constructor: (@element, @is_bind_view_to_model = true) ->
     @logger = Sirius.Application.get_logger()
   #
   # @param [T < Adapter] - current application adapter
@@ -29,90 +16,84 @@ class Sirius.BindHelper
   extract: (adapter, user_setting = {}) ->
     # when it contain only one element (no children)
     # it's a single mode
-    to = @setting['to']
-    from = @setting['from']
-    strategy = @setting['strategy']
-    transform = @setting['transform']
-    default_from = @setting['default_from']
-    default_to = @setting['default_to']
     is_bind_view_to_model = @is_bind_view_to_model
     result = []
-    @logger.info("BindHelper: to: #{to}, from: #{from}")
-    @logger.info("BindHelper: strategy: #{strategy}")
-    @logger.info("BindHelper: transform: #{transform}")
-    @logger.info("BindHelper: default from: #{default_from}")
-    @logger.info("BindHelper: default to: #{default_to}")
-
-
-    is_bind_view_to_model = @is_bind_view_to_model
-    result = []
+    default_from = null
+    default_to = 'text'
+    @logger.info("BindHelper: default from: #{default_from}", @logger.binding)
+    @logger.info("BindHelper: default to: #{default_to}", @logger.binding)
 
     element = @element
     keys = Object.keys(user_setting)
-    tmp_a = keys.filter((k) -> !Sirius.Utils.is_object(user_setting[k]))
-      # extract sub elements
-    @logger.info("BindHelper: use user setting for work with elements", @logger.binding)
-      # return [element, key]
+    keys.forEach (k) ->
+      if !Sirius.Utils.is_object(user_setting[k])
+        @logger.error("DEPRECATED: seems `user_setting`: '#{tmp_a}' in #{Object.keys(user_setting)} contain non object")
+        @logger.error("Html data-bind-* removed")
+        throw new Error("Define setting for binding with javascript object")
+
     elements = []
 
-    Object.keys(user_setting).map (k) ->
-      realElement = if k is element
+    Object.keys(user_setting).map (selector) ->
+      realElement = if selector is element
         element
       else
-        "#{element} #{k}"
+        "#{element} #{selector}"
       tag = adapter.get_attr(realElement, 'tagName')
       type = adapter.get_attr(realElement, 'type')
 
       if tag == "OPTION" || type == "checkbox" || type == "radio"
         z = adapter.all(realElement)
         for x in z
-          elements.push([x, k])
+          elements.push([x, selector])
       else
-        elements.push([adapter.get(realElement), k])
-
-    if tmp_a.length != 0
-      # need extract main element, and children
-      @logger.error("DEPRECATED: seems `user_setting`: '#{tmp_a}' in #{Object.keys(user_setting)} contain non object")
-      @logger.error("Html data-bind-* removed")
-      throw new Error("Define setting for binding with javascript object")
+        elements.push([adapter.get(realElement), selector])
 
     logger = @logger
     top = element
 
+    elements.forEach (elem) ->
+      if !elem[0]?
+        msg = "Element '#{element[1]}' not found. Check please."
+        logger.error(msg, logger.binding)
+        throw new Error(msg)
+
+      key = user_setting[elem[1]]
+      if !key?
+        msg = "BindHelper: Not found keys for binding for '#{key}' element"
+        logger.error(msg, logger.binding)
+        throw new Error(msg)
+
+    unwrap = (element, key) ->
+      tmp_to = key['to'] || default_to
+      tmp_from = key['from'] || default_from
+      tmp_strategy = key['strategy'] || 'swap'
+      tmp_transform = key['transform']
+      tmp_original = if top is element[1] then "#{top}" else "#{top} #{element[1]}"
+      elem = element[0]
+      {
+        to: tmp_to
+        from: tmp_from
+        strategy: tmp_strategy
+        transform: tmp_transform
+        element: elem
+        selector: tmp_original
+      }
+
     for element in elements
       do(element) ->
         key = user_setting[element[1]]
-        if !key?
-          msg = "BindHelper: Not found keys for binding for '#{key}' element"
-          logger.error(msg, logger.binding)
-          throw new Error(msg)
-
-        tmp_to = key['to'] || default_to
-        tmp_from = key['from'] || default_from
-        tmp_strategy = key['strategy'] || 'swap'
-        tmp_transform = key['transform']
-        tmp_original = if top is element[1] then "#{top}" else "#{top} #{element[1]}"
-        elem = element[0]
-
-        if !elem?
-          msg = "Element '#{element[1]}' not found. Check please."
-          logger.error(msg, logger.binding)
-          throw new Error(msg)
-
-        r = {
-          to: tmp_to
-          from: tmp_from
-          strategy: tmp_strategy
-          transform: tmp_transform
-          element: elem
-          selector: tmp_original
-        }
-        if is_bind_view_to_model
-          if tmp_to
+        if Sirius.Utils.is_array(key)
+          key.forEach (key) ->
+            r = unwrap(element, key)
             result.push(r)
         else
-          if tmp_from
-            result.push(r)
+          r = unwrap(element, key)
+          if is_bind_view_to_model
+            if r['to']
+              result.push(r)
+          else
+            if r['from']
+              result.push(r)
 
     result
 

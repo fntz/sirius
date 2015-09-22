@@ -9,20 +9,26 @@ class JQueryAdapter extends Adapter
       jQuery(element).on(event, fn)
     else
       jQuery(element).on(event, selector, fn)
+    return
+
+  off: (element, selector, event, fn) ->
+    jQuery(element).off(event, selector, fn)
+    return
 
   fire: (element, event, params...) ->
     jQuery(element).trigger(event, params)
+    return
 
   get_property: (event, properties) ->
     for p in properties then jQuery(event.target).attr(p)
-
 
   swap: (element, content) ->
     tag = @get_attr(element, 'tagName')
     if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
       jQuery(element).val(content)
     else
-      jQuery(element).text(content) #FIXME use text ?
+      jQuery(element).text(content)
+    return
 
   get_attr: (element, attr) ->
     if attr.indexOf('data') == 0
@@ -36,18 +42,22 @@ class JQueryAdapter extends Adapter
       jQuery(element).attr(attr, value)
     else
       jQuery(element).data(attr.replace("data-", ""), value)
+    return
 
   set_prop: (element, prop, value) ->
     jQuery(element).prop(prop, value)
 
   append: (element, content) ->
     jQuery(element).append(content)
+    return
 
   prepend: (element, content) ->
     jQuery(element).prepend(content)
+    return
 
   clear: (element) ->
     jQuery(element).text("")
+    return
 
   text: (element) ->
     tag  = @get_attr(element, 'tagName')

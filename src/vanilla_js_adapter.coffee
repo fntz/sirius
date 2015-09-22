@@ -14,16 +14,30 @@ class VanillaJsAdapter extends Adapter
       element.addEventListener(event, fn)
     else
       # need find all elements and add listener
+      if (typeof(selector) == "object" && selector.nodeType == 1)
+        selector.addEventListener(event, fn)
+      else
+        all = @all(selector)
+
+        for e in [0...all.length]
+          all.item(e).addEventListener(event, fn)
+    return
+
+  off: (element, selector, event, fn) ->
+    if selector == null || selector == element
+      element.removeEventListener(event, fn)
+    else
       all = @all(selector)
       for e in [0...all.length]
-        all.item(e).addEventListener(event, fn)
-
+        all.item(e).removeEventListener(event, fn)
+    return
 
   fire: (element, event, params...) ->
     # Fixme
     ev = document.createEvent("CustomEvent")
     ev.initCustomEvent(event, false, true, params)
     document.dispatchEvent(ev)
+    return
 
   get_property: (event, properties) ->
     e = event.target
@@ -45,22 +59,27 @@ class VanillaJsAdapter extends Adapter
       elem.value = content
     else
       elem.textContent = content
+    return
 
   set_attr: (element, attr, value) ->
     @_get_element_from_selector(element).setAttribute(attr, value)
+    return
 
   set_prop: (element, prop, value) ->
     @_get_element_from_selector(element).setAttribute(prop, value)
+    return
 
   append: (element, content) ->
     elem = @_get_element_from_selector(element)
     old = elem.textContent
     elem.textContent = old + content
+    return
 
   prepend: (element, content) ->
     elem = @_get_element_from_selector(element)
     old = elem.textContent
     elem.textContent = content + old
+    return
 
   clear: (element) ->
     elem = @_get_element_from_selector(element)
@@ -69,6 +88,7 @@ class VanillaJsAdapter extends Adapter
       elem.value = ""
     else
       elem.textContent = ""
+    return
 
   text: (element) ->
     elem = @_get_element_from_selector(element)

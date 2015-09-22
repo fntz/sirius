@@ -30,12 +30,12 @@ class Sirius.Logger
         @[level] = (msg, location) ->
           if log_enabled
             # need print only in filter or user
-            if filters.indexOf(location) != -1 || (!location? || pre_filters.indexOf(location) == -1)
-              msg = if location?
-                "[#{location.toUpperCase()}] #{msg}"
-              else
-                msg
+            unless location # => user log
               logger_function(level.toUpperCase(), msg)
+            else
+              if filters.indexOf(location) != -1 || (!location? || pre_filters.indexOf(location) == -1)
+                msg = "[#{location.toUpperCase()}] #{msg}"
+                logger_function(level.toUpperCase(), msg)
 
 
 

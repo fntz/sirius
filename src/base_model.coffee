@@ -702,18 +702,22 @@ class Sirius.BaseModel
     current_model = @
 
     if !(view.name && view.name() == "View")
-      msg = "`bind` only work with Sirius.View"
-      @logger.error(msg)
+      msg = "Sirius.BaseModel#bind only work with Sirius.View"
+      @logger.error(msg, @logger.base_model)
       throw new Error(msg)
 
     @logger.info("Bind with #{view.element}", @logger.base_model)
 
     # if not transform for given key define default transform method
-    Object.keys(object_setting).map((key) =>
+    Object.keys(object_setting).map (key) =>
       if !object_setting[key]['transform']?
         @logger.info("bind define default transform method for '#{key}'", @logger.base_model)
-        object_setting[key]['transform'] = (x) -> x
-    )
+
+        if Sirius.Utils.is_array(object_setting[key])
+          for i in [0...object_setting[key].length]
+            object_setting[key][i]['transform'] = (x) -> x
+        else
+          object_setting[key]['transform'] = (x) -> x
 
 
     callbacks = @callbacks
@@ -723,14 +727,8 @@ class Sirius.BaseModel
     Sirius.Application.get_adapter().and_then (adapter) =>
       current = view.element
 
-      elements = new Sirius.BindHelper(current, {
-        to: 'data-bind-view-to',
-        from: 'data-bind-view-from'
-        strategy: 'data-bind-view-strategy'
-        transform: 'data-bind-view-transform'
-        default_from : null
-        default_to: 'text'
-      }, false).extract(adapter, object_setting)
+      elements = new Sirius.BindHelper(current, false)
+      .extract(adapter, object_setting)
 
       attributes = @attributes
       self = @

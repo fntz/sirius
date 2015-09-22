@@ -530,7 +530,7 @@ Sirius.Application =
     ```
     @note If you use Sirius.Logger in you controller, not need define this controller for filters.
   Just use it.
-    @note empty array eq without filter (log all)
+    @note empty array eq log disabling
   ###
   log_filters: []
 
@@ -594,7 +594,7 @@ Sirius.Application =
         if xs.length != 0
           throw new Error("Check log filters given `#{user_filter}`. Allow #{lf}")
     else
-      @log_filters = Sirius.Logger.Filters
+      @log_filters = []#Sirius.Logger.Filters
 
 
     @logger  = new Sirius.Logger(@log, @log_filters, options['logger'] || @default_log_function)
