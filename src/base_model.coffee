@@ -710,14 +710,15 @@ class Sirius.BaseModel
 
     # if not transform for given key define default transform method
     Object.keys(object_setting).map (key) =>
-      if !object_setting[key]['transform']?
-        @logger.info("bind define default transform method for '#{key}'", @logger.base_model)
-
-        if Sirius.Utils.is_array(object_setting[key])
-          for i in [0...object_setting[key].length]
+      if Sirius.Utils.is_array(object_setting[key])
+        for i in [0...object_setting[key].length]
+          if !object_setting[key][i]['transform']?
+            @logger.info("bind define default transform method for '#{key}'", @logger.base_model)
             object_setting[key][i]['transform'] = (x) -> x
-        else
-          object_setting[key]['transform'] = (x) -> x
+      else
+        if !object_setting[key]['transform']?
+          @logger.info("bind define default transform method for '#{key}'", @logger.base_model)
+        object_setting[key]['transform'] = (x) -> x
 
 
     callbacks = @callbacks
@@ -739,6 +740,7 @@ class Sirius.BaseModel
           element.view ?= new Sirius.View(element.element)
           strategy = element.strategy
           transform = element.transform
+
           if !Sirius.View.is_valid_strategy(strategy)
             logger.error("Not valid strategy: '#{strategy}'", logger.base_model)
             throw new Error("Strategy #{strategy} not valid")

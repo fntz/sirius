@@ -89,6 +89,17 @@ class Sirius.View
     @
 
   #
+  # call strategy on inner element
+  # @param [String] - inner element selector
+  # @example
+  #   //coffee
+  #   v.render("new-class").zoom(".inner-element").swap('class')
+  zoom: (selector) ->
+    v = new Sirius.View("#{@element} #{selector}")
+    v._result = @_result
+    v
+
+  #
   # @param [String] - selector in element
   # @param [String] - event name
   # @param [String] - custom event name, which will be fired on event name

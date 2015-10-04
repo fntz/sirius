@@ -19,7 +19,10 @@ class Sirius.BindHelper
     is_bind_view_to_model = @is_bind_view_to_model
     result = []
     default_from = null
-    default_to = 'text'
+    default_to = if is_bind_view_to_model
+      null
+    else
+      'text'
     @logger.info("BindHelper: default from: #{default_from}", @logger.binding)
     @logger.info("BindHelper: default to: #{default_to}", @logger.binding)
 
@@ -53,7 +56,7 @@ class Sirius.BindHelper
 
     elements.forEach (elem) ->
       if !elem[0]?
-        msg = "Element '#{element[1]}' not found. Check please."
+        msg = "Element '#{elem[1]}' not found. Check please."
         logger.error(msg, logger.binding)
         throw new Error(msg)
 
