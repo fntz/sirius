@@ -85,7 +85,7 @@ Controller =
 
 ```
 
-##### note: by default Sirius `controller_wrapper` contain only `redirect` action.
+##### note: by default Sirius `controller_wrapper` contain only `redirect` action, and with `mix_logger_into_controller` options you might enable logger in controller actions
 
 
 ### 2. Define routes
@@ -234,10 +234,10 @@ person.find("name", "Joe").to_json() # => {"id" : "g-u-i-d", "name" : "Joe", "ag
 ### 8. Binding
 
 Support binding: view to model, view to view, view to model, view to javascript object property
-and model to view. And it support all strategies or transform methods.
+and model to view. And it support all strategies (how to change content or attribute) or transform (how to transform value) methods.
 
 
-```
+```coffee
 # view to view
  # html
  <input type='text' id='v1' />
@@ -253,7 +253,7 @@ and model to view. And it support all strategies or transform methods.
  $("#r1").data('name') # => equal to our input
 ```
 
-```
+```coffee
 # view to model
   # html
   <form id="form">
