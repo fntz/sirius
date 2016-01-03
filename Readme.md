@@ -312,9 +312,38 @@ $("#my-form input:checked").val() # => val3
 ```
 Strategies and transform for binding
 
-```html
-  <span data-bind-view-from='title' data-bind-view-transform='wrap' data-bind-view-strategy='append'></span>
+```coffee
+
+# model
+source = new Source() # fields: `normalized`, `count`, `id`...  
+# view
+source_view = new Sirius.View("#source-id")
+
+source.bind(source_view,
+    "a.source-url":            # bind for `href` and `text` (content) 
+      [{           
+        from: "normalized"
+        to: "href"
+        transform: (x) ->  # wrap field
+          "/show/#{x}"}, 
+      {
+        from: "name"
+        to: "text"
+      }]
+
+
+    "span.source-count":
+      from: "count"
+      transform: (x) ->  # transform to normal string from int
+        if isNaN(parseInt(x, 10)) || x <= 0  
+          "0"
+        else
+          "#{x}"
+      strategy: "hide" # custom strategy if count eq 0, add hide class
+  )
+  
 ```
+
 
 ##### double-sided binding
 
