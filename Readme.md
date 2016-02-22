@@ -105,6 +105,7 @@ Controller =
   
   class Person extends Sirius.BaseModel
      @attrs: ["id", "name", "age"]
+     @comp("id_and_name", "id", "name") # <- computed field
      @guid_for: "id"
      @validate:
        id: c only_integers: true

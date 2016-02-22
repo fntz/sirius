@@ -1,3 +1,35 @@
+=== 0.8.5 computed field support
+
+```coffee
+class MyModel extends Sirius.BaseModel
+  @attrs: ["first_name", "last_name", "age"]
+  @comp("full_name", "first_name", "last_name")
+  @comp("age_and_full_name", "age", "full_name", (age, fn) -> "age: #{age}, #{fn}")  
+```
+
+=== 0.8.4 
+
+add `zoom` for views
+
+```html
+<div id="view">
+  <span class="inner"></span>
+</div>
+```
+
+```coffee
+view = new Sirius.View("#view")
+view.zoom(".inner").swap("new content")
+```
+
+result:
+
+```html
+<div id="view">
+  <span class="inner">new content</span>
+</div>
+```
+
 === 0.8.3
 
 Binding one selector with several model attributes:

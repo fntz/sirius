@@ -1,4 +1,48 @@
 
+# private class
+class ComputedField
+  # @fields array of string
+  # fn - function which compute result. By default joun
+  constructor: (@main, @fields, @fn = null) ->
+    @_count = @fields.length
+    @_values = []
+
+  get_fields: () -> @fields
+
+  complete: (field, value) ->
+    o = {}
+    o[field] = value
+    v = @_values.map (f) -> Object.keys(f)[0]
+    if v.indexOf(field) == -1
+      @_values.push(o)
+      if @is_full()
+        @_result()
+      else
+        null
+    else
+      null
+
+  field_name: () -> @main
+
+  remove: (field) ->
+    delete @_values[field]
+
+  # return result
+  _result: () ->
+    v = @_values
+    args = @fields.map (f) ->
+      (v.filter (vv) -> vv[f])[0][f]
+
+    if @fn == null
+      args.join(" ")
+    else
+      @fn.apply(null, args)
+
+  is_full: () ->
+    @_values.length == @_count
+
+
+
 #
 # A top level class for all models in application.
 # Supported features:
@@ -158,9 +202,67 @@ class Sirius.BaseModel
   ###
   @validate : {}
 
+  # last argument function
+  #
+  # usage:
+  #
+  # class MyModel extends Sirius.BaseModel
+  #   @attrs: ["first_name", "last_name"]
+  #   @comp("default_computed_field", "first_name", "last_name")
+  #   @comp("full_name", "first_name", "last_name", (f,l) -> "#{f}~#{l}")
+  #
+  #
+  @comp: (args...) ->
+    # TODO check cyclic references
+    @::_cmp ||= []
+    @::_cmp_fields ||= []
+    @::_cmp_refs ||= {}
+
+    if args.length == 0
+      throw new Exception("Compute field is empty")
+    if args.length == 2
+      throw new Exception("For computed fields need more fields")
+
+    field = args[0]
+    length = args.length
+    [deps, xs, fn] = if Sirius.Utils.is_function(args[length - 1])
+      fn = args[length - 1]
+      [args.slice(1, length - 1), args.slice(1, length - 1), fn]
+    else
+      [args.slice(1), args.slice(1), null]
+
+    # fields must be unique
+    # var unique = a.filter(function(item, i, ar){ return ar.indexOf(item) === i; });
+    full = [field].concat(deps)
+    uniq = full.filter (e, i, a) -> a.indexOf(e) == i
+    if uniq.length != full.length
+      throw new Error("Seems your calculated fields are not unique: [#{full}]")
+
+    # check that field is exist
+    _tmp = @attrs.concat(@::_cmp_fields)
+    deps.forEach (f) ->
+      if _tmp.indexOf(f) == -1
+        throw new Error("Field is '#{f}' not found, for '#{field}'")
+
+    # check cyclic references
+    if @::_cmp_fields.length > 0
+      r = deps.filter (f) => @::_cmp_refs[f] && @::_cmp_refs[f].indexOf(field) != -1
+      if r.length > 0
+        throw new Error("Cyclic references detected in '#{field}' field")
+
+    Sirius.Application.get_logger()
+    .info("Define compute field '#{field}' <- '[#{deps}]'",
+      Sirius.Application.get_logger().base_model)
+
+    @::_cmp_refs[field] = deps
+    @::_cmp_fields.push(field)
+    @::_cmp.push(new ComputedField(field, xs, fn))
+
+
+
   # @nodoc
   attrs: () ->
-    @constructor.attrs || []
+    (@constructor.attrs || []).concat(@constructor::_cmp_fields)
 
   # @nodoc
   __name: 'BaseModel' # because in IE not work construction like given_class.__super__.constructor.name
@@ -189,12 +291,22 @@ class Sirius.BaseModel
   guid_for: () ->
     @constructor.guid_for
 
+  # @nodoc
+  _compute: (field, value) ->
+    self = @
+    @constructor::_cmp.forEach (cf) ->
+      if cf.get_fields().indexOf(field) != -1
+        r = cf.complete(field, value)
+        if cf.is_full() # progress
+          self._set(cf.field_name() , r)
+
+
   #
   #  Because models contain attributes as object, this method extract only keys
   #  attrs : [{"id" : 1}] => after normalization ["id"]
   #  @nodoc
   normalize_attrs: () ->
-    for a in @constructor.attrs
+    for a in @attrs()
       do(a) ->
         if Sirius.Utils.is_object(a)
           Object.keys(a)[0]
@@ -215,6 +327,10 @@ class Sirius.BaseModel
   # @note Method generate properties for `@has_many` and `@has_one` attributes.
   # @note Method generate add_x, where `x` it's a attribute from `@has_many` or `@has_one`
   constructor: (obj = {}) ->
+    # pre init
+    @constructor::_cmp ||= []
+    @constructor::_cmp_fields ||= []
+
     @logger = Sirius.Application.get_logger()
     @callbacks = []
     # object, which contain all errors, which registers after validation
@@ -350,6 +466,12 @@ class Sirius.BaseModel
     @attributes
 
 
+  _is_computed_attribute: (attr) ->
+    if @constructor::_cmp_fields.indexOf(attr) != -1
+      true
+    else
+      false
+
   _attribute_present: (attr) ->
     throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model") if @attributes.indexOf(attr) == -1
 
@@ -367,6 +489,13 @@ class Sirius.BaseModel
   # @throw Error, when attributes not defined for current model
   # @return [Void]
   set: (attr, value) ->
+    if @_is_computed_attribute(attr)
+      throw new Error("Impossible set computed attribute #{attr} for #{@normal_name().toUpperCase()}")
+
+    @_set(attr, value)
+
+
+  _set: (attr, value) ->
     @_attribute_present(attr)
 
     oldvalue = @["_#{attr}"]
@@ -380,11 +509,8 @@ class Sirius.BaseModel
       @["_#{attr}"] = value
 
     @validate(attr)
-
+    @_compute(attr, value)
     @_call_callbacks(attr, value, oldvalue)
-
-
-
 
   #
   # Base getter

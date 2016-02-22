@@ -173,13 +173,23 @@ describe "BaseModel", ->
   describe "SkipFields", ->
     it "work without errors when json contain another fields", ->
       obj = {"id": 1, "another_field": "foobar"}
-  
+
       expect(() -> new SkipFieldsModel(obj)).not.toThrow()
       expect(() -> new MyModel(obj)).toThrow()
 
 
 
-
+  describe "Computed field", ->
+    it "define and use compute field as normal fields", ->
+      model = new ComputedFieldModel()
+      expect(model.full_name()).toBeNull()
+      expect(() -> model.full_name("foo")).toThrow()
+      model.first_name("John")
+      model.last_name("Doe")
+      expect(model.full_name()).toEqual("John Doe")
+      expect(model.full_name1()).toEqual("John-Doe")
+      expect(model.full()).toEqual("John Doe John-Doe")
+      expect(model.get_errors('full_name').length).toEqual(1)
 
 
 

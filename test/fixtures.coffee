@@ -103,8 +103,14 @@ class SkipFieldsModel extends Sirius.BaseModel
   @skip : true
 
 
-
-
+class ComputedFieldModel extends Sirius.BaseModel
+  @attrs: ["first_name", "last_name"]
+  @comp("full_name", "first_name", "last_name")
+  @comp("full_name1", "first_name", "last_name", (f, l) -> "#{f}-#{l}")
+  @comp("full", "full_name", "full_name1")
+  @validate :
+    full_name:
+      length: min: 3, max: 7
 
 
 

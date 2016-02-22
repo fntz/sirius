@@ -509,14 +509,14 @@ Sirius.Application =
   ###
    Array with classes for logs
    Possible classes:
-      BaseModel   = 0
-      Binding     = 1
-      Collection  = 2
-      View        = 4
-      Routing     = 5
-      Application = 7
-      Redirect    = 8
-      Validation  = 9
+      BaseModel     = 0
+      Binding       = 1
+      Collection    = 2
+      View          = 3
+      Routing       = 4
+      Application   = 5
+      Redirect      = 6
+      Validation    = 7
 
    Use as:
 
