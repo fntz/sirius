@@ -1,6 +1,6 @@
 
 [Sirius.js](http://fntzr.github.com/sirius) a coffeescript MVC framework.
-[post: Writing Todo App with Sirius.js](http://fntzr.github.io/coffeescript/2014/12/18/writing-todo-app-with-sirius.html)
+[post: Todo App with Sirius.js](http://fntz.github.io/coffeescript/2014/12/18/writing-todo-app-with-sirius.html)
 
 ### browser support: IE9+, FF, Opera, Chrome
 
