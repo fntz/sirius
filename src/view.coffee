@@ -23,6 +23,8 @@ class Sirius.View
 
   @_Cache = [] # cache for all views
 
+  _listeners: []
+
   # @private
   class EventHandlerParams
     constructor: (@selector, @event_name, @custom_event_name) ->
@@ -81,6 +83,17 @@ class Sirius.View
 
   get_element: () ->
     @element
+
+  _register_state_listener: (transformer) ->
+    @logger.info("Register new listener for element: #{@get_element}", @logger.view)
+    @_listeners.push(transformer)
+
+  fetch_current_value: (from) -> # text, id, ...
+    if from == 'text'
+      1
+    else
+      1
+    return "TODO: #{from}"
 
   # compile function
   # @param [Array] with arguments, which pass into transform function

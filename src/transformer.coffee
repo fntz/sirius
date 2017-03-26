@@ -25,8 +25,8 @@
     pipe_view_to_model = Sirius.Transformer.draw
       "#my-name":
         to: 'name'
-        via: (html_element) ->
-          value = fetch_value_from_element(html_element)
+        from: 'text' # class, id, *, default: text
+        via: (value) ->
           return "#{value}!!!"
 
     pipe_model_to_view = Sirius.Transformer.draw
@@ -50,16 +50,22 @@
 
 ###
 
+# TODO: ViewToView, ViewToObject, ObjectToView
 
-# @private
-# @nodoc
-class Sirius.ToViewTransformer
+class Sirius.AbstractTransformer
   constructor: (@_path, @_model) ->
     @logger = Sirius.Application.get_logger()
     @_ln = @logger.transformer # logger name
+    @_registrer()
+
+
+# @private
+# @nodoc
+class Sirius.ToViewTransformer extends Sirius.AbstractTransformer
+  _register: () ->
     @_model._register_state_listener(@)
 
-  # Check that this works for inputs
+# TODO Check that this works for inputs
   _default_via_method: () ->
     (value, selector, view) ->
       view.zoom(selector).render(value).swap()
@@ -76,11 +82,25 @@ class Sirius.ToViewTransformer
 
 # @private
 # @nodoc
-class Sirius.ToModelTransformer
-  constructor: (@_path, @_model, @_view) ->
+class Sirius.ToModelTransformer extends Sirius.AbstractTransformer
+  _register: () ->
+    @_view._register_state_listener(@)
 
+  _default_via_method: () ->
+    (value) -> value
 
+  fire: (selector) ->
+    value = @_path[selector]
+    if value
+      to = value['to']
+      from = value['from'] || 'text'
+      via = value['via'] || @_default_via_method()
 
+      @logger.debug("Apply new value from #{selector} to #{@_model.normalize_name()}.#{to}")
+
+      need = @_view.zoom(selector).fetch_current_value(from)
+
+      @_model.set(via(need))
 
 
 

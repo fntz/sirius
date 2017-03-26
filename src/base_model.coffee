@@ -745,8 +745,7 @@ class Sirius.BaseModel
 
   # Sirius.ToViewTransformer
   _register_state_listener: (transformer) ->
-    logger = Sirius.Application.get_logger()
-    logger.debug("Register new listener for #{@constructor.name}")
+    @logger.debug("Register new listener for #{@constructor.name}", @logger.base_model)
     _listeners.push(transformer)
 
   _clear_state_listener: (transformer) ->
