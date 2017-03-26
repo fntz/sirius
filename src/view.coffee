@@ -30,7 +30,7 @@ class Sirius.View
     eq: (another) ->
       @selector == another.selector and
       @event_name == another.event_name and
-      # last arguments is function
+      # last arguments is a function
       @custom_event_name.toString == another.custom_event_name.toString
 
 
@@ -78,6 +78,9 @@ class Sirius.View
 
     Sirius.View._Cache.push(@)
     @
+
+  get_element: () ->
+    @element
 
   # compile function
   # @param [Array] with arguments, which pass into transform function

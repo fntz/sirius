@@ -202,6 +202,9 @@ class Sirius.BaseModel
   ###
   @validate : {}
 
+  # save transformers for model
+  _listeners: []
+
   # last argument function
   #
   # usage:
@@ -739,6 +742,15 @@ class Sirius.BaseModel
   # method for clone current model and create new
   clone: () ->
     @constructor.from_json(@to_json())
+
+  # Sirius.ToViewTransformer
+  _register_state_listener: (transformer) ->
+    logger = Sirius.Application.get_logger()
+    logger.debug("Register new listener for #{@constructor.name}")
+    _listeners.push(transformer)
+
+  _clear_state_listener: (transformer) ->
+    # TODO
 
   #
   # bind
