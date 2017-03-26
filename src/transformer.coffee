@@ -29,6 +29,9 @@
         via: (value) ->
           return "#{value}!!!"
 
+    view.bind(model, pipe_view_to_model)
+
+
     pipe_model_to_view = Sirius.Transformer.draw
       "name":
         to: "#my-name"
@@ -36,7 +39,7 @@
           @view.zoom(selector).set_value(value)
         # or maybe
 
-
+    model.bind(view, pipe_model_to_view)
 
 
   Small notes:
@@ -53,10 +56,14 @@
 # TODO: ViewToView, ViewToObject, ObjectToView
 
 class Sirius.AbstractTransformer
-  constructor: (@_path, @_model) ->
+
+  constructor: (@_path, @_model, @_view) ->
     @logger = Sirius.Application.get_logger()
     @_ln = @logger.transformer # logger name
-    @_registrer()
+    @_register()
+
+  _register: () ->
+
 
 
 # @private
@@ -104,9 +111,10 @@ class Sirius.ToModelTransformer extends Sirius.AbstractTransformer
 
 
 
-Sirius.Transformer =
-  Model :  0
-  View  :  0
+class Sirius.Transformer
+  @_Model :  0
+  @_View  :  1
+  # TODO JsObject, View2View
 
   _from: null
 
@@ -119,53 +127,38 @@ Sirius.Transformer =
   # hash object
   _path: null
 
+  constructor: (@_model, @_view) ->
+
+  _m: () -> Sirius.Transformer._Model
+  _v: () -> Sirius.Transformer._View
+
   # called implicitly with `via` method in binding
   set_from: (from) ->
-    if @Model == from || @View == from
+    if @_m() == from || @_v() == from
       @_from = from
     else
-      throw new Error("Unexpected 'from' option for Transformer, required: Model: #{@Model} or View: #{@View}")
-
-  set_model: (m) ->
-    @_model = m
-
-  set_view: (v) ->
-    @_view = v
+      throw new Error("Unexpected 'from' option for Transformer, required: Model: #{@_m()} or View: #{@_v()}")
 
   _from_model: () ->
-    if @Model == @_from
-      true
-    else
-      false
+    @_m() == @_from
 
-  _logger_helper: () ->
-    if @_model && @_view
-      if @_from == @Model
-        "from Model to View"
-      else
-        "from View to Model"
-    else
-      "Seems you don't define Model and View for Transformer, check please"
-
-  _validate_state: () ->
-    @_model && @_view && @_from
-
-  draw: (object) ->
-    # TODO add validation for to and via methods
-    logger = Sirius.Application.get_logger()
-
-    logger.info("Draw Transformer: #{@_logger_helper()}")
-
-    if not @_validate_state()
-      throw new Error("Define direction (from View to Model, or from Model to View)", logger.transformer)
-
-
+  run: (object) ->
     @_path = object
 
     if @_from_model()
-      Sirius.ToViewTransformer(object, @_model, @_view)
+      new Sirius.ToViewTransformer(object, @_model, @_view)
     else
-      Sirius.ToModelTransformer(object, @_model, @_view)
+      new Sirius.ToModelTransformer(object, @_model, @_view)
+
+  @draw: (object) ->
+    # TODO add validation for to and via methods
+    logger = Sirius.Application.get_logger()
+
+    logger.debug("Draw Transformer", logger.transformer)
+
+    object
+
+
 
 
 

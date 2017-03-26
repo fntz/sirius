@@ -115,7 +115,8 @@ class ComputedFieldModel extends Sirius.BaseModel
 
 
 
-
+class MyTestIndexModel extends Sirius.BaseModel
+  @attrs: ["name"]
 
 
 
