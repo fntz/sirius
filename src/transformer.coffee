@@ -70,22 +70,32 @@ class Sirius.AbstractTransformer
 # @nodoc
 class Sirius.ToViewTransformer extends Sirius.AbstractTransformer
   _register: () ->
-    @_model._register_state_listener(@)
+    clb = @_fire_generator()
+    @_model._register_state_listener(clb)
 
 # TODO Check that this works for inputs
-  _default_via_method: () ->
+  @_default_via_method: () ->
     (value, selector, view) ->
       view.zoom(selector).render(value).swap()
 
+  _fire_generator: () ->
+    view = @_view
+    path = @_path
+    model = @_model
+    logger = @logger
+    ln = @_ln
 
-  fire: (attribute, value) ->
-    value = @_path[attribute]
+    callback = (attribute, value) ->
+      obj = path[attribute]
 
-    if value
-      @logger.debug("Apply new value for '#{attribute}' for '#{@_view.get_element()}', value: #{value}", @_ln)
-      to = value['to']
-      via = value['via'] || @_default_via_method()
-      via(value, selector, @_view)
+      if obj
+        logger.debug("Apply new value for '#{attribute}' for '#{view.get_element()}', value: #{value} from #{model.normal_name()}", ln)
+        to = obj['to']
+        via = obj['via'] || Sirius.ToViewTransformer._default_via_method()
+
+        via(value, to, view)
+
+    callback
 
 # @private
 # @nodoc
@@ -120,21 +130,6 @@ class Sirius.ToModelTransformer extends Sirius.AbstractTransformer
         model.set(to, via(result.text))
 
     callback
-
-
-  fire: (result) ->
-    value = @_path[result.original]
-    if value
-      to = value['to']
-      from = value['from'] || 'text'
-      via = value['via'] || @_default_via_method()
-
-      @logger.debug("Apply new value from #{selector} to #{@_model.normalize_name()}.#{to}")
-
-      need = @_view.zoom(selector).fetch_current_value(from)
-
-      @_model.set(via(need))
-
 
 
 class Sirius.Transformer

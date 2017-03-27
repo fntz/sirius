@@ -479,6 +479,9 @@ class Sirius.BaseModel
     throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model") if @attributes.indexOf(attr) == -1
 
   _call_callbacks: (attr, value, oldvalue) ->
+    for clb in @_listeners
+      clb.apply(null, [attr, value])
+
     for clb in @callbacks
       if clb[0] is attr
         clb[1].apply(null, [attr, value, oldvalue])
@@ -746,10 +749,18 @@ class Sirius.BaseModel
   # Sirius.ToViewTransformer
   _register_state_listener: (transformer) ->
     @logger.debug("Register new listener for #{@constructor.name}", @logger.base_model)
-    _listeners.push(transformer)
+    @_listeners.push(transformer)
 
   _clear_state_listener: (transformer) ->
     # TODO
+
+  pipe: (view, via) ->
+    # TODO default attributes
+    t = new Sirius.Transformer(@, view)
+    t.set_from(Sirius.Transformer._Model)
+    t.run(via)
+
+    return
 
   #
   # bind

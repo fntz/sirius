@@ -88,13 +88,6 @@ class Sirius.View
     @logger.info("Register new listener for element: #{@get_element}", @logger.view)
     @_listeners.push(transformer)
 
-  fetch_current_value: (from) -> # text, id, ...
-    if from == 'text'
-      1
-    else
-      1
-    return "TODO: #{from}"
-
   # compile function
   # @param [Array] with arguments, which pass into transform function
   # By default transform function take arguments and return it `(x) -> x`
@@ -111,7 +104,11 @@ class Sirius.View
   #   //coffee
   #   v.render("new-class").zoom(".inner-element").swap('class')
   zoom: (selector) ->
-    v = new Sirius.View("#{@element} #{selector}")
+    v = if selector == @element
+      @
+    else
+      new Sirius.View("#{@element} #{selector}")
+
     v._result = @_result
     v
 
