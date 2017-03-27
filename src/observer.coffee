@@ -22,7 +22,7 @@ class Sirius.Observer
   # http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-MutationEvent
   # https://dvcs.w3.org/hg/domcore/raw-file/tip/Overview.html#mutation-observers
   # BUG when reset input, bind element should reset the same
-  constructor: (@from_element, @clb = ->) ->
+  constructor: (@from_element, @original, @clb = ->) ->
     adapter = Sirius.Application.get_adapter()
     adapter.and_then(@_create)
 
@@ -32,6 +32,7 @@ class Sirius.Observer
     logger  = Sirius.Application.get_logger()
     clb  = @clb
     from = @from_element
+    original = @original
     current_value = null
 
     if typeof(from) == 'object' && from.object && from.prop
@@ -73,11 +74,11 @@ class Sirius.Observer
       tag  = adapter.get_attr(from, 'tagName')
       type = adapter.get_attr(from, 'type')
 
-      logger.info("for #{from}", logger.binding)
+      logger.debug("for #{from}", logger.binding)
       # FIXME maybe save all needed attributes in hash ????
       handler = (e) ->
-        logger.info("Handler Function: given #{e.type} event", logger.binding)
-        result = {text: null, attribute: null}
+        logger.debug("Handler Function: given #{e.type} event", logger.binding)
+        result = {text: null, attribute: null, from: from, original: original}
         return if ['focusout', 'focusin'].indexOf(e.type) != -1
         txt = adapter.text(from)
 
@@ -150,8 +151,8 @@ class Sirius.Observer
 
       else # when null, need register event with routes
         # FIXME stackoverflow
-        logger.warn("MutationObserver not support", logger.binding)
-        logger.info("Use Deprecated events for observe", logger.binding)
+        logger.warn("MutationObserver not supported", logger.binding)
+        logger.warn("Use Deprecated events for observe", logger.binding)
         adapter.bind(document, @from_element, 'DOMNodeInserted', handler)
         adapter.bind(document, @from_element, 'DOMAttrModified', handler)
 

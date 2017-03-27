@@ -92,12 +92,38 @@ class Sirius.ToViewTransformer extends Sirius.AbstractTransformer
 class Sirius.ToModelTransformer extends Sirius.AbstractTransformer
   _register: () ->
     @_view._register_state_listener(@)
+    clb = @_fire_generator()
+    top = @_view.get_element()
+    for k, v of @_path
+      new Sirius.Observer("#{top} #{k}", k, clb)
 
   _default_via_method: () ->
     (value) -> value
 
-  fire: (selector) ->
-    value = @_path[selector]
+  _fire_generator: () ->
+    view = @_view
+    path = @_path
+    model = @_model
+    logger = @logger
+    ln = @_ln
+
+    callback = (result) ->
+
+      value = path[result.original]
+      if value
+        to = value['to']
+        from = value['from'] || 'text'
+        via = value['via'] || ((value) -> value)
+
+        logger.debug("Apply new value from #{result.from} (#{result.original}) to #{model.normal_name()}.#{to}", ln)
+
+        model.set(to, via(result.text))
+
+    callback
+
+
+  fire: (result) ->
+    value = @_path[result.original]
     if value
       to = value['to']
       from = value['from'] || 'text'
