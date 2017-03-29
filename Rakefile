@@ -98,7 +98,7 @@ task :build do
   vanilla_files = coffee(src, %w(adapter vanilla_js_adapter))
 
   lib_files = coffee(src, %w(
-    version ext logger promise utils
+    version logger promise utils
     sirius validators observer
     view base_model transformer collection
   ))
