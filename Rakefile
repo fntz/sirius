@@ -100,7 +100,7 @@ task :build do
   lib_files = coffee(src, %w(
     version ext logger promise utils
     sirius validators observer
-    bind_helper view base_model transformer collection
+    view base_model transformer collection
   ))
 
   system("cat #{lib_files} | coffee -c -b --stdio > #{path}/sirius.js")
