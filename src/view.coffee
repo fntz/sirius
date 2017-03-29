@@ -555,10 +555,8 @@ class Sirius.View
       klass.bind(@, setting['view'] || {})
 
 
-  pipe: (model, via) ->
-    # TODO validate model
-    t = new Sirius.Transformer(model, @)
-    t.set_from(Sirius.Transformer._View)
+  pipe: (output, via) ->
+    t = new Sirius.Transformer(@, output)
     t.run(via)
 
     return
@@ -566,7 +564,7 @@ class Sirius.View
 
 
 
-  # Register new strategy for View
+# Register new strategy for View
   # @param [String] - strategy name
   # @param [Object] - object with transform and render functions, take oldvalue, and newvalue for attribute
   # transform [Function] - transform function, take oldvalue, and newvalue for attribute

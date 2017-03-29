@@ -754,10 +754,9 @@ class Sirius.BaseModel
   _clear_state_listener: (transformer) ->
     # TODO
 
-  pipe: (view, via) ->
+  pipe: (func, via) ->
     # TODO default attributes
-    t = new Sirius.Transformer(@, view)
-    t.set_from(Sirius.Transformer._Model)
+    t = new Sirius.Transformer(@, func)
     t.run(via)
 
     return

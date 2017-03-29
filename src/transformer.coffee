@@ -53,11 +53,11 @@
 
 ###
 
-# TODO: ViewToView, ViewToObject, ObjectToView
+Sirius.Internal = {}
 
-class Sirius.AbstractTransformer
+class Sirius.Internal.AbstractTransformer
 
-  constructor: (@_path, @_model, @_view) ->
+  constructor: (@_path, @_from, @_to) ->
     @logger = Sirius.Application.get_logger()
     @_ln = @logger.transformer # logger name
     @_register()
@@ -65,23 +65,39 @@ class Sirius.AbstractTransformer
   _register: () ->
 
 
+class Sirius.Internal.ToFunctionTransformer extends Sirius.Internal.AbstractTransformer
+  _register: () ->
+    @_from._register_state_listener(@)
+    clb = @_fire_generator()
+    top = @_from.get_element()
+    for k, v of @_path
+      new Sirius.Observer("#{top} #{k}", k, clb)
+
+  _fire_generator: () ->
+    view = @_from
+    logger = @logger
+    f = @_to
+
+    callback = (result) ->
+      f(result, view, logger)
+
+    callback
 
 # @private
 # @nodoc
-class Sirius.ToViewTransformer extends Sirius.AbstractTransformer
+class Sirius.Internal.ToViewTransformer extends Sirius.Internal.AbstractTransformer
   _register: () ->
     clb = @_fire_generator()
-    @_model._register_state_listener(clb)
+    @_from._register_state_listener(clb)
 
-# TODO Check that this works for inputs
   @_default_via_method: () ->
     (value, selector, view) ->
       view.zoom(selector).render(value).swap()
 
   _fire_generator: () ->
-    view = @_view
+    view = @_to
     path = @_path
-    model = @_model
+    model = @_from
     logger = @logger
     ln = @_ln
 
@@ -91,7 +107,7 @@ class Sirius.ToViewTransformer extends Sirius.AbstractTransformer
       if obj
         logger.debug("Apply new value for '#{attribute}' for '#{view.get_element()}', value: #{value} from #{model.normal_name()}", ln)
         to = obj['to']
-        via = obj['via'] || Sirius.ToViewTransformer._default_via_method()
+        via = obj['via'] || Sirius.Internal.ToViewTransformer._default_via_method()
 
         via(value, to, view)
 
@@ -99,11 +115,11 @@ class Sirius.ToViewTransformer extends Sirius.AbstractTransformer
 
 # @private
 # @nodoc
-class Sirius.ToModelTransformer extends Sirius.AbstractTransformer
+class Sirius.Internal.ToModelTransformer extends Sirius.Internal.AbstractTransformer
   _register: () ->
-    @_view._register_state_listener(@)
+    @_from._register_state_listener(@)
     clb = @_fire_generator()
-    top = @_view.get_element()
+    top = @_from.get_element()
     for k, v of @_path
       new Sirius.Observer("#{top} #{k}", k, clb)
 
@@ -111,9 +127,9 @@ class Sirius.ToModelTransformer extends Sirius.AbstractTransformer
     (value) -> value
 
   _fire_generator: () ->
-    view = @_view
+    view = @_from
     path = @_path
-    model = @_model
+    model = @_to
     logger = @logger
     ln = @_ln
 
@@ -133,46 +149,84 @@ class Sirius.ToModelTransformer extends Sirius.AbstractTransformer
 
 
 class Sirius.Transformer
+  # from
   @_Model :  0
   @_View  :  1
-  # TODO JsObject, View2View
+
+  # to
+  # Model, View, Function
+  @_Function: 2
 
   _from: null
 
-  # Sirius.View
-  _view: null
-
-  # Sirius.Model
-  _model: null
+  _to: null
 
   # hash object
   _path: null
 
-  constructor: (@_model, @_view) ->
+  constructor: (from, to) ->
+    @logger = Sirius.Application.get_logger()
+    @ln = @logger.transformer
 
-  _m: () -> Sirius.Transformer._Model
-  _v: () -> Sirius.Transformer._View
-
-  # called implicitly with `via` method in binding
-  set_from: (from) ->
-    if @_m() == from || @_v() == from
+    if from instanceof Sirius.BaseModel
+      @_from = from
+    else if from instanceof Sirius.View
       @_from = from
     else
-      throw new Error("Unexpected 'from' option for Transformer, required: Model: #{@_m()} or View: #{@_v()}")
+      throw new Error("Bad argument for Transformer, Model or View required, given #{from}")
 
-  _from_model: () ->
-    @_m() == @_from
-
-  run: (object) ->
-    @_path = object
-
-    if @_from_model()
-      new Sirius.ToViewTransformer(object, @_model, @_view)
+    if to instanceof Sirius.BaseModel
+      if !(@_from instanceof Sirius.BaseModel)
+        @_to = to
+      else
+        throw new Error("Impossible bind model and model")
+    else if to instanceof Sirius.View
+      @_to = to
+    else if Sirius.Utils.is_function(to)
+      @_to = to
     else
-      new Sirius.ToModelTransformer(object, @_model, @_view)
+      throw new Error("Bind works only with BaseModel, BaseView or Function, given: #{to}")
+
+
+  # called implicitly with `via` method in binding
+  run: (object) ->
+
+    if @_from && @_to
+      if @_from instanceof Sirius.BaseModel
+        for k, v of object
+          if @_from.get_attributes().indexOf(k) == -1
+            name = @_from.normal_name()
+            attrs = @_from.get_attributes()
+            @logger.warn("Attribute '#{k}' not found in model attributes: '#{name}', available: [#{attrs}]", @ln)
+
+      if @_to instanceof Sirius.BaseModel
+        # {id: {to: attr}}
+        name = @_to.normal_name()
+        for k, v of object
+          attr = v['to']
+          if !attr
+            o = JSON.stringify(object)
+            throw new Error("Impossible create transformer for #{name}, because in object: #{o}, 'to' key not defined")
+          else
+            attrs = @_to.get_attributes()
+            if attrs.indexOf(attr) == -1
+              @logger.warn("Attribute '#{attr}' not found in model attributes: '#{name}', available: [#{attrs}]", @ln)
+
+      @_path = object
+
+      if @_to instanceof Sirius.BaseModel
+        new Sirius.Internal.ToModelTransformer(object, @_from, @_to)
+      else if @_to instanceof Sirius.View
+        new Sirius.Internal.ToViewTransformer(object, @_from, @_to)
+      else if Sirius.Utils.is_function(@_to)
+        new Sirius.Internal.ToFunctionTransformer(object, @_from, @_to)
+
+    else
+      throw new Error("Not all parameters defined for transformer: from: #{@_from}, to: #{@_to}")
+
 
   @draw: (object) ->
-    # TODO add validation for to and via methods
+
     logger = Sirius.Application.get_logger()
 
     logger.debug("Draw Transformer", logger.transformer)
