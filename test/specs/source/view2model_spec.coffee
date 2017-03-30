@@ -48,5 +48,5 @@ describe "View2Model", ->
     view.pipe(model, pipe)
     adapter.set_attr("#{element} #{field}", "data-name", "foo")
 #    expect(model.name()).toEqual("foo")
-  
+
 

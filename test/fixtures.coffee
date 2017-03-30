@@ -154,5 +154,7 @@ class MyTestView2ModelSpecModel extends Sirius.BaseModel
   @attrs: ["name"]
 
 
+class MyTestModel2ViewSpecModel extends Sirius.BaseModel
+  @attrs: ["name"]
 
 

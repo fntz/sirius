@@ -89,8 +89,8 @@ class Sirius.Internal.ToViewTransformer extends Sirius.Internal.AbstractTransfor
     @_from._register_state_listener(clb)
 
   @_default_via_method: () ->
-    (value, selector, view) ->
-      view.zoom(selector).render(value).swap()
+    (value, selector, view, attribute = 'text') ->
+      view.zoom(selector).render(value).swap(attribute)
 
   _fire_generator: () ->
     view = @_to
@@ -105,9 +105,10 @@ class Sirius.Internal.ToViewTransformer extends Sirius.Internal.AbstractTransfor
       if obj
         logger.debug("Apply new value for '#{attribute}' for '#{view.get_element()}', value: #{value} from #{model.normal_name()}", ln)
         to = obj['to']
+        attr = obj['attr'] || 'text'
         via = obj['via'] || Sirius.Internal.ToViewTransformer._default_via_method()
 
-        via(value, to, view)
+        via(value, to, view, attr)
 
     callback
 

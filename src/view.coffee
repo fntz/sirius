@@ -60,7 +60,7 @@ class Sirius.View
     for strategy in @constructor._Strategies
       do(strategy) =>
         name = strategy[0]
-        @logger.info("Define #{name} strategy", @logger.view)
+        @logger.debug("Define #{name} strategy", @logger.view)
         transform = strategy[1]
         render = strategy[2]
         @[name] = (attribute = "text") =>
@@ -68,7 +68,7 @@ class Sirius.View
           # and we have @_result
           result = @_result
           element = @element
-          @logger.info("Start processing strategy for #{element}", @logger.view)
+          @logger.debug("Start processing strategy for #{element}", @logger.view)
           Sirius.Application.get_adapter().and_then (adapter) ->
             # need extract old value
             oldvalue = if attribute is 'text'
@@ -93,7 +93,7 @@ class Sirius.View
   # By default transform function take arguments and return it `(x) -> x`
   # @return [Sirius.View]
   render: (args...) ->
-    @logger.info("Call render for #{args}", @logger.view)
+    @logger.debug("Call render for #{args}", @logger.view)
     @_result = @_result_fn(args)
     @
 
