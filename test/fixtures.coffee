@@ -1,3 +1,35 @@
+adapter = if JQueryAdapter?
+    new JQueryAdapter()
+  else if PrototypeAdapter?
+    new PrototypeAdapter()
+  else
+    new VanillaJsAdapter()
+
+Sirius.Application.adapter = adapter
+
+get_text = (element) ->
+  adapter.text(element)
+
+set_value = (element, text) ->
+  if JQueryAdapter?
+    jQuery(element).val(text)
+  else
+    document.querySelector(element).value = text
+
+get_value = (element) ->
+  document.querySelector(element).value
+
+set_text = (element, text) ->
+  if JQueryAdapter?
+    jQuery(element).text(text)
+  else
+    e = adapter.get(element)
+    if e.textContent
+      e.textContent = text
+    else
+      e.innerHTML = text
+  return
+
 class MyModel extends Sirius.BaseModel
   @attrs: ["id", {title: "default title"}, "description"]
 
@@ -118,6 +150,8 @@ class ComputedFieldModel extends Sirius.BaseModel
 class MyTestIndexModel extends Sirius.BaseModel
   @attrs: ["name"]
 
+class MyTestView2ModelSpecModel extends Sirius.BaseModel
+  @attrs: ["name"]
 
 
 

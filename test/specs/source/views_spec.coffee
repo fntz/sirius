@@ -1,28 +1,5 @@
 describe "View", ->
 
-  adapter = if JQueryAdapter?
-    new JQueryAdapter()
-  else if PrototypeAdapter?
-    new PrototypeAdapter()
-  else
-    new VanillaJsAdapter()
-
-  Sirius.Application.adapter = adapter
-
-  get_text = (element) ->
-    adapter.text(element)
-
-  set_text = (element, text) ->
-    if JQueryAdapter?
-      jQuery(element).text(text)
-    else
-      e = adapter.get(element)
-      if e.textContent
-        e.textContent = text
-      else
-        e.innerHTML = text
-    return
-
   describe "Elements", ->
     describe "Input Text element", ->
       element = "#txt"

@@ -121,9 +121,12 @@
 
 </div>
 
-<div class="view2object">
-  <span></span>
+<div id="view2model_spec">
+  <input type="text" name="model-name" />
+  <div class="view2model_spec-div" data-name="empty"></div>
 </div>
+
+
 
 
 <script type="text/javascript" src="../vendor/jquery.min.js"></script>
@@ -132,21 +135,23 @@
 <script type="text/javascript" src="jasmine/lib/jasmine.js"></script>
 <script type="text/javascript" src="jasmine/lib/jasmine-html.js"></script>
 <script type="text/javascript" src="jasmine/lib/boot.js"></script>
+<script type="text/javascript" src="../vendor/keysim.js"></script>
 
 <!-- include source files here... -->
 <script type="text/javascript" src="../lib/jquery_adapter.js"></script>
 <script type="text/javascript" src="../lib/sirius.js"></script>
 <script type="text/javascript" src="fixtures.js"></script>
 <!-- include spec files here... -->
-<script type="text/javascript" src="specs/compile/collection_spec.js"></script>
-<script type="text/javascript" src="specs/compile/validation_spec.js"></script>
-<script type="text/javascript" src="specs/compile/control_flow_spec.js"></script>
-<script type="text/javascript" src="specs/compile/base_model_spec.js"></script>
-<script type="text/javascript" src="specs/compile/view2view_spec.js"></script>
-<script type="text/javascript" src="specs/compile/views_spec.js"></script>
-<script type="text/javascript" src="specs/compile/view2prop_spec.js"></script>
-<script type="text/javascript" src="specs/compile/model2view_spec.js"></script>
-<script type="text/javascript" src="specs/compile/routing_spec.js"></script>
+<!--<script type="text/javascript" src="specs/compile/collection_spec.js"></script>-->
+<!--<script type="text/javascript" src="specs/compile/validation_spec.js"></script>-->
+<!--<script type="text/javascript" src="specs/compile/control_flow_spec.js"></script>-->
+<!--<script type="text/javascript" src="specs/compile/base_model_spec.js"></script>-->
+<!--<script type="text/javascript" src="specs/compile/view2view_spec.js"></script>-->
+<!--<script type="text/javascript" src="specs/compile/views_spec.js"></script>-->
+<!--<script type="text/javascript" src="specs/compile/view_or_model_to_function_spec.js"></script>-->
+<!--<script type="text/javascript" src="specs/compile/model2view_spec.js"></script>-->
+<script type="text/javascript" src="specs/compile/view2model_spec.js"></script>
+<!--<script type="text/javascript" src="specs/compile/routing_spec.js"></script>-->
 
 </body>
 </html>

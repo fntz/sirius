@@ -1,15 +1,52 @@
 describe "View2Model", ->
-  `var c = function(m){console.log(m);};`
-  Sirius.Application.adapter = new JQueryAdapter()
 
-  describe "text to attribute", ->
-    form = "form.my-form"
-    formView = new Sirius.View(form)
-    myModel = new MyModel()
+  element = "#view2model_spec"
+  field = "input[name='model-name']"
 
 
+  it "fail when model 'to' attribute was not found", ->
+    model = new MyTestView2ModelSpecModel()
+    view = new Sirius.View(element)
+    pipe = Sirius.Transformer.draw({
+      field: {
+      }
+    })
+
+    expect(() -> view.pipe(model, pipe)).toThrow()
 
 
-  describe "attribute view to attribute model", ->
 
+  it "text to model attribute", ->
+    model = new MyTestView2ModelSpecModel()
+    view = new Sirius.View(element)
+    pipe = Sirius.Transformer.draw({
+      field: {
+        "to": "name",
+        "from": "text"
+      }
+    })
+
+
+    view.pipe(model, pipe)
+    #expect(model.name()).toEqual("foo bar baz")
+
+
+
+
+
+  describe "html attribute to model attribute", ->
+    model = new MyTestView2ModelSpecModel()
+    view = new Sirius.View(element)
+    pipe = Sirius.Transformer.draw({
+      field: {
+        "to": "name",
+        "from": "data-name"
+      }
+    })
+
+
+    view.pipe(model, pipe)
+    adapter.set_attr("#{element} #{field}", "data-name", "foo")
+#    expect(model.name()).toEqual("foo")
+  
 

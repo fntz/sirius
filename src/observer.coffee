@@ -3,7 +3,7 @@
 
 # #TODO not need create new observer, just subscribe for the currents
 # @private
-class Sirius.Observer
+class Sirius.Internal.Observer
 
   @_observers:   []
   @add_observer: (new_observer) ->
@@ -21,7 +21,7 @@ class Sirius.Observer
   # for support this browser
   # http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-MutationEvent
   # https://dvcs.w3.org/hg/domcore/raw-file/tip/Overview.html#mutation-observers
-  # BUG when reset input, bind element should reset the same
+  # BUG when reset input, bound element should reset
   constructor: (@from_element, @original, @clb = ->) ->
     adapter = Sirius.Application.get_adapter()
     adapter.and_then(@_create)
@@ -39,7 +39,7 @@ class Sirius.Observer
     type = adapter.get_attr(from, 'type')
 
     logger.debug("for #{from}", logger.binding)
-    # FIXME maybe save all needed attributes in hash ????
+
     handler = (e) ->
       logger.debug("Handler Function: given #{e.type} event", logger.binding)
       result = {text: null, attribute: null, from: from, original: original}
@@ -77,7 +77,7 @@ class Sirius.Observer
     #FIXME need only when 'from text' expected
     if ONCHANGE_TAGS.indexOf(tag) != -1
       if type == "checkbox" || type == "radio" || tag == "OPTION"
-        logger.info("Get a #{type} & #{tag} element", logger.binding)
+        logger.debug("Get a #{type} & #{tag} element", logger.binding)
         adapter.bind(document, @from_element, 'change', handler)
       else
         current_value = adapter.text(@from_element)
@@ -93,7 +93,7 @@ class Sirius.Observer
       return
 
     if MO
-      logger.info("MutationObserver support", logger.binding)
+      logger.debug("MutationObserver support", logger.binding)
       # TODO from element should not be input\textarea\select
       observer = new MO( (mutations) ->
         mutations.forEach handler

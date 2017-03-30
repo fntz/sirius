@@ -53,8 +53,6 @@
 
 ###
 
-Sirius.Internal = {}
-
 class Sirius.Internal.AbstractTransformer
 
   constructor: (@_path, @_from, @_to) ->
@@ -71,7 +69,7 @@ class Sirius.Internal.ToFunctionTransformer extends Sirius.Internal.AbstractTran
     clb = @_fire_generator()
     top = @_from.get_element()
     for k, v of @_path
-      new Sirius.Observer("#{top} #{k}", k, clb)
+      new Sirius.Internal.Observer("#{top} #{k}", k, clb)
 
   _fire_generator: () ->
     view = @_from
@@ -121,7 +119,7 @@ class Sirius.Internal.ToModelTransformer extends Sirius.Internal.AbstractTransfo
     clb = @_fire_generator()
     top = @_from.get_element()
     for k, v of @_path
-      new Sirius.Observer("#{top} #{k}", k, clb)
+      new Sirius.Internal.Observer("#{top} #{k}", k, clb)
 
   _default_via_method: () ->
     (value) -> value
@@ -232,6 +230,7 @@ class Sirius.Transformer
     logger.debug("Draw Transformer", logger.transformer)
 
     object
+
 
 
 
