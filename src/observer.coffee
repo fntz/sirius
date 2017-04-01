@@ -110,7 +110,7 @@ class Sirius.Internal.Observer
           adapter.bind(document, @from_element, 'input', handler)
           #instead of using input event, which not work correctly in ie9
           #use own implementation of input event for form
-          if Sirius.Utils.ie_version() == 9
+          if Sirius.Utils.is_ie9()
             logger.warn("Hook for work with IE9 browser", logger.binding)
             adapter.bind(document, document, O.Ev.selectionchange, handler)
 
@@ -138,7 +138,7 @@ class Sirius.Internal.Observer
         elements = adapter.get(from) # fixme : all
         observer.observe(elements, cnf)
       else
-        observer.observe(from, cnf) # FIXME when it works?
+        observer.observe(from, cnf) 
 
     else # when null, need register event with routes
       # FIXME stackoverflow

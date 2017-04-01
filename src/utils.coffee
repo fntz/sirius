@@ -61,6 +61,8 @@ class Sirius.Utils
 
     0
 
+  @is_ie9: () ->
+    @ie_version() == 9
   #
   # Return function name
   # @param [Function]
