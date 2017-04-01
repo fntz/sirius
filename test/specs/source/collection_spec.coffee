@@ -65,5 +65,3 @@ describe "Collections", ->
     e = mc.takeFirst((f) -> f.id() == 3)
     expect(e.id() == 3).toBeTruthy()
 
-
-  pending "sync"
