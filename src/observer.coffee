@@ -15,6 +15,27 @@ class Sirius.Internal.Observer
        window.MozMutationObserver || null
 
   ONCHANGE_TAGS = ["INPUT", "TEXTAREA", "SELECT"]
+  BOOL_TYPES = ["checkbox", "radio"]
+  OPTION = "OPTION"
+
+  @Ev =
+    input: "input"
+    selectionchange: "selectionchange"
+    childList: "childList"
+    change: "change"
+    DOMNodeInserted: "DOMNodeInserted"
+    focusout: "focusout"
+    focusin: "focusin"
+    DOMAttrModified: "DOMAttrModified"
+
+
+  @TextEvents = [@Ev.input, @Ev.childList,
+                 @Ev.change, @Ev.DOMNodeInserted,
+                 @Ev.selectionchange]
+
+  @is_text_event: (e) -> @TextEvents.indexOf(e.type) != -1
+  @is_focus_event: (e) -> [@Ev.focusin, @Ev.focusout].indexOf(e.type) != -1
+
 
   # browser support: http://caniuse.com/#feat=mutationobserver
   # MutationObserver support in FF and Chrome, but in old ie (9-10) not
@@ -41,19 +62,21 @@ class Sirius.Internal.Observer
 
     logger.debug("Create binding for #{from}", logger.binding)
 
+    O = Sirius.Internal.Observer
+
     handler = (e) ->
       logger.debug("Handler Function: given #{e.type} event", logger.binding)
       result = {text: null, attribute: null, from: from, original: original}
-      return if ['focusout', 'focusin'].indexOf(e.type) != -1
+      return if O.is_focus_event(e)
       txt = adapter.text(from)
 
-      return if ["input", "selectionchange"].indexOf(e.type) != -1 && txt == current_value
+      return if [O.Ev.input, O.Ev.selectionchange].indexOf(e.type) != -1 && txt == current_value
 
-      if e.type == "input" || e.type == "childList" || e.type == "change" || e.type == "DOMNodeInserted" || e.type == "selectionchange"
+      if O.is_text_event(e)
         result['text'] = txt
         current_value = txt
 
-      if e.type == "change" # get a state for input enable or disable
+      if e.type == O.Ev.change # get a state for input enable or disable
         result['state'] = adapter.get_state(from)
 
       if e.type == "attributes"
@@ -65,7 +88,7 @@ class Sirius.Internal.Observer
         result['attribute'] = attr_name
         result['previous'] = old_attr
 
-      if e.type == "DOMAttrModified" # for ie 9...
+      if e.type == O.Ev.DOMAttrModified # for ie 9...
         attr_name = e.originalEvent.attrName
         old_attr  = e.originalEvent.prevValue
         new_attr  = adapter.get_attr(from, attr_name)
@@ -79,7 +102,7 @@ class Sirius.Internal.Observer
       # text + input
       if ONCHANGE_TAGS.indexOf(tag) != -1
         logger.debug("It is not a #{ONCHANGE_TAGS}")
-        if type == "checkbox" || type == "radio" || tag == "OPTION"
+        if BOOL_TYPES.indexOf(type) != -1 || tag == OPTION
           logger.debug("Get a #{type} & #{tag} element for bool elements", logger.binding)
           adapter.bind(document, @from_element, 'change', handler)
         else
@@ -89,7 +112,7 @@ class Sirius.Internal.Observer
           #use own implementation of input event for form
           if Sirius.Utils.ie_version() == 9
             logger.warn("Hook for work with IE9 browser", logger.binding)
-            adapter.bind(document, document, 'selectionchange', handler)
+            adapter.bind(document, document, O.Ev.selectionchange, handler)
 
         # return, because for input element seems this events enough
 
@@ -121,8 +144,8 @@ class Sirius.Internal.Observer
       # FIXME stackoverflow
       logger.warn("MutationObserver not supported", logger.binding)
       logger.warn("Use Deprecated events for observe", logger.binding)
-      adapter.bind(document, @from_element, 'DOMNodeInserted', handler)
-      adapter.bind(document, @from_element, 'DOMAttrModified', handler)
+      adapter.bind(document, @from_element, @Ev.DOMNodeInserted, handler)
+      adapter.bind(document, @from_element, @Ev.DOMAttrModified, handler)
 
 
 
