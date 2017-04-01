@@ -1,28 +1,76 @@
 
+class Sirius.Internal.CacheHandlerProperty
+  constructor: (@from_element, @watch_for, @event, @handler, @observer, @config) ->
+
+  is_observer: () -> @observer != null
+  is_listener: () -> !@is_observer
+
+Sirius.Internal.CacheObserverHandlers =
+  _handlers: []
+  add_new_observer: (from_element, watch_for, handler, observer, config) ->
+    p = new Sirius.Internal.CacheHandlerProperty(from_element, watch_for, null,
+      handler, observer, config)
+    @_handlers.push(p)
+
+  add_new_bind_event: (from_element, watch_for, event, handler) ->
+    p = new Sirius.Internal.CacheHandlerProperty(from_element, watch_for, event, handler, null)
+    @_handlers.push(p)
+
+  find_by_element: (e) ->
+    @_handlers.filter (h) -> h.from_element == e
+
+  find_by_element_and_watch_for: (e, w) ->
+    @_handlers.filter (h) -> h.from_element == e && h.watch_for == w
+
+  find_by_element_watch_for_and_event: (e, w, ev) ->
+    @_handlers.filter (h) -> h.from_element == e && h.watch_for == w && h.event == ev
+
 # hacks for observer when property or text changed into DOM
 
 # #TODO not need create new observer, just subscribe for the currents
 # @private
-class Sirius.Observer
-
-  @_observers:   []
-  @add_observer: (new_observer) ->
-    []
-  @_clbs: {}#[] # save callbacks for properties
+class Sirius.Internal.Observer
 
   MO = window.MutationObserver ||
        window.WebKitMutationObserver ||
        window.MozMutationObserver || null
 
   ONCHANGE_TAGS = ["INPUT", "TEXTAREA", "SELECT"]
+  BOOL_TYPES = ["checkbox", "radio"]
+  OPTION = "OPTION"
+
+  @Ev =
+    input: "input"
+    selectionchange: "selectionchange"
+    childList: "childList"
+    change: "change"
+    DOMNodeInserted: "DOMNodeInserted"
+    focusout: "focusout"
+    focusin: "focusin"
+    DOMAttrModified: "DOMAttrModified"
+
+
+  @TextEvents = [@Ev.input, @Ev.childList,
+                 @Ev.change, @Ev.DOMNodeInserted,
+                 @Ev.selectionchange]
+
+  @is_text_event: (e) -> @TextEvents.indexOf(e.type) != -1
+  @is_focus_event: (e) -> [@Ev.focusin, @Ev.focusout].indexOf(e.type) != -1
+
 
   # browser support: http://caniuse.com/#feat=mutationobserver
   # MutationObserver support in FF and Chrome, but in old ie (9-10) not
   # for support this browser
   # http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-MutationEvent
   # https://dvcs.w3.org/hg/domcore/raw-file/tip/Overview.html#mutation-observers
-  # BUG when reset input, bind element should reset the same
-  constructor: (@from_element, @clb = ->) ->
+  # BUG when reset input, bound element should reset
+  #
+  # @example
+  #
+  #   new Sirius.Internal.Observer("#id input[name='email']", "input[name='email']", "text")
+  #
+  #
+  constructor: (@from_element, @original, @watch_for, @clb = ->) ->
     adapter = Sirius.Application.get_adapter()
     adapter.and_then(@_create)
 
@@ -32,128 +80,111 @@ class Sirius.Observer
     logger  = Sirius.Application.get_logger()
     clb  = @clb
     from = @from_element
+    original = @original
     current_value = null
+    watch_for = @watch_for
 
-    if typeof(from) == 'object' && from.object && from.prop
-      logger.info("Observer: for #{from.object}", logger.binding)
-      current_prop = from.prop.split(".").join("-")
-      if @constructor._clbs[current_prop]?
-        @constructor._clbs[current_prop].push([from.object, clb])
-        # because already have handler
-      else
-        @constructor._clbs[current_prop] = [[from.object, clb]]
+    tag  = adapter.get_attr(from, 'tagName')
+    type = adapter.get_attr(from, 'type')
 
-      clbs = @constructor._clbs
+    logger.debug("Create binding for #{from}", logger.binding)
 
-      handler = (prop, oldvalue, newvalue) ->
-        # need call all callbacks for current pair: object#property
-        result =
-          text: newvalue
-          previous: oldvalue
-
-        clbs[current_prop].filter((a) -> a[0] == from.object).forEach((a) -> a[1].call(null, result))
-        newvalue
-
-      my_watch = (object, prop, handler) ->
-        namespaces = prop.split(".")
-        o = object
-        for n, index in namespaces when index < namespaces.length - 1
-          o = object[n]
-
-        o.watch(namespaces[namespaces.length - 1], handler)
-        return
+    O = Sirius.Internal.Observer
 
 
-      my_watch(from.object, from.prop, handler)
+    handler = (e) ->
+      logger.debug("Handler Function: given #{e.type} event", logger.binding)
+      result = {text: null, attribute: null, from: from, original: original}
+      return if O.is_focus_event(e)
+      txt = adapter.text(from)
 
-      return
+      return if [O.Ev.input, O.Ev.selectionchange].indexOf(e.type) != -1 && txt == current_value
 
+      if O.is_text_event(e)
+        result['text'] = txt
+        current_value = txt
 
-    else
-      tag  = adapter.get_attr(from, 'tagName')
-      type = adapter.get_attr(from, 'type')
+      if e.type == O.Ev.change # get a state for input enable or disable
+        result['state'] = adapter.get_state(from)
 
-      logger.info("for #{from}", logger.binding)
-      # FIXME maybe save all needed attributes in hash ????
-      handler = (e) ->
-        logger.info("Handler Function: given #{e.type} event", logger.binding)
-        result = {text: null, attribute: null}
-        return if ['focusout', 'focusin'].indexOf(e.type) != -1
-        txt = adapter.text(from)
+      if e.type == "attributes"
+        attr_name = e.attributeName
+        old_attr = e.oldValue || [] # FIXME remove this, because not used
+        new_attr  = adapter.get_attr(from, attr_name)
 
-        return if ["input", "selectionchange"].indexOf(e.type) != -1 && txt == current_value
+        result['text'] = new_attr
+        result['attribute'] = attr_name
+        result['previous'] = old_attr
 
-        if e.type == "input" || e.type == "childList" || e.type == "change" || e.type == "DOMNodeInserted" || e.type == "selectionchange"
-          result['text'] = txt
-          current_value = txt
+      if e.type == O.Ev.DOMAttrModified # for ie 9...
+        attr_name = e.originalEvent.attrName
+        old_attr  = e.originalEvent.prevValue
+        new_attr  = adapter.get_attr(from, attr_name)
+        result['text'] = new_attr
+        result['attribute'] = attr_name
+        result['previous'] = old_attr
 
-        if e.type == "change" # get a state for input enable or disable
-          result['state'] = adapter.get_state(from)
+      clb(result)
 
-        if e.type == "attributes"
-          attr_name = e.attributeName
-          old_attr = e.oldValue || [] # FIXME remove this, because not used
-          new_attr  = adapter.get_attr(from, attr_name)
+    if watch_for == "text"
+      # text + input
 
-          result['text'] = new_attr
-          result['attribute'] = attr_name
-          result['previous'] = old_attr
-
-        if e.type == "DOMAttrModified" # for ie 9...
-          attr_name = e.originalEvent.attrName
-          old_attr  = e.originalEvent.prevValue
-          new_attr  = adapter.get_attr(from, attr_name)
-          result['text'] = new_attr
-          result['attribute'] = attr_name
-          result['previous'] = old_attr
-
-        clb(result)
-
-      #FIXME need only when 'from text' expected
       if ONCHANGE_TAGS.indexOf(tag) != -1
-        if type == "checkbox" || type == "radio" || tag == "OPTION"
-          logger.info("Get a #{type} & #{tag} element", logger.binding)
-          adapter.bind(document, @from_element, 'change', handler)
+        logger.debug("It is not a #{ONCHANGE_TAGS}")
+        if BOOL_TYPES.indexOf(type) != -1 || tag == OPTION
+          logger.debug("Get a #{type} & #{tag} element for bool elements", logger.binding)
+          adapter.bind(document, from, O.Ev.change, handler)
+          Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for,
+            O.Ev.change, handler)
         else
-          current_value = adapter.text(@from_element)
-          adapter.bind(document, @from_element, 'input', handler)
+          current_value = adapter.text(from)
+          adapter.bind(document, from, O.Ev.input, handler)
+          Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for,
+            O.Ev.input, handler)
           #instead of using input event, which not work correctly in ie9
           #use own implementation of input event for form
-          if Sirius.Utils.ie_version() == 9
+          if Sirius.Utils.is_ie9()
             logger.warn("Hook for work with IE9 browser", logger.binding)
-            adapter.bind(document, document, 'selectionchange', handler)
+            adapter.bind(document, from, O.Ev.selectionchange, handler)
+            Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for,
+              O.Ev.selectionchange, handler)
 
         # return, because for input element seems this events enough
-        # fixme is it correct?
-        return
 
-      if MO
-        logger.info("MutationObserver support", logger.binding)
-        # TODO from element should not be input\textarea\select
-        observer = new MO( (mutations) ->
-          mutations.forEach handler
-        )
+      else
+        logger.warn("Seems you try to bind for #{tag} of #{type} for 'text' which is not supported")
 
-        cnf =
-          childList: true
-          attributes: true
-          characterData: true
-          attributeOldValue: true
-          characterDataOldValue: true
-          subtree: false # FIXME subtree: true
 
-        if Sirius.Utils.is_string(from)
-          elements = adapter.get(from) # fixme : all
-          observer.observe(elements, cnf)
-        else
-          observer.observe(from, cnf) # FIXME when it works?
+    else if MO # any element + not text
+      logger.debug("MutationObserver support", logger.binding)
+      observer = new MO( (mutations) ->
+        mutations.forEach handler
+      )
 
-      else # when null, need register event with routes
-        # FIXME stackoverflow
-        logger.warn("MutationObserver not support", logger.binding)
-        logger.info("Use Deprecated events for observe", logger.binding)
-        adapter.bind(document, @from_element, 'DOMNodeInserted', handler)
-        adapter.bind(document, @from_element, 'DOMAttrModified', handler)
+      cnf =
+        childList: true
+        attributes: true
+        characterData: true
+        attributeOldValue: true
+        characterDataOldValue: true
+        subtree: false # FIXME subtree: true
+
+      element = adapter.get(from) # fixme : all
+      observer.observe(element, cnf)
+      Sirius.Internal.CacheObserverHandlers.add_new_observer(from, watch_for, handler,
+        observer, cnf)
+
+    else # when null, need register event with routes
+      # FIXME stackoverflow
+      logger.warn("MutationObserver not supported", logger.binding)
+      logger.warn("Use Deprecated events for observe", logger.binding)
+      adapter.bind(document, from, O.Ev.DOMNodeInserted, handler)
+      adapter.bind(document, from, O.Ev.DOMAttrModified, handler)
+      Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for,
+        O.Ev.DOMNodeInserted, handler)
+      Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for,
+        O.Ev.DOMAttrModified, handler)
+
 
 
 

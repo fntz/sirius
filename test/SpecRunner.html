@@ -26,105 +26,41 @@
   <div id="content"></div>
 </div>
 
-<div class="view2view">
-  <div class="attribute2text">
-    <div class="element" data-name="element"></div>
-    <div class="related-div"></div>
-    <input class="related-input" />
-    <select class="related-select">
-      <option value="val1">val1</option>
-      <option value="val2">val2</option>
-      <option value="val3">val3</option>
-    </select>
+
+
+<div id="view2model_spec">
+  <input type="text" name="model-name" />
+  <div class="view2model_spec-div" data-name="empty"></div>
+</div>
+
+<div id="model2view_spec">
+  <input type="text" name="model-name" />
+  <div class="model2view_spec-text"></div>
+  <div class="model2view_spec-data-name"></div>
+</div>
+
+<div id="view2view_spec">
+  <div id="input2input">
+    <input type="text" name="input-1">
+    <input type="text" name="input-2">
   </div>
-
-  <div class="text2attribute">
-    <div class="div"></div>
-    <input class="input" />
-    <select class="select">
-      <option value="val1">val1</option>
-      <option value="val2">val2</option>
-      <option value="val3">val3</option>
-    </select>
-
-    <div class="for-input"></div>
-    <div class="for-div"></div>
-    <div class="for-select"></div>
+  <div id="input2attribute">
+    <input type="text" name="input-1">
+    <input type="text" name="input-2" data-name="foo">
   </div>
-
-  <div class="view2model">
-    <div class="form2model">
-      <form class="my-form">
-        <input type="text" data-bind-to="title" />
-        <textarea></textarea>
-      </form>
-    </div>
+  <div id="attribute2attribute">
+    <input type="text" name="input-1" data-attr="foo">
+    <input type="text" name="input-2" data-attr="foo">
+  </div>
+  <div id="attribute2text">
+    <input type="text" name="input-1" data-attr="foo">
+    <input type="text" name="input-2">
   </div>
 </div>
 
-<div class="model2view">
-  <div class="attribute2text">
-    <div class="model-id"></div>
-    <div class="model-title"></div>
-    <div class="model-description"></div>
-    <span></span>
-  </div>
-
-  <div class="attribute2attribute">
-    <div class="model-id"></div>
-    <div class="model-title"></div>
-    <div class="model-description"></div>
-    <span></span>
-  </div>
-
-  <div class="attribute2form">
-    <input type="text" />
-    <textarea></textarea>
-  </div>
-
-  <div class="forms">
-    <form class="simple">
-      <span class="title-attr"></span>
-      <span class='title-text'></span>
-      <input type="text" data-bind-view-from='title' />
-    </form>
-
-    <hr/>
-
-    <form class="select">
-      <span></span>
-      <select class="select">
-        <option value="title1">title1</option>
-        <option value="title2">title2</option>
-        <option value="title3">title3</option>
-      </select>
-    </form>
-
-
-    <form class="check">
-      <span></span>
-
-      <input name="check" type="checkbox" value="title1" />title1
-      <input name="check" type="checkbox" value="title2" />title2
-      <input name="check" type="checkbox" value="title3" />title3
-
-    </form>
-    <hr/>
-    <form class="radio">
-      <span></span>
-      <input type="radio" name="n" value="title1" />title1
-      <input type="radio" name="n" value="title2" />title2
-      <input type="radio" name="n" value="title3" />title3
-
-    </form>
-  </div>
-
+<div id="view2function">
+  <input type="text" name="email"/>
 </div>
-
-<div class="view2object">
-  <span></span>
-</div>
-
 
 <script type="text/javascript" src="../vendor/jquery.min.js"></script>
 <script type="text/javascript" src="../vendor/bililiteRange.js"></script>
@@ -132,6 +68,7 @@
 <script type="text/javascript" src="jasmine/lib/jasmine.js"></script>
 <script type="text/javascript" src="jasmine/lib/jasmine-html.js"></script>
 <script type="text/javascript" src="jasmine/lib/boot.js"></script>
+<script type="text/javascript" src="../vendor/keysim.js"></script>
 
 <!-- include source files here... -->
 <script type="text/javascript" src="../lib/jquery_adapter.js"></script>
@@ -144,8 +81,9 @@
 <script type="text/javascript" src="specs/compile/base_model_spec.js"></script>
 <script type="text/javascript" src="specs/compile/view2view_spec.js"></script>
 <script type="text/javascript" src="specs/compile/views_spec.js"></script>
-<script type="text/javascript" src="specs/compile/view2prop_spec.js"></script>
+<script type="text/javascript" src="specs/compile/model_to_function_spec.js"></script>
 <script type="text/javascript" src="specs/compile/model2view_spec.js"></script>
+<script type="text/javascript" src="specs/compile/view2model_spec.js"></script>
 <script type="text/javascript" src="specs/compile/routing_spec.js"></script>
 
 </body>

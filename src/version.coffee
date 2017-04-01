@@ -3,7 +3,7 @@
 #  (c) 2014-2015 fntz
 #  license: MIT
 ###
-
+`var c = function(m){console.log(m);};`
 #
 # @author fntz <mike.fch1@gmail.com>>
 # @version 0.8.5

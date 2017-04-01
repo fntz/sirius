@@ -517,6 +517,7 @@ Sirius.Application =
       Application   = 5
       Redirect      = 6
       Validation    = 7
+      Transformer   = 8
 
    Use as:
 
