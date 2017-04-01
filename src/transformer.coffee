@@ -96,22 +96,38 @@ class Sirius.Internal.ToViewTransformer extends Sirius.Internal.AbstractTransfor
   _fire_generator: () ->
     view = @_to
     path = @_path
-    model = @_from
     logger = @logger
     ln = @_ln
 
-    callback = (attribute, value) ->
-      obj = path[attribute]
+    # view 2 view
+    if @_from instanceof Sirius.View
+      callback = (attribute, value) ->
+        to = path['to']
+        for o in to
+          if Sirius.Utils.is_string(o)
+            via = Sirius.Internal.ToViewTransformer._default_via_method()
+            via(value, o, view, attribute)
 
-      if obj
-        logger.debug("Apply new value for '#{attribute}' for '#{view.get_element()}', value: #{value} from #{model.normal_name()}", ln)
-        to = obj['to']
-        attr = obj['attr'] || 'text'
-        via = obj['via'] || Sirius.Internal.ToViewTransformer._default_via_method()
+          else # object
+            selector = o['selector']
+            attr = o['attribute'] || 'text'
+            via = o['via'] || Sirius.Internal.ToViewTransformer._default_via_method()
+            via(value, selector, view, attr)
 
-        via(value, to, view, attr)
+      callback
 
-    callback
+    else # model 2 view
+      callback = (attribute, value) ->
+        obj = path[attribute]
+        if obj
+          logger.debug("Apply new value for '#{attribute}' for '#{view.get_element()}', value: #{value} from #{model.normal_name()}", ln)
+          to = obj['to']
+          attr = obj['attr'] || 'text'
+          via = obj['via'] || Sirius.Internal.ToViewTransformer._default_via_method()
+
+          via(value, to, view, attr)
+
+      callback
 
 # @private
 # @nodoc
@@ -213,7 +229,31 @@ class Sirius.Transformer
             if attrs.indexOf(attr) == -1
               @logger.warn("Attribute '#{attr}' not found in model attributes: '#{name}', available: [#{attrs}]", @ln)
 
-      @_path = object
+      if @_from instanceof Sirius.View && @_to instanceof Sirius.View
+        # validate, need 'to'
+        to = object['to']
+        if !to
+          error = '{"to": "selector"}'
+          throw new Error("Define View to View binding with: 'view1.bind(view2, #{error})', but 'to' key not found")
+        else
+          if Sirius.Utils.is_array(to)
+            # check that in array string or object with selector property
+            for t in to
+              if !t['selector']
+                _d = '{to: [{"selector": "#my-id", "attribute": "data-attr"}]}'
+                _e1 = "You define binding with 'to' as array of objects, but 'selector', but 'selector' property was not found."
+                _e2 = "Correct definition: #{_d}"
+                throw new Error("#{_e1} #{_e2}")
+
+            @_path = object
+          else if Sirius.Utils.is_string(to)
+            object['to'] = [to]
+            @_path = object
+          else
+            throw new Error("For binding 'to' must be array or string, but #{typeof(to)} given")
+
+      else
+        @_path = object
 
       if @_to instanceof Sirius.BaseModel
         new Sirius.Internal.ToModelTransformer(object, @_from, @_to)

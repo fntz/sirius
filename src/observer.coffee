@@ -31,11 +31,6 @@ Sirius.Internal.CacheObserverHandlers =
 # @private
 class Sirius.Internal.Observer
 
-  @_observers:   []
-  @add_observer: (new_observer) ->
-    []
-  @_clbs: {}#[] # save callbacks for properties
-
   MO = window.MutationObserver ||
        window.WebKitMutationObserver ||
        window.MozMutationObserver || null
@@ -96,6 +91,7 @@ class Sirius.Internal.Observer
 
     O = Sirius.Internal.Observer
 
+
     handler = (e) ->
       logger.debug("Handler Function: given #{e.type} event", logger.binding)
       result = {text: null, attribute: null, from: from, original: original}
@@ -132,6 +128,7 @@ class Sirius.Internal.Observer
 
     if watch_for == "text"
       # text + input
+
       if ONCHANGE_TAGS.indexOf(tag) != -1
         logger.debug("It is not a #{ONCHANGE_TAGS}")
         if BOOL_TYPES.indexOf(type) != -1 || tag == OPTION

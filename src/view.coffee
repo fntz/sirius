@@ -16,14 +16,12 @@
 #
 class Sirius.View
 
-  name: () -> 'View' # define name, because `constructor.name` not work in IE
+  name: () -> 'View' # define name, because `constructor.name` not works in IE
 
   # contain all strategies for view
   @_Strategies = []
 
   @_Cache = [] # cache for all views
-
-  _listeners: []
 
   # @private
   class EventHandlerParams
@@ -41,20 +39,21 @@ class Sirius.View
   #
   constructor: (@element, @clb = (txt) -> txt) ->
     element = @element
-
     clb = @clb
     view = Sirius.View._Cache.filter (v) ->
       v.element == element && "#{v.clb}" == "#{clb}"
 
+
     if view.length != 0
       return view[0]
 
+    @_listeners = []
 
     @_cache_event_handlers = []
     @logger = Sirius.Application.get_logger()
     @_result_fn = (args...) ->
       clb.apply(null, args...)
-    @logger.info("Create a new View for #{@element}", @logger.view)
+    @logger.debug("Create a new View for #{@element}", @logger.view)
 
 
     for strategy in @constructor._Strategies
@@ -84,9 +83,9 @@ class Sirius.View
   get_element: () ->
     @element
 
-  _register_state_listener: (transformer) ->
-    @logger.info("Register new listener for element: #{@get_element}", @logger.view)
-    @_listeners.push(transformer)
+  _register_state_listener: (clb) ->
+    @logger.debug("Register new listener for element: #{@get_element}", @logger.view)
+    @_listeners.push(clb)
 
   # compile function
   # @param [Array] with arguments, which pass into transform function
