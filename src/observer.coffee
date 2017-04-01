@@ -130,7 +130,7 @@ class Sirius.Internal.Observer
       # text + input
 
       if ONCHANGE_TAGS.indexOf(tag) != -1
-        logger.debug("It is not a #{ONCHANGE_TAGS}")
+        logger.debug("It is not a #{ONCHANGE_TAGS}", logger.binding)
         if BOOL_TYPES.indexOf(type) != -1 || tag == OPTION
           logger.debug("Get a #{type} & #{tag} element for bool elements", logger.binding)
           adapter.bind(document, from, O.Ev.change, handler)

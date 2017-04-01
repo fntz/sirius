@@ -197,7 +197,7 @@ class Sirius.Internal.ControlFlow
   handle_event: (e, args...) ->
     #when e defined it's a Event, otherwise it's call from url_routes
     # not need call for CustomEvent
-    @logger.info("ControlFlow: Start event processing", @logger.routing)
+    @logger.debug("ControlFlow: Start event processing", @logger.routing)
     if e
       data   = if Sirius.Utils.is_array(@data) then @data else if @data then [@data] else []
       result   = Sirius.Application.adapter.get_property(e, data) #FIXME use Promise
@@ -226,28 +226,131 @@ class Sirius.Internal.ControlFlow
         @action.apply(@controller, args)
         @after.apply(@controller)
 
+  # the same as handle_event but for scheduler
+  # @note if you have a guard function, then firstly called it, if `guard` is true, then will be called `before`, `action` and `after` methods
+  #
+  tick: () ->
+    @logger.debug("ControlFlow: tick", @logger.routing)
+    if @guard
+      if @guard.apply(@controller)
+        @before.apply(@controller)
+        @action.apply(@controller)
+        @after.apply(@controller)
+    else
+      @before.apply(@controller)
+      @action.apply(@controller)
+      @after.apply(@controller)
+
+
+
 # @mixin
 # @private
 # Object, for creating event listeners
 Sirius.Internal.RouteSystem =
 
+  _every: "every"
+  _scheduler: "scheduler"
+  _once: "once"
+
   _selector: "a:not([href^='#'])"
   _hash_selector: "a[href^='#']"
 
-  _hash_route: (url) ->
+  _is_hash_route: (url) ->
     url.toString().indexOf("#") == 0
 
-  _404_route: (url) ->
+  _is_404_route: (url) ->
     url.toString() == "404"
 
-  _plain_route: (url) ->
+  _is_plain_route: (url) ->
     url.toString().indexOf("/") == 0
 
-  _event_route: (url) ->
-    !@_hash_route(url) && !@_404_route(url) && !@_plain_route(url)
+  _is_scheduler_command: (url) ->
+    url.lastIndexOf(@_scheduler) == 0 ||
+    url.lastIndexOf(@_once) == 0 ||
+    url.lastIndexOf(@_every) == 0
+
+  _is_event_route: (url) ->
+    !@_is_hash_route(url) &&
+    !@_is_404_route(url) &&
+    !@_is_plain_route(url) &&
+    !@_is_scheduler_command(url)
+
+  _get_time_unit: (url, unit) ->
+    result = unit.match(/^(\d+)(ms|s|m)/)
+    if result
+      num = parseInt(result[1], 10)
+      t_unit = result[2] || "s"
+
+      if t_unit == "ms"
+        num
+      else if t_unit == "s"
+        num * 1000
+      else
+        num * 60000
+
+    else
+      throw new Error("Bad time unit: #{unit} in #{url}, available units: 'ms', 's', 'm'")
+
+  _get_scheduler_params: (url) ->
+    xs = url.split(" ")
+    e = "Define time unit for scheduler, for example: 'every 10s', given: #{url}"
+    if xs.length == 1
+      throw new Error(e)
+    else if xs.length == 2
+      time_param = Sirius.Internal.RouteSystem._get_time_unit(url, xs[1])
+      {
+        'delay': null,
+        'time': time_param
+      }
+
+    else if xs.length == 3
+      time_param = Sirius.Internal.RouteSystem._get_time_unit(url, xs[1])
+      time_param1 = Sirius.Internal.RouteSystem._get_time_unit(url, xs[2])
+      {
+        'delay': time_param
+        'time': time_param1
+      }
+    else
+      throw new Error(e)
+
+  _scheduler_register: (routes, wrapper, adapter, logger) ->
+    every = @_every
+    scheduler = @_scheduler
+    once = @_once
+    f = @_get_scheduler_params
+    for url, action of routes when @_is_scheduler_command(url)
+      do(url, action) ->
+        handler = if Sirius.Utils.is_function(action)
+          wrapper(action)
+        else
+          () ->
+            (new Sirius.Internal.ControlFlow(action, wrapper)).tick()
+
+        units = f(url)
+
+        logger.debug("Define scheduler for '#{url}' with #{JSON.stringify(units)}", logger.routing)
+
+        if url.lastIndexOf(every) == 0 || url.lastIndexOf(scheduler) == 0
+          if units.delay == null
+            setInterval(handler, units.time)
+          else
+            setTimeout(
+              () -> setInterval(handler, units.time)
+              units.delay
+            )
+        else
+          if units.delay == null
+            setTimeout(handler, units.time)
+          else
+            setTimeout(
+              () -> setTimeout(handler, units.time)
+              units.delay
+            )
+
+
 
   _event_register: (routes, wrapper, adapter, logger) ->
-    for url, action of routes when @_event_route(url)
+    for url, action of routes when @_is_event_route(url)
       do(url, action) ->
         handler = if Sirius.Utils.is_function(action)
           wrapper(action)
@@ -259,10 +362,10 @@ Sirius.Internal.RouteSystem =
         event_name = z[1]
         selector   = z[3] || document #when it a custom event: 'custom:event' for example
         adapter.bind(document, selector, event_name, handler)
-        logger.info("RouteSystem: define event route: '#{event_name}' for '#{selector}'", logger.routing)
+        logger.debug("RouteSystem: define event route: '#{event_name}' for '#{selector}'", logger.routing)
 
   _get_hash_routes: (routes, wrapper, adapter, logger) ->
-    for url, action of routes when @_hash_route(url)
+    for url, action of routes when @_is_hash_route(url)
       logger.info("RouteSystem: define hash route: '#{url}'", logger.routing)
       url    = new Sirius.Internal.RoutePart(url)
       action = if Sirius.Utils.is_function(action)
@@ -272,19 +375,19 @@ Sirius.Internal.RouteSystem =
       [url, action]
 
   _get_plain_routes: (routes, wrapper, adapter, logger) ->
-    for url, action of routes when @_plain_route(url)
-      logger.info("RouteSystem: define route: '#{url}'", logger.routing)
+    for url, action of routes when @_is_plain_route(url)
+      logger.debug("RouteSystem: define route: '#{url}'", logger.routing)
       url    = new Sirius.Internal.RoutePart(url)
       action = if Sirius.Utils.is_function(action)
         wrapper(action)
       else
         new Sirius.Internal.ControlFlow(action, wrapper)
       [url, action]
-#
+
   # @param routes [Object] object with routes
   # @param fn [Function] callback, which will be called, after routes will be defined
   # @event application:urlchange - generate, when url change
-  # @event application:404 - generate, if given url not matched with given routes
+  # @event application:404 - generate, if given url not matched defined routes
   # @event application:run - generate, after application running
   # setting : old, top, support
   create: (routes, setting, fn = ->) ->
@@ -301,11 +404,11 @@ Sirius.Internal.RouteSystem =
         urls = [] #save urls into array, for check collision
         route = {}
         for url, action of routes
-          urls.push(url) if @_hash_route(url)
-          if @_plain_route(url)
+          urls.push(url) if @_is_hash_route(url)
+          if @_is_plain_route(url)
             url = "\##{url}"
             if urls.indexOf(url) != -1
-              logger.warn("RouteSystem: Routes already have '#{url}' url", logger.routing)
+              logger.warn("RouteSystem: Routes already defined '#{url}' url", logger.routing)
           route[url] = action
         routes = route
 
@@ -319,6 +422,9 @@ Sirius.Internal.RouteSystem =
 
       # set routing by event
       @_event_register(routes, wrapper, adapter, logger)
+
+      # scheduler
+      @_scheduler_register(routes, wrapper, adapter, logger)
 
       # for cache change obj[k, v] to array [[k,v]]
       array_of_routes = @_get_hash_routes(routes, wrapper, adapter, logger)
