@@ -3,7 +3,6 @@ describe "View2Model", ->
   element = "#view2model_spec"
   field = "input[name='model-name']"
 
-
   it "fail when model 'to' attribute was not found", ->
     model = new MyTestView2ModelSpecModel()
     view = new Sirius.View(element)
@@ -20,7 +19,7 @@ describe "View2Model", ->
     model = new MyTestView2ModelSpecModel()
     view = new Sirius.View(element)
     pipe = Sirius.Transformer.draw({
-      field: {
+      "#{field}": {
         "to": "name",
         "from": "text"
       }
@@ -28,17 +27,27 @@ describe "View2Model", ->
 
 
     view.pipe(model, pipe)
-    #expect(model.name()).toEqual("foo bar baz")
+
+    set_value("#{element} #{field}", "foo")
+
+    _element = document.querySelector("#{element} #{field}")
+
+    event = new Event('input', {
+      'bubbles': true,
+      'cancelable': true
+    })
+
+    _element.dispatchEvent(event)
 
 
-
+    expect(model.name()).toEqual("foo")
 
 
   describe "html attribute to model attribute", ->
     model = new MyTestView2ModelSpecModel()
     view = new Sirius.View(element)
     pipe = Sirius.Transformer.draw({
-      field: {
+      "#{field}": {
         "to": "name",
         "from": "data-name"
       }
@@ -47,6 +56,14 @@ describe "View2Model", ->
 
     view.pipe(model, pipe)
     adapter.set_attr("#{element} #{field}", "data-name", "foo")
+    _element = document.querySelector("#{element} #{field}")
+
+    event = new Event('input', {
+      'bubbles': true,
+      'cancelable': true
+    })
+
+    _element.dispatchEvent(event)
 #    expect(model.name()).toEqual("foo")
 
 

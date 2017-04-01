@@ -22,7 +22,7 @@ class Sirius.Internal.Observer
   # http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-MutationEvent
   # https://dvcs.w3.org/hg/domcore/raw-file/tip/Overview.html#mutation-observers
   # BUG when reset input, bound element should reset
-  constructor: (@from_element, @original, @clb = ->) ->
+  constructor: (@from_element, @original, @watch_for, @clb = ->) ->
     adapter = Sirius.Application.get_adapter()
     adapter.and_then(@_create)
 
@@ -34,11 +34,12 @@ class Sirius.Internal.Observer
     from = @from_element
     original = @original
     current_value = null
+    watch_for = @watch_for
 
     tag  = adapter.get_attr(from, 'tagName')
     type = adapter.get_attr(from, 'type')
 
-    logger.debug("for #{from}", logger.binding)
+    logger.debug("Create binding for #{from}", logger.binding)
 
     handler = (e) ->
       logger.debug("Handler Function: given #{e.type} event", logger.binding)
@@ -74,27 +75,30 @@ class Sirius.Internal.Observer
 
       clb(result)
 
-    #FIXME need only when 'from text' expected
-    if ONCHANGE_TAGS.indexOf(tag) != -1
-      if type == "checkbox" || type == "radio" || tag == "OPTION"
-        logger.debug("Get a #{type} & #{tag} element", logger.binding)
-        adapter.bind(document, @from_element, 'change', handler)
+    if watch_for == "text"
+      # text + input
+      if ONCHANGE_TAGS.indexOf(tag) != -1
+        logger.debug("It is not a #{ONCHANGE_TAGS}")
+        if type == "checkbox" || type == "radio" || tag == "OPTION"
+          logger.debug("Get a #{type} & #{tag} element for bool elements", logger.binding)
+          adapter.bind(document, @from_element, 'change', handler)
+        else
+          current_value = adapter.text(@from_element)
+          adapter.bind(document, @from_element, 'input', handler)
+          #instead of using input event, which not work correctly in ie9
+          #use own implementation of input event for form
+          if Sirius.Utils.ie_version() == 9
+            logger.warn("Hook for work with IE9 browser", logger.binding)
+            adapter.bind(document, document, 'selectionchange', handler)
+
+        # return, because for input element seems this events enough
+
       else
-        current_value = adapter.text(@from_element)
-        adapter.bind(document, @from_element, 'input', handler)
-        #instead of using input event, which not work correctly in ie9
-        #use own implementation of input event for form
-        if Sirius.Utils.ie_version() == 9
-          logger.warn("Hook for work with IE9 browser", logger.binding)
-          adapter.bind(document, document, 'selectionchange', handler)
+        logger.warn("Seems you try to bind for #{tag} of #{type} for 'text' which is not supported")
 
-      # return, because for input element seems this events enough
-      # fixme is it correct?
-      return
 
-    if MO
+    else if MO # any element + not text
       logger.debug("MutationObserver support", logger.binding)
-      # TODO from element should not be input\textarea\select
       observer = new MO( (mutations) ->
         mutations.forEach handler
       )

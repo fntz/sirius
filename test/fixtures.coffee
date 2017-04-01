@@ -7,6 +7,9 @@ adapter = if JQueryAdapter?
 
 Sirius.Application.adapter = adapter
 
+
+
+
 get_text = (element) ->
   adapter.text(element)
 
@@ -29,6 +32,19 @@ set_text = (element, text) ->
     else
       e.innerHTML = text
   return
+
+input_text = (element, value) ->
+  set_value(element, value)
+
+  _element = document.querySelector(element)
+
+  event = new Event('input', {
+    'bubbles': true,
+    'cancelable': true
+  })
+
+  _element.dispatchEvent(event)
+
 
 class MyModel extends Sirius.BaseModel
   @attrs: ["id", {title: "default title"}, "description"]

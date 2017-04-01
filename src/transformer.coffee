@@ -69,7 +69,8 @@ class Sirius.Internal.ToFunctionTransformer extends Sirius.Internal.AbstractTran
     clb = @_fire_generator()
     top = @_from.get_element()
     for k, v of @_path
-      new Sirius.Internal.Observer("#{top} #{k}", k, clb)
+      w = @_path["from"] || "text"
+      new Sirius.Internal.Observer("#{top} #{k}", k, w, clb)
 
   _fire_generator: () ->
     view = @_from
@@ -120,7 +121,8 @@ class Sirius.Internal.ToModelTransformer extends Sirius.Internal.AbstractTransfo
     clb = @_fire_generator()
     top = @_from.get_element()
     for k, v of @_path
-      new Sirius.Internal.Observer("#{top} #{k}", k, clb)
+      w = @_path["from"] || "text"
+      new Sirius.Internal.Observer("#{top} #{k}", k, w, clb)
 
   _default_via_method: () ->
     (value) -> value
