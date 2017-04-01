@@ -1,4 +1,30 @@
 
+class Sirius.Internal.CacheHandlerProperty
+  constructor: (@from_element, @watch_for, @event, @handler, @observer, @config) ->
+
+  is_observer: () -> @observer != null
+  is_listener: () -> !@is_observer
+
+Sirius.Internal.CacheObserverHandlers =
+  _handlers: []
+  add_new_observer: (from_element, watch_for, handler, observer, config) ->
+    p = new Sirius.Internal.CacheHandlerProperty(from_element, watch_for, null,
+      handler, observer, config)
+    @_handlers.push(p)
+
+  add_new_bind_event: (from_element, watch_for, event, handler) ->
+    p = new Sirius.Internal.CacheHandlerProperty(from_element, watch_for, event, handler, null)
+    @_handlers.push(p)
+
+  find_by_element: (e) ->
+    @_handlers.filter (h) -> h.from_element == e
+
+  find_by_element_and_watch_for: (e, w) ->
+    @_handlers.filter (h) -> h.from_element == e && h.watch_for == w
+
+  find_by_element_watch_for_and_event: (e, w, ev) ->
+    @_handlers.filter (h) -> h.from_element == e && h.watch_for == w && h.event == ev
+
 # hacks for observer when property or text changed into DOM
 
 # #TODO not need create new observer, just subscribe for the currents
@@ -43,6 +69,12 @@ class Sirius.Internal.Observer
   # http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-MutationEvent
   # https://dvcs.w3.org/hg/domcore/raw-file/tip/Overview.html#mutation-observers
   # BUG when reset input, bound element should reset
+  #
+  # @example
+  #
+  #   new Sirius.Internal.Observer("#id input[name='email']", "input[name='email']", "text")
+  #
+  #
   constructor: (@from_element, @original, @watch_for, @clb = ->) ->
     adapter = Sirius.Application.get_adapter()
     adapter.and_then(@_create)
@@ -104,15 +136,18 @@ class Sirius.Internal.Observer
         logger.debug("It is not a #{ONCHANGE_TAGS}")
         if BOOL_TYPES.indexOf(type) != -1 || tag == OPTION
           logger.debug("Get a #{type} & #{tag} element for bool elements", logger.binding)
-          adapter.bind(document, @from_element, 'change', handler)
+          adapter.bind(document, from, O.Ev.change, handler)
+          Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for, O.Ev.change, handler)
         else
-          current_value = adapter.text(@from_element)
-          adapter.bind(document, @from_element, 'input', handler)
+          current_value = adapter.text(from)
+          adapter.bind(document, from, O.Ev.input, handler)
+          Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for, O.Ev.input, handler)
           #instead of using input event, which not work correctly in ie9
           #use own implementation of input event for form
           if Sirius.Utils.is_ie9()
             logger.warn("Hook for work with IE9 browser", logger.binding)
-            adapter.bind(document, document, O.Ev.selectionchange, handler)
+            adapter.bind(document, from, O.Ev.selectionchange, handler)
+            Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for, O.Ev.selectionchange, handler)
 
         # return, because for input element seems this events enough
 
@@ -134,18 +169,21 @@ class Sirius.Internal.Observer
         characterDataOldValue: true
         subtree: false # FIXME subtree: true
 
-      if Sirius.Utils.is_string(from)
-        elements = adapter.get(from) # fixme : all
-        observer.observe(elements, cnf)
-      else
-        observer.observe(from, cnf) 
+      element = adapter.get(from) # fixme : all
+      observer.observe(element, cnf)
+      Sirius.Internal.CacheObserverHandlers.add_new_observer(from, watch_for, handler, observer, cnf)
 
     else # when null, need register event with routes
       # FIXME stackoverflow
       logger.warn("MutationObserver not supported", logger.binding)
       logger.warn("Use Deprecated events for observe", logger.binding)
-      adapter.bind(document, @from_element, @Ev.DOMNodeInserted, handler)
-      adapter.bind(document, @from_element, @Ev.DOMAttrModified, handler)
+      adapter.bind(document, from, O.Ev.DOMNodeInserted, handler)
+      adapter.bind(document, from, O.Ev.DOMAttrModified, handler)
+      Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for,
+        O.Ev.DOMNodeInserted, handler)
+      Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for,
+        O.Ev.DOMAttrModified, handler)
+
 
 
 
