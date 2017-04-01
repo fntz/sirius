@@ -49,9 +49,9 @@ class ComputedField
 #   + to json
 #   + create from json
 #   + validation
+#   + computed fields
 #   + generate guid
 #   + attributes support
-#   + base relation support (`has_many`, `has_one`, `belongs_to`)
 #
 # @example
 #
@@ -60,8 +60,6 @@ class ComputedField
 #
 #   class Person extends BaseModel
 #     @attrs: ["id", "name"]
-#
-#     @has_many: [Group]
 #
 #     @guid_for: id
 #
@@ -74,12 +72,7 @@ class ComputedField
 #         format: with: /^[A-Z].+/
 #
 #     to_string: () ->
-#       "name: #{name}; id: #{id}, group count: #{@get('group').length}"
-#
-#   class Group extends BaseModel
-#     @attrs: ["title", "person_id"]
-#
-#     @belongs_to: [{model: "person", back: "id"}]
+#       "name: #{name}; id: #{id}}"
 #
 # @todo Callback support
 class Sirius.BaseModel
@@ -115,57 +108,6 @@ class Sirius.BaseModel
   ###
   @skip: false
 
-  ###
-    model names for relations.
-
-    From this property, will be generated helper methods: `add_x`, where `x` is a model name
-    @note model names, should be written in the next format: ModelName => model_name
-    @example
-      class Model extends Sirius.BaseModel
-        @has_many: ["other_model"]
-
-      my_model = new Model()
-      my_model.add_other_model(new OtherModel())
-  ###
-  @has_many: []
-
-  ###
-    model names for relations.
-
-    From this property, will be generated helper methods: `add_x`, where `x` is a model name
-    @note model names, should be written in the next format: ModelName => model_name
-    @note when you call `add_model` when `model` already exist
-    @example
-       class MyModel extends Sirius.BaseModel
-         @has_one: ["model"]
-       my_model = new MyModel()
-       my_model.add_model(new Model()) // => ok
-       my_model.add_model(new Model()) // => oops, exception
-       my_model.set("model", null)
-       my_model.add_model(new Model()) // => ok
-  ###
-  @has_one: []
-  ###
-    take a object `model` as model for association, and `back` as an `attributes` from `has_*` model,
-    key will be created with `compose` function, by default `compose` is a `(model, back) -> "#{model}_#{back}"`
-
-  @note for use need to add into `@attrs` the next attribute: `model_back`, see example
-    @example
-       class Person extends Sirius.BaseModel
-         @attrs: ["id"]
-         @has_many: ["group"]
-
-       class Group extends Sirius.BaseModel
-         @attrs: ["person_id"]
-         @belongs_to [{model: "person", back: "id", compose: (model, back) -> "#{model}_#{back}"}]
-
-       person = new Person({id: 1})
-       group  = new Group()
-       person.add_group(group) // when add new group, then in `group` set a `person_id` as id from Person instance
-
-       group.get('person_id') // => 1
-  ###
-  @belongs_to: []
 
   ###
     attribute name, for which generate guid
@@ -276,18 +218,6 @@ class Sirius.BaseModel
     Sirius.Utils.underscore(@constructor.name)
 
   # @nodoc
-  has_many: () ->
-    @constructor.has_many || []
-
-  # @nodoc
-  has_one: () ->
-    @constructor.has_one || []
-
-  # @nodoc
-  belongs_to: () ->
-    @constructor.belongs_to || [] #array with object
-
-  # @nodoc
   validators: () ->
     @constructor.validate
   # @nodoc
@@ -327,8 +257,6 @@ class Sirius.BaseModel
   #   my_model.get("name") # => Abc
   #
   # @note Method generate properties for object from `@attrs` array.
-  # @note Method generate properties for `@has_many` and `@has_one` attributes.
-  # @note Method generate add_x, where `x` it's a attribute from `@has_many` or `@has_one`
   constructor: (obj = {}) ->
     # pre init
     @constructor::_cmp ||= []
@@ -357,20 +285,6 @@ class Sirius.BaseModel
       else
         @_gen_method_name_for_attribute(attr)
         @["_#{attr}"] = null
-
-    for klass in @has_many()
-      @logger.info("BaseModel: has many attribute: #{klass}", @logger.base_model)
-      @["_#{klass}"] = []
-      @attributes.push("#{klass}")
-      @_has_create(klass)
-      @_gen_method_name_for_attribute(klass, true)
-
-    for klass in @has_one()
-      @logger.info("BaseModel: has one attribute: #{klass}", @logger.base_model)
-      @["_#{klass}"] = null
-      @attributes.push("#{klass}")
-      @_has_create(klass, true)
-      @_gen_method_name_for_attribute(klass, true)
 
     skip = @constructor.skip
     attributes = @attributes
@@ -405,15 +319,12 @@ class Sirius.BaseModel
   # @private
   # @nodoc
   # "key-1" -> key_1
-  _gen_method_name_for_attribute: (attribute, when_has_attribute = false) ->
+  _gen_method_name_for_attribute: (attribute) ->
     normalize_name = Sirius.Utils.underscore(attribute)
     throw new Error("Method #{normalize_name} already exist") if Object.keys(@).indexOf(normalize_name) != -1
     @[normalize_name] = (value) =>
       if value?
-        if when_has_attribute
-          @["add_#{attribute}"](value)
-        else
-          @set(attribute, value)
+        @set(attribute, value)
       else
         @get(attribute)
 
@@ -424,42 +335,6 @@ class Sirius.BaseModel
   _generate_guid: () ->
     s4 = () -> Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1)
     "#{s4()}#{s4()}-#{s4()}-#{s4()}-#{s4()}-#{s4()}#{s4()}#{s4()}"
-
-  # @private
-  # @nodoc
-  _has_create: (klass, is_one = false) ->
-    @["add_#{klass}"] = (z) =>
-      name = z.constructor.name
-      me   = @normal_name()
-      m_name = @constructor.name
-
-      expected = klass.charAt(0).toUpperCase() + klass.slice(1)
-      throw new Error("Expected #{expected}, but given: #{name}") if name isnt expected
-
-      if is_one
-        if @get("#{klass}")
-          throw new Error("Model #{expected} already exist for #{m_name}")
-        @set("#{klass}", z)
-      else
-        @get("#{klass}").push(z)
-
-      #feedback
-      b_model = (for i in z.belongs_to() when i['model'] == me then i)[0]
-
-      if !b_model
-        throw new Error("Model #{name} must contain '@belongs_to: [{model: #{me}, back: #{me}_id]'")
-
-      if !(back = b_model['back'])
-        throw new Error("Define 'back' property for @belongs_to")
-
-      if @attributes.indexOf(back) == -1
-        throw new Error("Foreign key: '#{back}' not contain in a '#{m_name}' model")
-
-      key = (b_model['compose'] || (model, back) -> "#{model}_#{back}")(me, back)
-      if z.attributes.indexOf(key) == -1
-        throw new Error("Define #{key} in @attrs for '#{expected}' model")
-
-      z.set("#{key}", @get(back))
 
   #
   #
@@ -555,7 +430,6 @@ class Sirius.BaseModel
   # Call when you want validate model
   # @nodoc
   validate: (field = null) ->
-    #FIXME work with relations
     Object.keys(@_model_validators || {}).filter(
       (key) ->
         if field?
@@ -666,12 +540,7 @@ class Sirius.BaseModel
 
     for attr in @attributes when args.indexOf(attr) == -1
       value = @get("#{attr}")
-      z["#{attr}"] = if @has_many().indexOf(attr) > -1
-        for v in value then JSON.parse(v.to_json())
-      else if @has_one().indexOf(attr) > -1
-        JSON.parse(value.to_json())
-      else
-        value
+      z["#{attr}"] = value
 
     JSON.stringify(z)
 
@@ -697,27 +566,14 @@ class Sirius.BaseModel
   @from_json: (json, models = {}) ->
     m = new @
     json = JSON.parse(json)
-    attrs = [].concat(m.attrs(), m.has_many(), m.has_one())
+    attrs = [].concat(m.attrs())
 
     for attr in attrs
       if typeof(attr) is "object"
         [key, ...] = Object.keys(attr)
         m.set(key, json[key] || attr[key])
       else
-        value = if m.has_many().indexOf(attr) > -1
-          model = models[attr]
-          if model
-            for z in json[attr] then model.from_json(JSON.stringify(z), models)
-          else
-            json[attr]
-        else if m.has_one().indexOf(attr) > -1
-          model = models[attr]
-          if model
-            model.from_json(JSON.stringify(json[attr]), models)
-          else
-            json[attr]
-        else
-          json[attr]
+        value = json[attr]
         m.set(attr, value || m.get(attr))
     m
 
@@ -770,13 +626,10 @@ class Sirius.BaseModel
   #   instance.instance_method() # => call method
   #
   @define_model: (setting) ->
-    predefined_attributes = ['attrs', 'has_many', 'has_one', 'belongs_to', 'guid_for', 'validate']
+    predefined_attributes = ['attrs', 'guid_for', 'validate']
 
     class Tmp extends Sirius.BaseModel
       @attrs      : setting.attrs || []
-      @has_many   : setting.has_many || []
-      @has_one    : setting.has_one || []
-      @belongs_to : setting.belongs_to || []
       @guid_for   : setting.guid_for || null
       @validate   : setting.validate || {}
 

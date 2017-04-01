@@ -98,21 +98,6 @@ class ModelwithValidators extends Sirius.BaseModel
 
 
 
-class Person extends Sirius.BaseModel
-  @attrs: ["id"]
-  @has_many : ["group"]
-  @has_one : ["name"]
-
-
-class Group extends Sirius.BaseModel
-  @attrs: ["name", "person_id"]
-  @belongs_to: [{model: "person", back: "id"}]
-
-class Name extends Sirius.BaseModel
-  @attrs: ["name", "person_id"]
-  @belongs_to: [{model: "person", back: "id"}]
-
-
 class UModel extends Sirius.BaseModel
   @attrs: ["id"]
   @guid_for : "id"
