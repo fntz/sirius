@@ -137,17 +137,20 @@ class Sirius.Internal.Observer
         if BOOL_TYPES.indexOf(type) != -1 || tag == OPTION
           logger.debug("Get a #{type} & #{tag} element for bool elements", logger.binding)
           adapter.bind(document, from, O.Ev.change, handler)
-          Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for, O.Ev.change, handler)
+          Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for,
+            O.Ev.change, handler)
         else
           current_value = adapter.text(from)
           adapter.bind(document, from, O.Ev.input, handler)
-          Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for, O.Ev.input, handler)
+          Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for,
+            O.Ev.input, handler)
           #instead of using input event, which not work correctly in ie9
           #use own implementation of input event for form
           if Sirius.Utils.is_ie9()
             logger.warn("Hook for work with IE9 browser", logger.binding)
             adapter.bind(document, from, O.Ev.selectionchange, handler)
-            Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for, O.Ev.selectionchange, handler)
+            Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for,
+              O.Ev.selectionchange, handler)
 
         # return, because for input element seems this events enough
 
@@ -171,7 +174,8 @@ class Sirius.Internal.Observer
 
       element = adapter.get(from) # fixme : all
       observer.observe(element, cnf)
-      Sirius.Internal.CacheObserverHandlers.add_new_observer(from, watch_for, handler, observer, cnf)
+      Sirius.Internal.CacheObserverHandlers.add_new_observer(from, watch_for, handler,
+        observer, cnf)
 
     else # when null, need register event with routes
       # FIXME stackoverflow
