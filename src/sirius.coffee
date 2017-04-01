@@ -28,7 +28,7 @@ Sirius.redirect = (url) ->
       location.replace(url)
   else
     if app.push_state_support
-      Sirius.RouteSystem.dispatch.call(null, {type: 'redirect', target: {href: url}})
+      Sirius.Internal.RouteSystem.dispatch.call(null, {type: 'redirect', target: {href: url}})
 
 # @private
 # Class for map urls.
@@ -229,7 +229,7 @@ class Sirius.Internal.ControlFlow
 # @mixin
 # @private
 # Object, for creating event listeners
-Sirius.RouteSystem =
+Sirius.Internal.RouteSystem =
 
   _selector: "a:not([href^='#'])"
   _hash_selector: "a[href^='#']"
@@ -649,7 +649,7 @@ Sirius.Application =
       support: @push_state_support
 
     # start
-    Sirius.RouteSystem.create @route, setting, () =>
+    Sirius.Internal.RouteSystem.create @route, setting, () =>
       for p in @_wait
         p.set_value(@adapter)
       @adapter.fire(document, "application:run", new Date())

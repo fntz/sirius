@@ -113,7 +113,7 @@ describe "Routing", ->
         top: true
         support: ps
 
-      Sirius.RouteSystem.create(r, setting)
+      Sirius.Internal.RouteSystem.create(r, setting)
 
       setTimeout(
         () ->  window.location.hash = "#/"
