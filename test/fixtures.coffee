@@ -173,4 +173,5 @@ class MyTestView2ModelSpecModel extends Sirius.BaseModel
 class MyTestModel2ViewSpecModel extends Sirius.BaseModel
   @attrs: ["name"]
 
-
+class MyTestModel2FunctionSpecModel extends Sirius.BaseModel
+  @attrs: ["name"]

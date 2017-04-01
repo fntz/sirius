@@ -65,12 +65,15 @@ class Sirius.Internal.AbstractTransformer
 
 class Sirius.Internal.ToFunctionTransformer extends Sirius.Internal.AbstractTransformer
   _register: () ->
-    @_from._register_state_listener(@)
-    clb = @_fire_generator()
-    top = @_from.get_element()
-    for k, v of @_path
-      w = @_path["from"] || "text"
-      new Sirius.Internal.Observer("#{top} #{k}", k, w, clb)
+    if @_from instanceof Sirius.BaseModel
+      @_from._register_state_listener(@_to)
+    else
+      @_from._register_state_listener(@)
+      clb = @_fire_generator()
+      top = @_from.get_element()
+      for k, v of @_path
+        w = @_path["from"] || "text"
+        new Sirius.Internal.Observer("#{top} #{k}", k, w, clb)
 
   _fire_generator: () ->
     view = @_from
@@ -117,6 +120,7 @@ class Sirius.Internal.ToViewTransformer extends Sirius.Internal.AbstractTransfor
       callback
 
     else # model 2 view
+      model = @_from
       callback = (attribute, value) ->
         obj = path[attribute]
         if obj
@@ -251,6 +255,18 @@ class Sirius.Transformer
             @_path = object
           else
             throw new Error("For binding 'to' must be array or string, but #{typeof(to)} given")
+
+      else if @_from instanceof Sirius.View && Sirius.Utils.is_function(@_to)
+        # check that 'from' is present
+        if Object.keys(object).length == 0
+          throw new Error("Binding with empty object forbidden")
+
+        for k, v of object
+          if !v['from']
+            _e = '{"selector": {"from": "text"}}'
+            throw new Error("For binding View and Function, you need to define object like: #{_e}")
+
+        @_path = object
 
       else
         @_path = object

@@ -335,7 +335,6 @@ class Sirius.BaseModel
     @constructor::_cmp_fields ||= []
 
     @logger = Sirius.Application.get_logger()
-    @callbacks = []
     # object, which contain all errors, which registers after validation
     @errors = {}
     @attributes = @normalize_attrs()
@@ -481,10 +480,6 @@ class Sirius.BaseModel
   _call_callbacks: (attr, value, oldvalue) ->
     for clb in @_listeners
       clb.apply(null, [attr, value])
-
-    for clb in @callbacks
-      if clb[0] is attr
-        clb[1].apply(null, [attr, value, oldvalue])
 
     @after_update(attr, value, oldvalue)
   #
@@ -754,14 +749,14 @@ class Sirius.BaseModel
   _clear_state_listener: (transformer) ->
     # TODO
 
-  pipe: (func, via) ->
+  pipe: (func, via = {}) ->
     # TODO default attributes
     t = new Sirius.Transformer(@, func)
     t.run(via)
 
     return
 
-  bind: (func, via) ->
+  bind: (func, via = {}) ->
     @pipe(func, via)
   #
   # Helper for inline create model. Use it for creation models from javascript
