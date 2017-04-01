@@ -1,5 +1,5 @@
 describe "Routing", ->
-  R = Sirius.RoutePart
+  R = Sirius.Internal.RoutePart
   j = if JQueryAdapter?
     new JQueryAdapter()
   else if PrototypeAdapter?

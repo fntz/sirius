@@ -1,8 +1,8 @@
 # Redirect to given url.
 # @method .Sirius.redirect(url)
 # @example
-#   var Controller =
-#     action : (params) ->
+#   Controller =
+#     action: (params) ->
 #        if (params.length == 0)
 #          redirect("/") //redirect to root url
 #        else
@@ -40,7 +40,7 @@ Sirius.redirect = (url) ->
 # #/[0-9]+            => extract param, which satisfy given regexp
 # #/start/*           => extract all after /start/
 # ```
-class Sirius.RoutePart
+class Sirius.Internal.RoutePart
   constructor: (route) ->
     @end   = yes  # when route have a end (ends with `*`)
     @start = null #not used ...
@@ -61,7 +61,7 @@ class Sirius.RoutePart
   #
   # When return true, then `args` contain extracted arguments:
   # @example
-  #   var rp = new Sirius.RoutePart("#/post/:title")
+  #   var rp = new Sirius.Internal.RoutePart("#/post/:title")
   #   rp.match("#/abc") // => false
   #   rp.args          // => []
   #   rp.match("#/post/my-post-title") // => true
@@ -117,11 +117,11 @@ class Sirius.RoutePart
 
 
 # @private
-# Helper class, which check object for route, and have a method, which used as event listener.
+# Helper class, which check object for route, and have a methods, which used as event listener.
 # @example
 #   "#/my-route" : { controller: Controller, action: "action", before: "before", after: "after", guard: "guard", "data" : ["data"] }
 #
-class Sirius.ControlFlow
+class Sirius.Internal.ControlFlow
 
   # @param params  [Object] - object from route
   # @param wrapper [Function] - wrap action in this function, used for shared helpers between all controllers
@@ -253,7 +253,7 @@ Sirius.RouteSystem =
           wrapper(action)
         else
           (e, params...) ->
-            (new Sirius.ControlFlow(action, wrapper)).handle_event(e, params)
+            (new Sirius.Internal.ControlFlow(action, wrapper)).handle_event(e, params)
 
         z = url.match(/^([a-zA-Z:]+)(\s+)?(.*)?/)
         event_name = z[1]
@@ -264,21 +264,21 @@ Sirius.RouteSystem =
   _get_hash_routes: (routes, wrapper, adapter, logger) ->
     for url, action of routes when @_hash_route(url)
       logger.info("RouteSystem: define hash route: '#{url}'", logger.routing)
-      url    = new Sirius.RoutePart(url)
+      url    = new Sirius.Internal.RoutePart(url)
       action = if Sirius.Utils.is_function(action)
         wrapper(action)
       else
-        new Sirius.ControlFlow(action, wrapper)
+        new Sirius.Internal.ControlFlow(action, wrapper)
       [url, action]
 
   _get_plain_routes: (routes, wrapper, adapter, logger) ->
     for url, action of routes when @_plain_route(url)
       logger.info("RouteSystem: define route: '#{url}'", logger.routing)
-      url    = new Sirius.RoutePart(url)
+      url    = new Sirius.Internal.RoutePart(url)
       action = if Sirius.Utils.is_function(action)
         wrapper(action)
       else
-        new Sirius.ControlFlow(action, wrapper)
+        new Sirius.Internal.ControlFlow(action, wrapper)
       [url, action]
 #
   # @param routes [Object] object with routes
@@ -377,7 +377,7 @@ Sirius.RouteSystem =
             if Sirius.Utils.is_function(r404)
               wrapper(r404)(current)
             else
-              (new Sirius.ControlFlow(r404, wrapper)).handle_event(null, current)
+              (new Sirius.Internal.ControlFlow(r404, wrapper)).handle_event(null, current)
           return
 
         logger.info("RouteSystem: Url change to: #{current}", logger.routing)

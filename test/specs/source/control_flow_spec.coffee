@@ -5,7 +5,7 @@ describe "ControlFlow", ->
       controller: Controller0
       action    : "action"
 
-    cf = new Sirius.ControlFlow(params)
+    cf = new Sirius.Internal.ControlFlow(params)
 
     expect(cf.action).toEqual(Controller0.action)
     expect(cf.before()).toEqual("before")
@@ -15,7 +15,7 @@ describe "ControlFlow", ->
       action    : "action1"
       before    : () -> 1
 
-    cf = new Sirius.ControlFlow(params)
+    cf = new Sirius.Internal.ControlFlow(params)
 
     expect(cf.before()).toEqual(1)
 
@@ -25,7 +25,7 @@ describe "ControlFlow", ->
       before    : 1
 
     expect(() ->
-      new Sirius.ControlFlow(params)
+      new Sirius.Internal.ControlFlow(params)
     ).toThrow()
 
     global = 1
@@ -39,7 +39,7 @@ describe "ControlFlow", ->
         given = g
         false
 
-    cf = new Sirius.ControlFlow(params)
+    cf = new Sirius.Internal.ControlFlow(params)
 
     expect(cf.guard()).toBeFalsy()
 
@@ -48,13 +48,13 @@ describe "ControlFlow", ->
     expect(global).toEqual(1)
     expect(given).toEqual("abc")
 
-    expect(() -> new Sirius.ControlFlow()).toThrow()
+    expect(() -> new Sirius.Internal.ControlFlow()).toThrow()
 
     params =
       controller: Controller0,
       action    : "some-action"
 
-    expect(() -> new Sirius.ControlFlow(params)).toThrow()
+    expect(() -> new Sirius.Internal.ControlFlow(params)).toThrow()
 
 
 
