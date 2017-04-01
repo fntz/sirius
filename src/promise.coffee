@@ -14,4 +14,5 @@ class Sirius.Promise
       @fn = fn
 
   set_value: (value) ->
+    @value = value
     @fn(value)
