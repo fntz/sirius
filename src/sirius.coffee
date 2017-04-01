@@ -253,7 +253,6 @@ Sirius.Internal.RouteSystem =
   _once: "once"
 
   _selector: "a:not([href^='#'])"
-  _hash_selector: "a[href^='#']"
 
   _is_hash_route: (url) ->
     url.toString().indexOf("#") == 0
@@ -493,21 +492,6 @@ Sirius.Internal.RouteSystem =
         return
 
       @dispatch = dispatcher
-
-      # need convert all plain url into hash based url
-      # convert only when
-      links = adapter.all(@_selector)
-      if redirect_to_hash && !push_state_support
-        logger.info("RouteSystem: Found #{links.length} link. Convert href into hash based routing", logger.routing)
-        for link in links
-          href = link.getAttribute('href')
-          if href.indexOf("http") == -1
-            new_href = if href.indexOf("/") == 0
-              "\##{href}"
-            else
-              "\#/#{href}"
-            logger.info("RouteSystem: Convert '#{href}' -> '#{new_href}'", logger.routing)
-            link.setAttribute('href', new_href)
 
       if plain_routes.length != 0
         # bind all <a> element with dispatch function, but bind only when href not contain "#"
