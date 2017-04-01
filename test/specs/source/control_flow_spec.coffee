@@ -1,11 +1,13 @@
 describe "ControlFlow", ->
 
+  R = Sirius.Internal.RouteSystem
+
   it "Params Guards", ->
     params =
       controller: Controller0
       action    : "action"
 
-    cf = new Sirius.ControlFlow(params)
+    cf = new Sirius.Internal.ControlFlow(params)
 
     expect(cf.action).toEqual(Controller0.action)
     expect(cf.before()).toEqual("before")
@@ -15,7 +17,7 @@ describe "ControlFlow", ->
       action    : "action1"
       before    : () -> 1
 
-    cf = new Sirius.ControlFlow(params)
+    cf = new Sirius.Internal.ControlFlow(params)
 
     expect(cf.before()).toEqual(1)
 
@@ -25,7 +27,7 @@ describe "ControlFlow", ->
       before    : 1
 
     expect(() ->
-      new Sirius.ControlFlow(params)
+      new Sirius.Internal.ControlFlow(params)
     ).toThrow()
 
     global = 1
@@ -39,7 +41,7 @@ describe "ControlFlow", ->
         given = g
         false
 
-    cf = new Sirius.ControlFlow(params)
+    cf = new Sirius.Internal.ControlFlow(params)
 
     expect(cf.guard()).toBeFalsy()
 
@@ -48,14 +50,47 @@ describe "ControlFlow", ->
     expect(global).toEqual(1)
     expect(given).toEqual("abc")
 
-    expect(() -> new Sirius.ControlFlow()).toThrow()
+    expect(() -> new Sirius.Internal.ControlFlow()).toThrow()
 
     params =
       controller: Controller0,
       action    : "some-action"
 
-    expect(() -> new Sirius.ControlFlow(params)).toThrow()
+    expect(() -> new Sirius.Internal.ControlFlow(params)).toThrow()
 
+  describe "scheduler", ->
+    it "is scheduler route", ->
+      expect(R._is_scheduler_command("every 1m")).toBeTruthy()
+      expect(R._is_scheduler_command("once 1m")).toBeTruthy()
+      expect(R._is_scheduler_command("scheduler 1m")).toBeTruthy()
+      expect(R._is_scheduler_command("every 1m 10s")).toBeTruthy()
+      expect(R._is_scheduler_command("once 1m 300ms")).toBeTruthy()
+      expect(R._is_scheduler_command("scheduler 1m 400s")).toBeTruthy()
+
+
+    it "parse time units correctly", ->
+      expect(R._get_time_unit("every 10s", "10s")).toEqual(10*1000)
+      expect(R._get_time_unit("once 33ms", "33ms")).toEqual(33)
+      expect(R._get_time_unit("scheduler 16m", "16m")).toEqual(16*60000)
+
+    it "return params for scheduler from url", ->
+      r = R._get_scheduler_params("every 10s")
+      expect(r.delay).toBeNull()
+      expect(r.time).toEqual(10*1000)
+
+      r1 = R._get_scheduler_params("once 10s 25m")
+      expect(r1.delay).toEqual(10*1000)
+      expect(r1.time).toEqual(25*60000)
+
+      r2 = R._get_scheduler_params("scheduler 30ms 1s")
+      expect(r2.delay).toEqual(30)
+      expect(r2.time).toEqual(1000)
+
+    it "failed with bad time units", ->
+      expect(() -> R._get_time_unit("every 10h", "10h")).toThrow()
+
+    it "failed when too long scheduler definition", ->
+      expect(() -> R._get_scheduler_params("scheduler 30 ms 1s")).toThrow()
 
 
 
