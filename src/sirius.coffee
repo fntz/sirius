@@ -395,6 +395,7 @@ Sirius.Internal.RouteSystem =
     hash_on_top        = setting["top"]
     redirect_to_hash   = setting["old"]
     push_state_support = setting["support"]
+    ignore_not_matched_urls = setting['ignore']
 
     Sirius.Application.get_adapter().and_then (adapter) =>
       if redirect_to_hash and !push_state_support
@@ -430,11 +431,18 @@ Sirius.Internal.RouteSystem =
 
       plain_routes = @_get_plain_routes(routes, wrapper, adapter, logger)
 
+      _prevent_default = (e) ->
+        if e.preventDefault
+          e.preventDefault()
+        else
+          e.returnValue = false
+
       # optimize this function
       dispatcher = (e) ->
         prev        = current
         route_array = []
         result      = false
+        is_hash_based_route = false
 
         logger.info("RouteSystem: start processing route: '#{current}'", logger.routing)
 
@@ -443,6 +451,8 @@ Sirius.Internal.RouteSystem =
           route_array = array_of_routes
           current = window.location.hash
           origin = window.location.origin
+          is_hash_based_route = true
+
           if push_state_support
             history.pushState({href: current}, "#{current}", "#{origin}/#{current}")
           else
@@ -452,14 +462,12 @@ Sirius.Internal.RouteSystem =
           route_array = plain_routes
           href = e.target.href # TODO the same for hashchange
           # need save history only for 'click' event
-          if e.type != "popstate"
-            history.pushState({href: href}, "#{href}", href) if push_state_support
+          if e.type != "popstate" && push_state_support
+            history.pushState({href: href}, "#{href}", href)
+
           pathname = window.location.pathname
           pathname = "/" if pathname == ""
-          if e.preventDefault
-            e.preventDefault()
-          else
-            e.returnValue = false
+
           current = pathname
 
         for part in route_array
@@ -475,17 +483,29 @@ Sirius.Internal.RouteSystem =
               flow.apply(null, f.args)
 
         if !result
-          logger.warn("RouteSystem: route '#{current}' not found. Generate 404 event", logger.routing)
-          adapter.fire(document, "application:404", current, prev)
-          r404 = routes['404'] || routes[404]
-          if r404
-            if Sirius.Utils.is_function(r404)
-              wrapper(r404)(current)
-            else
-              (new Sirius.Internal.ControlFlow(r404, wrapper)).handle_event(null, current)
-          return
+          if ignore_not_matched_urls
+            if is_hash_based_route
+              logger.warn("Seems you ignore hash based urls: #{current}")
 
-        logger.info("RouteSystem: Url change to: #{current}", logger.routing)
+            logger.debug("ignore_not_matched_urls is enabled, url was not matched: '#{current}'")
+            return
+
+          else
+            logger.warn("RouteSystem: route '#{current}' not found. Generate 404 event", logger.routing)
+            adapter.fire(document, "application:404", current, prev)
+            r404 = routes['404'] || routes[404]
+            if r404
+              if Sirius.Utils.is_function(r404)
+                wrapper(r404)(current)
+              else
+                (new Sirius.Internal.ControlFlow(r404, wrapper)).handle_event(null, current)
+
+            _prevent_default(e)
+            return
+        else
+          _prevent_default(e)
+
+        logger.debug("RouteSystem: Url change to: #{current}", logger.routing)
         adapter.fire(document, "application:urlchange", current, prev)
 
 
@@ -509,10 +529,6 @@ Sirius.Internal.RouteSystem =
               if history.state.href.indexOf("#") != 0
                 dispatcher(e)
 
-
-
-      if array_of_routes.length != 0 && plain_routes.length != 0
-        logger.warn("RouteSystem: Seems you use plain routing and hashbased routing at the same time", logger.routing)
 
       fn()
 
@@ -585,6 +601,12 @@ Sirius.Application =
     <a href="#/posts">posts</a>
   ###
   use_hash_routing_for_old_browsers : true
+
+  ###
+    if true, then if your click on some url it's used browser for redirect to url
+    if false, generate 'application:404' event
+  ###
+  ignore_not_matched_urls: true
 
   #
   # @method #logger(msg) - logger, default it's write message to console.log, may be redefined
@@ -660,13 +682,19 @@ Sirius.Application =
   # @method #run(options)
   # @param options [Object] - base options for application
   run: (options = {}) ->
+    _get_key_or_default = (k, _default) ->
+      if options[k] != null
+        options[k]
+      else
+        _default
+
     @running = true
     @log     = options["log"]     || @log
     @adapter = options["adapter"] || throw new Error("Specify adapter")
     @route   = options["route"]   || @route
-    @mix_logger_into_controller = options['mix_logger_into_controller'] || @mix_logger_into_controller
+    @mix_logger_into_controller = _get_key_or_default('mix_logger_into_controller', @mix_logger_into_controller)
     @log_filters = options["log_filters"] || @log_filters
-
+    @ignore_not_matched_urls = _get_key_or_default('ignore_not_matched_urls', @ignore_not_matched_urls)
     # check filters
     if @log_filters.length > 0
       lf = Sirius.Logger.Filters
@@ -695,15 +723,10 @@ Sirius.Application =
     for key, value of (options["controller_wrapper"] || {})
       @controller_wrapper[key] = value
 
-    @hash_always_on_top = if options["hash_always_on_top"]?
-      options["hash_always_on_top"]
-    else
-      @hash_always_on_top
+    @hash_always_on_top = _get_key_or_default('hash_always_on_top', @hash_always_on_top)
 
-    @use_hash_routing_for_old_browsers = if options["use_hash_routing_for_old_browsers"]?
-      options["use_hash_routing_for_old_browsers"]
-    else
-      @use_hash_routing_for_old_browsers
+    @use_hash_routing_for_old_browsers = _get_key_or_default("use_hash_routing_for_old_browsers",
+      @use_hash_routing_for_old_browsers)
 
     @logger.info("Logger enabled? #{@log}", @logger.application)
     @logger.info("Log filters: #{@log_filters}", @logger.application)
@@ -711,6 +734,7 @@ Sirius.Application =
     @logger.info("Hash always on top: #{@hash_always_on_top}", @logger.application)
     @logger.info("Use hash routing for old browsers: #{@use_hash_routing_for_old_browsers}", @logger.application)
     @logger.info("Current browser: #{navigator.userAgent}", @logger.application)
+    @logger.info("Ignore not matched urls: #{@ignore_not_matched_urls}", @logger.application)
 
     @push_state_support = if history.pushState then true else false
     @logger.info("History pushState support: #{@push_state_support}", @logger.application)
@@ -737,6 +761,7 @@ Sirius.Application =
       old: @use_hash_routing_for_old_browsers
       top: @hash_always_on_top
       support: @push_state_support
+      ignore: @ignore_not_matched_urls
 
     # start
     Sirius.Internal.RouteSystem.create @route, setting, () =>
