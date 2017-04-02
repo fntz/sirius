@@ -484,6 +484,9 @@ Sirius.Internal.RouteSystem =
 
         if !result
           if ignore_not_matched_urls
+            if is_hash_based_route
+              logger.warn("Seems you ignore hash based urls: #{current}")
+
             logger.debug("ignore_not_matched_urls is enabled, url was not matched: '#{current}'")
             return
 
