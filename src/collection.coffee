@@ -42,27 +42,15 @@ class Sirius.Collection
   @_EVENTS = ['add', 'remove']
   #
   # @param klass [T <: Sirius.BaseModel] - model class for all instances in collection
-  # @param klasses [Array] - models, which used for `to_json` @see(Sirius.BaseModel.to_json)
   # @param options [Object] - with keys necessary
   # @attr index [Array<String>] - fields for index
-  constructor: (klass, args...) ->
+  constructor: (klass, options = {}) ->
     if klass.__super__.__name isnt 'BaseModel'
       throw new Error("Collection must be used only with `BaseModel` inheritor")
     @_array = []
     @logger = Sirius.Application.get_logger()
     # klasses, options
-    klasses = []
-    options = {}
-    if args.length == 1
-      if Sirius.Utils.is_array(args[0])
-        klasses = args[0]
-      else
-        options = args[0]
-    if args.length == 2
-      klasses = args[0]
-      options = args[1]
 
-    @_klasses = klasses
     @_klass = klass
     @_type  = Sirius.Utils.fn_name(klass)
 
@@ -90,7 +78,7 @@ class Sirius.Collection
       # index_id: {100 => 0, 200 => 1, 300 => 2}
       #
       @_indexes.forEach (field) =>
-        @logger.info("create index for #{field} field in #{@_type}", @logger.collection)
+        @logger.debug("create index for #{field} field in #{@_type}", @logger.collection)
         @["index_#{field}"] = {}
 
 
