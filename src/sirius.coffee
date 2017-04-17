@@ -619,7 +619,8 @@ Sirius.Application =
       alert "Not supported `console`. You should define own `logger` function for Sirius.Application"
 
   ###
-   Array with classes for logs
+   'all' || [0,1,3]
+   String or Array with classes for logs
    Possible classes:
       BaseModel     = 0
       Binding       = 1
@@ -683,7 +684,7 @@ Sirius.Application =
   # @param options [Object] - base options for application
   run: (options = {}) ->
     _get_key_or_default = (k, _default) ->
-      if options[k] != null
+      if options[k]?
         options[k]
       else
         _default
@@ -696,7 +697,9 @@ Sirius.Application =
     @log_filters = options["log_filters"] || @log_filters
     @ignore_not_matched_urls = _get_key_or_default('ignore_not_matched_urls', @ignore_not_matched_urls)
     # check filters
-    if @log_filters.length > 0
+    if @log_filters == 'all'
+      @log_filters = Sirius.Logger.Filters
+    else if @log_filters.length > 0
       lf = Sirius.Logger.Filters
       user_filter = @log_filters
       # when pass numbers

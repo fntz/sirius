@@ -30,6 +30,6 @@ $ ->
   Sirius.Application.run
     route   : routes
     adapter : new JQueryAdapter()
-    log: false
-    log_filters: [0]
+    log: true
+    log_filters: []
 
