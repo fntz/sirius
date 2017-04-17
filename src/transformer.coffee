@@ -164,7 +164,8 @@ class Sirius.Internal.ToModelTransformer extends Sirius.Internal.AbstractTransfo
 
         logger.debug("Apply new value from #{result.from} (#{result.original}) to #{model.normal_name()}.#{to}", ln)
 
-        model.set(to, via(result.text))
+        # result, view, selector, attribute
+        model.set(to, via(result.text, view, result.original, from))
 
     callback
 

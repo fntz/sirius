@@ -190,6 +190,11 @@ class Sirius.View
 
     return
 
+  get_attr: (attr) ->
+    e = @get_element()
+    Sirius.Application.get_adapter().and_then (adapter) ->
+      adapter.get_attr(e, attr)
+
 
   # check if strategy valid
   # @param [String] - given strategy

@@ -126,13 +126,41 @@ end
 
 namespace :todo do
   desc "TODOApp compile"
-  task :compile do
+  task :compile => [:build] do
     %x(coffee -c -b todomvc/js/app.coffee)
   end
 
   desc "Run TODO app"
   task :run => ['todo:compile'] do
     system("ruby todomvc/app.rb")
+  end
+end
+
+namespace :todo2 do
+  desc "New TODOApp compile"
+  task :compile => [:build] do
+    app = 'new-todomvc'
+    app_files = coffee(app, [
+      "js/utils/template",
+      "js/utils/utils",
+      "js/models/task",
+      "js/utils/utils",
+      "js/utils/constants",
+      "js/utils/renderer",
+      "js/controllers/main_controller",
+      "js/controllers/todo_controller",
+      "js/controllers/bottom_controller",
+      "js/controllers/link_controller",
+      "js/app"
+    ])
+
+    system("cat #{app_files} | coffee -c -b --stdio > #{app}/js/app.js")
+    #%x(coffee -c -b new-todomvc/js/app.coffee)
+  end
+
+  desc "Run New TODO app"
+  task :run => ['todo2:compile'] do
+    system("ruby new-todomvc/app.rb")
   end
 end
 

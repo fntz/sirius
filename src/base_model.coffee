@@ -145,7 +145,6 @@ class Sirius.BaseModel
   @validate : {}
 
   # save transformers for model
-  _listeners: []
 
   # last argument function
   #
@@ -262,6 +261,9 @@ class Sirius.BaseModel
     @constructor::_cmp ||= []
     @constructor::_cmp_fields ||= []
 
+    @_listeners = []
+
+
     @logger = Sirius.Application.get_logger()
     # object, which contain all errors, which registers after validation
     @errors = {}
@@ -376,13 +378,9 @@ class Sirius.BaseModel
 
     oldvalue = @["_#{attr}"]
 
-    if Sirius.Utils.is_object(oldvalue)
-      if !Sirius.Utils.is_object(value)
-        throw new Error("Attribute '#{attr}' is object, but value '#{value}' not object.")
-      for k, v of value
-        oldvalue[k] = v
-    else
-      @["_#{attr}"] = value
+    @["_#{attr}"] = value
+
+    @logger.debug("[#{@constructor.name}] set: 'attr' to '#{value}'", @logger.base_model)
 
     @validate(attr)
     @_compute(attr, value)
@@ -602,8 +600,11 @@ class Sirius.BaseModel
     @logger.debug("Register new listener for #{@constructor.name}", @logger.base_model)
     @_listeners.push(transformer)
 
-  _clear_state_listener: (transformer) ->
-    # TODO
+    # sync state
+    _attrs = @get_attributes()
+    for attr in _attrs
+      if @["_#{attr}"] isnt null
+        transformer.apply(null, [attr, @["_#{attr}"]])
 
   pipe: (func, via = {}) ->
     # TODO default attributes
