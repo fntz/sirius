@@ -21,7 +21,7 @@ describe "BaseModel", ->
     expect(model.title()).toEqual("new title")
     expect(model.description()).toEqual("description")
 
-  describe "Convertable", ->
+  describe "Convert", ->
 
     it "to_json", ->
       model = new MyModel()

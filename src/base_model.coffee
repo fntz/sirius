@@ -534,13 +534,15 @@ class Sirius.BaseModel
   #   // }
   #
   to_json: (args...) ->
+    JSON.stringify(@to_object(args...))
+
+  to_object: (args...) ->
     z = {}
 
     for attr in @attributes when args.indexOf(attr) == -1
-      value = @get("#{attr}")
-      z["#{attr}"] = value
-
-    JSON.stringify(z)
+      value = @get(attr)
+      z[attr] = value
+    z
 
   # Create a new model instance from json structure.
   # @param json [JSON] - json object

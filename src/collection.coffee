@@ -236,22 +236,11 @@ class Sirius.Collection
   size: () ->
     @_array.length
 
-  from_json: (json) ->
-    j = JSON.stringify(json)
-    if Sirius.Utils.is_array(j)
-      for jj in j
-        @_array.push(@_klass.from_json(jj))
-        @length++
-    else
-      @_array.push(@_klass.from_json(json))
-      @length++
-    @
-
   # convert collection to json
   # @return [JSON]
   to_json: () ->
-    z = for e in @_array then e.to_json()
-    JSON.parse(JSON.stringify(z))
+    z = for e in @_array then e.to_object()
+    JSON.stringify(z)
 
   #
   #
