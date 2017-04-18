@@ -1,8 +1,4 @@
-###!
-#  Sirius.js v0.8.5
-#  (c) 2014-2015 fntz
-#  license: MIT
-###
+
 `var c = function(m){console.log(m);};`
 #
 # @author fntz <mike.fch1@gmail.com>>

@@ -691,7 +691,7 @@ Sirius.Application =
 
     @running = true
     @log     = options["log"]     || @log
-    @adapter = options["adapter"] || throw new Error("Specify adapter")
+    @adapter = options["adapter"] || new VanillaJsAdapter()
     @route   = options["route"]   || @route
     @mix_logger_into_controller = _get_key_or_default('mix_logger_into_controller', @mix_logger_into_controller)
     @log_filters = options["log_filters"] || @log_filters

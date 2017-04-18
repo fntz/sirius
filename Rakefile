@@ -93,12 +93,13 @@ task :build do
 
   src = "src"
 
-  prototype_files = coffee(src, %w(adapter prototype_js_adapter))
-  jquery_files = coffee(src, %w(adapter jquery_adapter))
-  vanilla_files = coffee(src, %w(adapter vanilla_js_adapter))
+  prototype_files = coffee(src, %w(comment_header adapter prototype_js_adapter))
+  jquery_files = coffee(src, %w(comment_header adapter jquery_adapter))
+  vanilla_files = coffee(src, %w(comment_header adapter vanilla_js_adapter))
 
   lib_files = coffee(src, %w(
-    version logger internal promise utils
+    comment_header version adapter vanilla_js_adapter
+    logger internal promise utils
     sirius validators observer
     view base_model transformer collection
   ))
