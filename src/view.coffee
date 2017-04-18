@@ -190,6 +190,10 @@ class Sirius.View
 
     return
 
+  # @see #on method
+  for_me: (event_name, custom_event_name, params...) ->
+    @on(@get_element(), event_name, custom_event_name, params...)
+
   get_attr: (attr) ->
     e = @get_element()
     Sirius.Application.get_adapter().and_then (adapter) ->
