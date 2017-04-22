@@ -124,7 +124,7 @@ class Sirius.Internal.ToViewTransformer extends Sirius.Internal.AbstractTransfor
       callback = (attribute, value) ->
         obj = path[attribute]
         if obj
-          logger.debug("Apply new value for '#{attribute}' for '#{view.get_element()}', value: #{value} from #{model.normal_name()}", ln)
+          logger.debug("Apply new value for '#{attribute}' for '#{view.get_element()}', value: #{value} from #{model._klass_name()}", ln)
           to = obj['to']
           attr = obj['attr'] || 'text'
           via = obj['via'] || Sirius.Internal.ToViewTransformer._default_via_method()
@@ -162,7 +162,7 @@ class Sirius.Internal.ToModelTransformer extends Sirius.Internal.AbstractTransfo
         from = value['from'] || 'text'
         via = value['via'] || ((value) -> value)
 
-        logger.debug("Apply new value from #{result.from} (#{result.original}) to #{model.normal_name()}.#{to}", ln)
+        logger.debug("Apply new value from #{result.from} (#{result.original}) to #{model._klass_name()}.#{to}", ln)
 
         # result, view, selector, attribute
         model.set(to, via(result.text, view, result.original, from))
@@ -217,13 +217,26 @@ class Sirius.Transformer
       if @_from instanceof Sirius.BaseModel
         for k, v of object
           if @_from.get_attributes().indexOf(k) == -1
-            name = @_from.normal_name()
+            name = @_from._klass_name()
             attrs = @_from.get_attributes()
-            @logger.warn("Attribute '#{k}' not found in model attributes: '#{name}', available: [#{attrs}]", @ln)
+            # that maybe it errors?
+            txt = "Attribute '#{k}' not found in model attributes: '#{name}', available: [#{attrs}]"
+            if k.indexOf(".") != -1
+              if k.lastIndexOf("errors") == 0
+                tmp = k.split(".") # errors.id.numericality => [errors, id, numericality]
+
+                if tmp.length != 3
+                  @logger.warn("Try to bind '#{k}' from errors, but validator was not found, correct definition like 'errors.id.numericality'", @ln)
+
+                @logger.debug("bind: #{name}.#{k} -> #{v['to']}", @ln)
+              else
+                @logger.warn(txt, @ln)
+            else
+              @logger.warn(txt, @ln)
 
       if @_to instanceof Sirius.BaseModel
         # {id: {to: attr}}
-        name = @_to.normal_name()
+        name = @_to._klass_name()
         for k, v of object
           attr = v['to']
           if !attr
@@ -233,8 +246,12 @@ class Sirius.Transformer
             attrs = @_to.get_attributes()
             if attrs.indexOf(attr) == -1
               @logger.warn("Attribute '#{attr}' not found in model attributes: '#{name}', available: [#{attrs}]", @ln)
+            else
+              @logger.debug("bind: '#{k}' -> '#{name}.#{attr}'", @ln)
 
       if @_from instanceof Sirius.View && @_to instanceof Sirius.View
+        e = @_from.get_element()
+        e1 = @_to.get_element()
         # validate, need 'to'
         to = object['to']
         if !to
@@ -246,12 +263,16 @@ class Sirius.Transformer
             for t in to
               if !t['selector']
                 _d = '{to: [{"selector": "#my-id", "attribute": "data-attr"}]}'
-                _e1 = "You define binding with 'to' as array of objects, but 'selector', but 'selector' property was not found."
+                _e1 = "You define binding with 'to' as array of objects, but 'selector' property was not found."
                 _e2 = "Correct definition: #{_d}"
                 throw new Error("#{_e1} #{_e2}")
+              else
+                s = t['selector']
+                @logger.debug("bind: '#{e}' -> '#{e1} #{s}'", @ln)
 
             @_path = object
           else if Sirius.Utils.is_string(to)
+            @logger.debug("bind: '#{e}' -> '#{e1} #{to}'")
             object['to'] = [to]
             @_path = object
           else
@@ -259,6 +280,7 @@ class Sirius.Transformer
 
       else if @_from instanceof Sirius.View && Sirius.Utils.is_function(@_to)
         # check that 'from' is present
+        e = @_from.get_element()
         if Object.keys(object).length == 0
           throw new Error("Binding with empty object forbidden")
 
@@ -266,6 +288,9 @@ class Sirius.Transformer
           if !v['from']
             _e = '{"selector": {"from": "text"}}'
             throw new Error("For binding View and Function, you need to define object like: #{_e}")
+          else
+            f = v['from']
+            @logger.debug("bind: '#{e} #{k}' (from '#{f}') -> function", @ln)
 
         @_path = object
 

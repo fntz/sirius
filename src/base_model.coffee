@@ -217,11 +217,25 @@ class Sirius.BaseModel
     Sirius.Utils.underscore(@constructor.name)
 
   # @nodoc
+  _klass_name: () ->
+    @constructor.name
+
+  # @nodoc
   validators: () ->
     @constructor.validate
   # @nodoc
   guid_for: () ->
-    @constructor.guid_for
+    tmp = @constructor.guid_for
+    if tmp
+      if Sirius.Utils.is_string(tmp)
+        [tmp]
+      else if Sirius.Utils.is_array(tmp)
+        tmp
+      else
+        throw new Error("'@guid_for' must be array of string, but #{typeof(tmp)} given")
+    else
+      []
+
 
   # @nodoc
   _compute: (field, value) ->
@@ -300,7 +314,8 @@ class Sirius.BaseModel
           @_call_callbacks(attr, obj[attr], oldvalue)
 
 
-    if g = @guid_for()
+    for g in @guid_for()
+      @logger.debug("Generate guid for '#{@_klass_name()}.#{g}'", @logger.base_model)
       @set(g, @_generate_guid())
 
     # need define validators key
@@ -313,7 +328,6 @@ class Sirius.BaseModel
       for validator_name, validator of value
         if @_registered_validators_keys.indexOf(validator_name) == -1 && validator_name != 'validate_with'
           throw new Error("Unregistered validator: #{validator_name}")
-        @errors[key][validator_name] = ""
 
 
     @after_create()
@@ -352,13 +366,19 @@ class Sirius.BaseModel
       false
 
   _attribute_present: (attr) ->
-    throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model") if @attributes.indexOf(attr) == -1
+    throw new Error("Attribute '#{attr}' not found for #{@_klass_name()} model") if @attributes.indexOf(attr) == -1
 
   _call_callbacks: (attr, value, oldvalue) ->
     for clb in @_listeners
       clb.apply(null, [attr, value])
 
     @after_update(attr, value, oldvalue)
+
+  # @_call_callbacks_for_errors(key, validator_key, "")
+  _call_callbacks_for_errors: (key, validator_key, message) ->
+    key = "errors.#{key}.#{validator_key}"
+    for clb in @_listeners
+      clb.apply(null, [key, message])
   #
   # Base setter
   # @param attr [String] - attribute
@@ -368,7 +388,7 @@ class Sirius.BaseModel
   # @return [Void]
   set: (attr, value) ->
     if @_is_computed_attribute(attr)
-      throw new Error("Impossible set computed attribute #{attr} for #{@normal_name().toUpperCase()}")
+      throw new Error("Impossible set computed attribute #{attr} for #{@_klass_name()}")
 
     @_set(attr, value)
 
@@ -405,8 +425,9 @@ class Sirius.BaseModel
   # @return [Void]
   reset: (args...) ->
     attrs = @attributes
+    @logger.debug("Reset attributes: '#{args}' for #{@_klass_name()}")
     for attr in args
-      throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model") if attrs.indexOf(attr) == -1
+      throw new Error("Attribute '#{attr}' not found for #{@_klass_name()} model") if attrs.indexOf(attr) == -1
       key = "_#{attr}"
       if typeof(@[key]) is 'number'
         @[key] = 0
@@ -428,6 +449,9 @@ class Sirius.BaseModel
   # Call when you want validate model
   # @nodoc
   validate: (field = null) ->
+    model = @_klass_name()
+    logger = @logger
+    ln = @logger.base_model
     Object.keys(@_model_validators || {}).filter(
       (key) ->
         if field?
@@ -450,13 +474,17 @@ class Sirius.BaseModel
 
         result = klass.validate(current_value, validator_value)
 
-        if !result # when `validate` return false
+        logger.debug("Validate: '#{model}.#{key} = #{current_value}' with '#{validator_key}' validator, valid?: '#{result}'", ln)
+
+        message = if !result # when `validate` return false
           @errors[key][validator_key] = klass.error_message()
           @_is_valid_attr[key] = false
+          klass.error_message()
         else #when true, then need set null for error
-          @errors[key][validator_key] = ""
+          delete @errors[key][validator_key]
           @_is_valid_attr[key] = true
-
+          ""
+        @_call_callbacks_for_errors(key, validator_key, message)
     )
 
 
@@ -467,7 +495,7 @@ class Sirius.BaseModel
   # @return [Object|Array] - return object with errors for current model
   get_errors: (attr = null) ->
     if @attributes.indexOf(attr) == -1 && attr != null
-      throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model")
+      throw new Error("Attribute '#{attr}' not found for #{@_klass_name()} model")
 
     if attr?
       result = []
