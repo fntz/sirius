@@ -157,7 +157,6 @@ class Sirius.BaseModel
   #
   #
   @comp: (args...) ->
-    # TODO check cyclic references
     @::_cmp ||= []
     @::_cmp_fields ||= []
     @::_cmp_refs ||= {}
@@ -165,7 +164,8 @@ class Sirius.BaseModel
     if args.length == 0
       throw new Exception("Compute field is empty")
     if args.length == 2
-      throw new Exception("For computed fields need more fields")
+      txt = '@comp("default_computed_field", "first_name", "last_name")'
+      throw new Exception("Define compute field like: '#{txt}'")
 
     field = args[0]
     length = args.length

@@ -94,7 +94,7 @@ class Sirius.Internal.Observer
 
     handler = (e) ->
       logger.debug("Handler Function: given #{e.type} event", logger.binding)
-      result = {text: null, attribute: null, from: from, original: original}
+      result = {text: null, attribute: null, from: from, original: original, element: e.target}
       return if O.is_focus_event(e)
       txt = adapter.text(from)
 
