@@ -48,8 +48,8 @@ end
 task :vendor_install do
   vendor = "vendor"
   deps = [
-           "https://ajax.googleapis.com/ajax/libs/prototype/1.7.2.0/prototype.js",
-           "https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js",
+           "https://cdnjs.cloudflare.com/ajax/libs/prototype/1.7.3/prototype.js",
+           "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js",
            "https://raw.githubusercontent.com/dwachss/bililiteRange/master/bililiteRange.js",
            "https://raw.githubusercontent.com/dwachss/bililiteRange/master/jquery.sendkeys.js",
            "https://github.com/yui/yuicompressor/releases/download/v2.4.8/yuicompressor-2.4.8.jar",
