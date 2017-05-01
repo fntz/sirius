@@ -27,6 +27,10 @@ def download_and_save(arr, path)
   rescue Exception => e
     puts "Exception: #{e}"
   end
+
+  # unzip closure
+  %x(unzip -u -d vendor vendor/compiler-latest.zip)
+
 end
 
 task :jasmine_install do
@@ -52,7 +56,7 @@ task :vendor_install do
            "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js",
            "https://raw.githubusercontent.com/dwachss/bililiteRange/master/bililiteRange.js",
            "https://raw.githubusercontent.com/dwachss/bililiteRange/master/jquery.sendkeys.js",
-           "https://github.com/yui/yuicompressor/releases/download/v2.4.8/yuicompressor-2.4.8.jar",
+           "http://dl.google.com/closure-compiler/compiler-latest.zip",
            "https://raw.githubusercontent.com/kangax/protolicious/master/event.simulate.js"
          ]
   download_and_save(deps, vendor)
@@ -117,10 +121,16 @@ end
 
 desc "Minify sources"
 task :minify => [:build] do
-  %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js --nomunge lib/sirius.js -o sirius.min.js)
-  %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js --nomunge lib/jquery_adapter.js -o jquery_adapter.min.js)
-  %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js --nomunge lib/prototypejs_adapter.js -o prototypejs_adapter.min.js)
-  %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js --nomunge lib/vanillajs_adapter.js -o vanillajs_adapter.min.js)
+  cc = Dir["vendor/closure-*.jar"]
+  if cc.empty?
+    p "Install closure-compiler first"
+  else
+    compiler = cc.first
+    %x[java -jar #{compiler} --js_output_file=sirius.min.js lib/sirius.js]
+    %x[java -jar #{compiler} --js_output_file=jquery_adapter.min.js lib/jquery_adapter.js]
+    %x[java -jar #{compiler} --js_output_file=prototypejs_adapter.min.js lib/prototypejs_adapter.js]
+    %x[java -jar #{compiler} --js_output_file=vanillajs_adapter.min.js lib/vanillajs_adapter.js]
+  end
 end
 
 

@@ -78,7 +78,7 @@ class Sirius.View
             render(adapter, element, res, attribute)
 
     Sirius.View._Cache.push(@)
-    @
+    return @
 
   get_element: () ->
     @element
