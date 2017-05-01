@@ -135,6 +135,13 @@ end
 
 
 namespace :todo do
+  desc "install deps for todoapp"
+  task :install do
+    Dir.chdir("todomvc") do
+      `npm install`
+    end
+  end
+
   desc "TODOApp compile"
   task :compile => [:build] do
     app = 'todomvc'
