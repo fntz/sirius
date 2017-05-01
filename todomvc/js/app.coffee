@@ -1,3 +1,4 @@
+
 "use strict"
 
 `var c = function(m){console.log(m);};`
@@ -11,10 +12,10 @@ TodoList.subscribe('remove', (todo) -> $("\##{todo.id()}").remove())
 
 # ----------------------- Routing ----------------- #
 
-routes = 
-  '/'               : {controller: MainController, action: 'root'}
-  '/active'        :  {controller: MainController, action: 'active'}
-  '/completed'     :  {controller: MainController, action: 'completed'}
+routes =
+  '#/'               : {controller: MainController, action: 'root'}
+  '#/active'        :  {controller: MainController, action: 'active'}
+  '#/completed'     :  {controller: MainController, action: 'completed'}
   'application:run' : {controller: MainController, action: 'start'}
   'todo:create' :     {controller: TodoController, action: 'create', guard: 'is_enter', after: 'clear_input'}
   'application:urlchange': {controller: LinkController, action: 'url'}
@@ -29,13 +30,6 @@ $ ->
   Sirius.Application.run
     route   : routes
     adapter : new JQueryAdapter()
-    log: false
-    log_filters: [0]
-
-
-
-
-
-
-
+    log: true
+    log_filters: []
 

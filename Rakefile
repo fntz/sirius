@@ -124,23 +124,10 @@ task :minify => [:build] do
 end
 
 
-
 namespace :todo do
   desc "TODOApp compile"
   task :compile => [:build] do
-    %x(coffee -c -b todomvc/js/app.coffee)
-  end
-
-  desc "Run TODO app"
-  task :run => ['todo:compile'] do
-    system("ruby todomvc/app.rb")
-  end
-end
-
-namespace :todo2 do
-  desc "New TODOApp compile"
-  task :compile => [:build] do
-    app = 'new-todomvc'
+    app = 'todomvc'
     app_files = coffee(app, [
       "js/utils/template",
       "js/utils/utils",
@@ -156,12 +143,12 @@ namespace :todo2 do
     ])
 
     system("cat #{app_files} | coffee -c -b --stdio > #{app}/js/app.js")
-    #%x(coffee -c -b new-todomvc/js/app.coffee)
+    #%x(coffee -c -b todomvc/js/app.coffee)
   end
 
-  desc "Run New TODO app"
-  task :run => ['todo2:compile'] do
-    system("ruby new-todomvc/app.rb")
+  desc "Run TODO app"
+  task :run => ['todo:compile'] do
+    system("ruby todomvc/app.rb")
   end
 end
 

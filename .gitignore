@@ -7,6 +7,5 @@ doc/
 Gemfile.lock
 test/specs/compile
 app.rb
-new-todomvc/node_modules/*
-new-todomvc/js/app.js
+todomvc/node_modules/*
 todomvc/js/app.js
