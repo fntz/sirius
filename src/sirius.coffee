@@ -392,7 +392,6 @@ Sirius.Internal.RouteSystem =
   create: (routes, setting, fn = ->) ->
     logger = Sirius.Application.get_logger()
     current = prev = window.location.hash
-    hash_on_top        = setting["top"]
     redirect_to_hash   = setting["old"]
     push_state_support = setting["support"]
     ignore_not_matched_urls = setting['ignore']
@@ -547,7 +546,7 @@ Sirius.Internal.RouteSystem =
 #
 Sirius.Application =
   ###
-    when true, logs will be written
+    disable or enable logs
   ###
   log: false
   ###
@@ -578,19 +577,6 @@ Sirius.Application =
     add logger into controller wrapper
   ###
   mix_logger_into_controller: true
-
-  ###
-    when, false, then hash will be add into last for url, for true, no
-    false:
-      "http://example.com/" - start
-      "http://example.com/another" - change to another url
-      "http://example.com/another#hash" - change to hash
-    true
-      "http://example.com/" - start
-      "http://example.com/another" - change to another url
-      "http://example.com/#/hash" - change to hash
-  ###
-  hash_always_on_top : true
 
   ###
     when true, then all routing will be redefined with hash based routing
@@ -720,7 +706,7 @@ Sirius.Application =
 
 
     @logger  = new Sirius.Logger(@log, @log_filters, options['logger'] || @default_log_function)
-    @start   = options["start"]   || @start
+    @start   = options["start"] || @start
 
 
     for key, value of (options["controller_wrapper"] || {})
@@ -734,7 +720,6 @@ Sirius.Application =
     @logger.info("Logger enabled? #{@log}", @logger.application)
     @logger.info("Log filters: #{@log_filters}", @logger.application)
     @logger.info("Adapter: #{Sirius.Utils.fn_name(@adapter.constructor)}", @logger.application)
-    @logger.info("Hash always on top: #{@hash_always_on_top}", @logger.application)
     @logger.info("Use hash routing for old browsers: #{@use_hash_routing_for_old_browsers}", @logger.application)
     @logger.info("Current browser: #{navigator.userAgent}", @logger.application)
     @logger.info("Ignore not matched urls: #{@ignore_not_matched_urls}", @logger.application)
@@ -762,7 +747,6 @@ Sirius.Application =
 
     setting =
       old: @use_hash_routing_for_old_browsers
-      top: @hash_always_on_top
       support: @push_state_support
       ignore: @ignore_not_matched_urls
 
