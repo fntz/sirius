@@ -175,14 +175,15 @@ describe "Routing", ->
 
       beforeAll (done) ->
         arr = ["/", "/post/12", "/post/abc", "/post/x/a/b/c", "/static", "/error", "/"]
-        if JQueryAdapter? || VanillaJsAdapter?
-          jQuery("body").append("<div id='links'></div>")
-          for a in arr
-            jQuery('#links').append($("<a></a>").attr({'href':a}).text(a))
-        else
+        if PrototypeAdapter?
           $(document.body).insert({bottom: "<div id='links'></div>"})
           for a in arr
             $("links").insert("<a href='#{a}'>#{a}</a>")
+
+        else
+          jQuery("body").append("<div id='links'></div>")
+          for a in arr
+            jQuery('#links').append($("<a></a>").attr({'href':a}).text(a))
 
 
         Controller =
@@ -201,7 +202,8 @@ describe "Routing", ->
           route: r,
           adapter: j,
           mix_logger_into_controller: false,
-          controller_wrapper: {}
+          controller_wrapper: {},
+          ignore_not_matched_urls: false
         })
 
         links = j.all("#links a")

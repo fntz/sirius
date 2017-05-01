@@ -99,9 +99,15 @@ class Sirius.Internal.ToViewTransformer extends Sirius.Internal.AbstractTransfor
         else
           [o['from'] || top, o['attribute'] || 'text', o['selector']]
 
-        top = if top == w then top else "#{top} #{w}"
+        top = if top == w
+          top
+        else if w?
+          "#{top} #{w}"
+        else
+          top
 
         @logger.debug("Observe '#{top}' -> '#{@_to.get_element()} #{selector}'", @_ln)
+
         new Sirius.Internal.Observer(top, w, attr, clb)
 
     else # Model

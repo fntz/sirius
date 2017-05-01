@@ -27,7 +27,6 @@ Sirius.Internal.CacheObserverHandlers =
 
 # hacks for observer when property or text changed into DOM
 
-# #TODO not need create new observer, just subscribe for the currents
 # @private
 class Sirius.Internal.Observer
 
