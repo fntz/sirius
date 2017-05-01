@@ -89,7 +89,24 @@ class Sirius.Internal.ToFunctionTransformer extends Sirius.Internal.AbstractTran
 class Sirius.Internal.ToViewTransformer extends Sirius.Internal.AbstractTransformer
   _register: () ->
     clb = @_fire_generator()
-    @_from._register_state_listener(clb)
+
+    if @_from instanceof Sirius.View
+      top = @_from.get_element()
+      to = @_path['to']
+      for o in to
+        [w, attr, selector] = if Sirius.Utils.is_string(o)
+          [null, 'text', o]
+        else
+          [o['from'] || top, o['attribute'] || 'text', o['selector']]
+
+        top = if top == w then top else "#{top} #{w}"
+
+        @logger.debug("Observe '#{top}' -> '#{@_to.get_element()} #{selector}'", @_ln)
+        new Sirius.Internal.Observer(top, w, attr, clb)
+
+    else # Model
+      @_from._register_state_listener(clb)
+
 
   @_default_via_method: () ->
     (value, selector, view, attribute = 'text') ->
@@ -103,8 +120,9 @@ class Sirius.Internal.ToViewTransformer extends Sirius.Internal.AbstractTransfor
 
     # view 2 view
     if @_from instanceof Sirius.View
-      callback = (attribute, value) ->
+      callback = (result) ->
         to = path['to']
+        value = result.text
         for o in to
           if Sirius.Utils.is_string(o)
             via = Sirius.Internal.ToViewTransformer._default_via_method()
@@ -115,6 +133,7 @@ class Sirius.Internal.ToViewTransformer extends Sirius.Internal.AbstractTransfor
             attr = o['attribute'] || 'text'
             via = o['via'] || Sirius.Internal.ToViewTransformer._default_via_method()
             via(value, selector, view, attr)
+
 
       callback
 
