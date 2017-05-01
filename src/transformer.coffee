@@ -77,11 +77,10 @@ class Sirius.Internal.ToFunctionTransformer extends Sirius.Internal.AbstractTran
 
   _fire_generator: () ->
     view = @_from
-    logger = @logger
     f = @_to
 
     callback = (result) ->
-      f(result, view, logger)
+      f(result, view)
 
     callback
 
