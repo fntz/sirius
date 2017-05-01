@@ -136,7 +136,7 @@ end
 
 namespace :todo do
   desc "TODOApp compile"
-  task :compile => [:minify] do
+  task :compile => [:build] do
     app = 'todomvc'
     app_files = coffee(app, [
       "js/utils/template",
