@@ -136,7 +136,7 @@ end
 
 namespace :todo do
   desc "TODOApp compile"
-  task :compile => [:build] do
+  task :compile => [:minify] do
     app = 'todomvc'
     app_files = coffee(app, [
       "js/utils/template",
@@ -153,7 +153,6 @@ namespace :todo do
     ])
 
     system("cat #{app_files} | coffee -c -b --stdio > #{app}/js/app.js")
-    #%x(coffee -c -b todomvc/js/app.coffee)
   end
 
   desc "Run TODO app"
