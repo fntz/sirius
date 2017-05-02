@@ -7,13 +7,6 @@
 #   class MyModel extends Sirius.BaseModel
 #     @attrs: ["id"]
 #
-#   myCollection = new Sirius.Collection(MyModel, [], {
-#     every: 1000,
-#     remote: () ->
-#       json = ... # ajax call
-#       return json
-#
-#   })
 #
 #  myModel = new MyModel({"id" : 1}
 #  myCollection.add(myModel)
@@ -27,8 +20,6 @@
 #  myCollection.first() # => first MyModel instance
 #  myCollection.last()  # => last MyModel instance
 #
-#  myCollection.unsycn() # stop synchronization with server
-#  myCollection.sync(3000)   # start sync every 3 second
 #
 #  myCollection.size() # => 3
 #  myCollection.length # => 3 // as property
@@ -48,32 +39,18 @@
 # @note index fields with unique values.
 #
 class Sirius.Collection
-  @_EVENTS = ['add', 'remove', 'sync', 'unsync']
+  @_EVENTS = ['add', 'remove']
   #
   # @param klass [T <: Sirius.BaseModel] - model class for all instances in collection
-  # @param klasses [Array] - models, which used for `to_json` @see(Sirius.BaseModel.to_json)
   # @param options [Object] - with keys necessary
-  # @attr every [Numberic] - ms for remote call
-  # @attr remote [Function] - callback, which will be call when synchronize collection, must be return json
   # @attr index [Array<String>] - fields for index
-  constructor: (klass, args...) ->
+  constructor: (klass, options = {}) ->
     if klass.__super__.__name isnt 'BaseModel'
       throw new Error("Collection must be used only with `BaseModel` inheritor")
     @_array = []
     @logger = Sirius.Application.get_logger()
     # klasses, options
-    klasses = []
-    options = {}
-    if args.length == 1
-      if Sirius.Utils.is_array(args[0])
-        klasses = args[0]
-      else
-        options = args[0]
-    if args.length == 2
-      klasses = args[0]
-      options = args[1]
 
-    @_klasses = klasses
     @_klass = klass
     @_type  = Sirius.Utils.fn_name(klass)
 
@@ -101,7 +78,7 @@ class Sirius.Collection
       # index_id: {100 => 0, 200 => 1, 300 => 2}
       #
       @_indexes.forEach (field) =>
-        @logger.info("create index for #{field} field in #{@_type}", @logger.collection)
+        @logger.debug("create index for #{field} field in #{@_type}", @logger.collection)
         @["index_#{field}"] = {}
 
 
@@ -111,43 +88,6 @@ class Sirius.Collection
 
     @length = 0
 
-    if options.remote
-      @remote = =>
-        result = options.remote()
-        json = JSON.parse(result)
-        if Sirius.Utils.is_array(json)
-          if json.length != 0
-            for model in json then @push(klass.from_json(JSON.stringify(model), @_klasses))
-        else
-          @push(klass.from_json(result, @_klasses))
-
-    @_timer    = null
-    @_start_sync(options.every || 0)
-
-
-  # @nodoc
-  # @private
-  _start_sync: (every) ->
-    if (every != 0)
-      @logger.info("start synchronization", @logger.collection)
-      @_timer = setInterval(@remote, every)
-      @_gen('sync')
-    return
-
-  # stop synchronization
-  # @return [Void]
-  unsync: () ->
-    if @_timer
-      @logger.info("Collection: end synchronization", @logger.collection)
-      clearInterval(@_timer)
-      @_gen('unsync')
-    return
-
-  # start synchronization
-  #
-  # @param every [Numeric] - milliseconds
-  sync: (every) ->
-    @_start_sync(every)
 
   #
   # alias for #add
@@ -296,35 +236,19 @@ class Sirius.Collection
   size: () ->
     @_array.length
 
-  from_json: (json) ->
-    j = JSON.stringify(json)
-    if Sirius.Utils.is_array(j)
-      for jj in j
-        @_array.push(@_klass.from_json(jj))
-        @length++
-    else
-      @_array.push(@_klass.from_json(json))
-      @length++
-    @
-
   # convert collection to json
   # @return [JSON]
   to_json: () ->
-    z = for e in @_array then e.to_json()
-    JSON.parse(JSON.stringify(z))
+    z = for e in @_array then e.to_object()
+    JSON.stringify(z)
 
   #
   #
-  # @param [String] - event name for subscribing [add, remove, sync, unsync]
+  # @param [String] - event name for subscribing [add, remove]
   # @param [String|Function] - when it function, then when event will be occurred, then it
   # call given function, when it event (it's should be custom event name) it will be fired.
   #
   # @example
-  #
-  #   myCollection = new Collection(MyModel,
-  #     remote: () ->
-  #       # work with ajax
-  #     every: 10000 # every 10 sec
   #
   #
   #   myCollection.subscribe('add', (model) -> console.log('upd'))

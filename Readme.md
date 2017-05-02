@@ -346,15 +346,6 @@ source.bind(source_view,
 ```
 
 
-##### double-sided binding
-
-```coffee
-view.bind2(model)
-# or
-model.bind2(view)
-```
-
-
 
 # More info
 

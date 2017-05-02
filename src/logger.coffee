@@ -14,6 +14,7 @@ class Sirius.Logger
       "Application"
       "Redirect"
       "Validation"
+      "Transformer"
     ]
 
   # @param [Boolean] - true, when log enabled

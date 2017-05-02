@@ -1,3 +1,51 @@
+adapter = if JQueryAdapter?
+    new JQueryAdapter()
+  else if PrototypeAdapter?
+    new PrototypeAdapter()
+  else
+    new VanillaJsAdapter()
+
+Sirius.Application.adapter = adapter
+
+
+
+
+get_text = (element) ->
+  adapter.text(element)
+
+set_value = (element, text) ->
+  if JQueryAdapter?
+    jQuery(element).val(text)
+  else
+    document.querySelector(element).value = text
+
+get_value = (element) ->
+  document.querySelector(element).value
+
+set_text = (element, text) ->
+  if JQueryAdapter?
+    jQuery(element).text(text)
+  else
+    e = adapter.get(element)
+    if e.textContent
+      e.textContent = text
+    else
+      e.innerHTML = text
+  return
+
+input_text = (element, value) ->
+  set_value(element, value)
+
+  _element = document.querySelector(element)
+
+  event = new Event('input', {
+    'bubbles': true,
+    'cancelable': true
+  })
+
+  _element.dispatchEvent(event)
+
+
 class MyModel extends Sirius.BaseModel
   @attrs: ["id", {title: "default title"}, "description"]
 
@@ -7,6 +55,14 @@ class MyModel extends Sirius.BaseModel
 
 class MyModel0 extends Sirius.BaseModel
   @attrs: ["id", {title: {}}, "description"]
+
+
+class MyModelSkipFalse extends Sirius.BaseModel
+  @attrs: ["id"]
+
+class MyModelSkipTrue extends Sirius.BaseModel
+  @attrs: ["id"]
+  @skip: true
 
 class MyCustomValidator extends Sirius.Validator
   validate: (value, attrs) ->
@@ -48,21 +104,6 @@ class ModelwithValidators extends Sirius.BaseModel
           @msg = "Description must be foo"
           false
 
-
-
-class Person extends Sirius.BaseModel
-  @attrs: ["id"]
-  @has_many : ["group"]
-  @has_one : ["name"]
-
-
-class Group extends Sirius.BaseModel
-  @attrs: ["name", "person_id"]
-  @belongs_to: [{model: "person", back: "id"}]
-
-class Name extends Sirius.BaseModel
-  @attrs: ["name", "person_id"]
-  @belongs_to: [{model: "person", back: "id"}]
 
 
 class UModel extends Sirius.BaseModel
@@ -115,9 +156,15 @@ class ComputedFieldModel extends Sirius.BaseModel
 
 
 
+class MyTestIndexModel extends Sirius.BaseModel
+  @attrs: ["name"]
+
+class MyTestView2ModelSpecModel extends Sirius.BaseModel
+  @attrs: ["name"]
 
 
+class MyTestModel2ViewSpecModel extends Sirius.BaseModel
+  @attrs: ["name"]
 
-
-
-
+class MyTestModel2FunctionSpecModel extends Sirius.BaseModel
+  @attrs: ["name"]

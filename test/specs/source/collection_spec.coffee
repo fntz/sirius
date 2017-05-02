@@ -38,16 +38,11 @@ describe "Collections", ->
     mc.remove(model)
 
     z = [{"id":100,"title":"default title","description":null}][0]
-    j = JSON.parse(mc.to_json())
+    j = JSON.parse(mc.to_json())[0]
 
     expect(j['id']).toEqual(z['id'])
     expect(j['title']).toEqual(z['title'])
     expect(j['description']).toEqual(z['description'])
-
-    mc.from_json(mc.to_json())
-
-    expect(mc.size() == 2)
-    expect(mc.first().compare(mc.last())).toBeTruthy()
 
     mc.clear()
 
@@ -65,5 +60,3 @@ describe "Collections", ->
     e = mc.takeFirst((f) -> f.id() == 3)
     expect(e.id() == 3).toBeTruthy()
 
-
-  pending "sync"

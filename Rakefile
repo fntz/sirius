@@ -27,6 +27,10 @@ def download_and_save(arr, path)
   rescue Exception => e
     puts "Exception: #{e}"
   end
+
+  # unzip closure
+  %x(unzip -u -d vendor vendor/compiler-latest.zip)
+
 end
 
 task :jasmine_install do
@@ -48,11 +52,11 @@ end
 task :vendor_install do
   vendor = "vendor"
   deps = [
-           "https://ajax.googleapis.com/ajax/libs/prototype/1.7.2.0/prototype.js",
-           "https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js",
+           "https://cdnjs.cloudflare.com/ajax/libs/prototype/1.7.3/prototype.js",
+           "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js",
            "https://raw.githubusercontent.com/dwachss/bililiteRange/master/bililiteRange.js",
            "https://raw.githubusercontent.com/dwachss/bililiteRange/master/jquery.sendkeys.js",
-           "https://github.com/yui/yuicompressor/releases/download/v2.4.8/yuicompressor-2.4.8.jar",
+           "http://dl.google.com/closure-compiler/compiler-latest.zip",
            "https://raw.githubusercontent.com/kangax/protolicious/master/event.simulate.js"
          ]
   download_and_save(deps, vendor)
@@ -93,17 +97,25 @@ task :build do
 
   src = "src"
 
-  prototype_files = coffee(src, %w(adapter prototype_js_adapter))
-  jquery_files = coffee(src, %w(adapter jquery_adapter))
-  vanilla_files = coffee(src, %w(adapter vanilla_js_adapter))
+  prototype_files = coffee(src, %w(comment_header adapter prototype_js_adapter))
+  jquery_files = coffee(src, %w(comment_header adapter jquery_adapter))
+  vanilla_files = coffee(src, %w(comment_header adapter vanilla_js_adapter))
 
   lib_files = coffee(src, %w(
-    version ext logger promise utils
+    comment_header version adapter vanilla_js_adapter
+    logger internal promise utils
     sirius validators observer
-    bind_helper view base_model collection
+    view base_model transformer collection
+  ))
+
+  core_files = coffee(src, %w(
+    comment_header version adapter vanilla_js_adapter
+    logger internal promise utils
+    sirius
   ))
 
   system("cat #{lib_files} | coffee -c -b --stdio > #{path}/sirius.js")
+  system("cat #{core_files} | coffee -c -b --stdio > #{path}/sirius-core.js")
   system("cat #{prototype_files} | coffee -c -b --stdio > #{path}/prototypejs_adapter.js")
   system("cat #{jquery_files} | coffee -c -b --stdio > #{path}/jquery_adapter.js")
   system("cat #{vanilla_files} | coffee -c -b --stdio > #{path}/vanillajs_adapter.js")
@@ -116,18 +128,46 @@ end
 
 desc "Minify sources"
 task :minify => [:build] do
-  %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js --nomunge lib/sirius.js -o sirius.min.js)
-  %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js --nomunge lib/jquery_adapter.js -o jquery_adapter.min.js)
-  %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js --nomunge lib/prototypejs_adapter.js -o prototypejs_adapter.min.js)
-  %x(java -jar vendor/yuicompressor-2.4.8.jar --type=js --nomunge lib/vanillajs_adapter.js -o vanillajs_adapter.min.js)
+  cc = Dir["vendor/closure-*.jar"]
+  if cc.empty?
+    p "Install closure-compiler first"
+  else
+    compiler = cc.first
+    %x[java -jar #{compiler} --js_output_file=sirius-core.min.js lib/sirius-core.js]
+    %x[java -jar #{compiler} --js_output_file=sirius.min.js lib/sirius.js]
+    %x[java -jar #{compiler} --js_output_file=jquery_adapter.min.js lib/jquery_adapter.js]
+    %x[java -jar #{compiler} --js_output_file=prototypejs_adapter.min.js lib/prototypejs_adapter.js]
+    %x[java -jar #{compiler} --js_output_file=vanillajs_adapter.min.js lib/vanillajs_adapter.js]
+  end
 end
 
 
-
 namespace :todo do
+  desc "install deps for todoapp"
+  task :install do
+    Dir.chdir("todomvc") do
+      `npm install`
+    end
+  end
+
   desc "TODOApp compile"
-  task :compile do
-    %x(coffee -c -b todomvc/js/app.coffee)
+  task :compile => [:build] do
+    app = 'todomvc'
+    app_files = coffee(app, [
+      "js/utils/template",
+      "js/utils/utils",
+      "js/models/task",
+      "js/utils/utils",
+      "js/utils/constants",
+      "js/utils/renderer",
+      "js/controllers/main_controller",
+      "js/controllers/todo_controller",
+      "js/controllers/bottom_controller",
+      "js/controllers/link_controller",
+      "js/app"
+    ])
+
+    system("cat #{app_files} | coffee -c -b --stdio > #{app}/js/app.js")
   end
 
   desc "Run TODO app"

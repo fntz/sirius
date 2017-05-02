@@ -49,9 +49,9 @@ class ComputedField
 #   + to json
 #   + create from json
 #   + validation
+#   + computed fields
 #   + generate guid
 #   + attributes support
-#   + base relation support (`has_many`, `has_one`, `belongs_to`)
 #
 # @example
 #
@@ -60,8 +60,6 @@ class ComputedField
 #
 #   class Person extends BaseModel
 #     @attrs: ["id", "name"]
-#
-#     @has_many: [Group]
 #
 #     @guid_for: id
 #
@@ -74,12 +72,7 @@ class ComputedField
 #         format: with: /^[A-Z].+/
 #
 #     to_string: () ->
-#       "name: #{name}; id: #{id}, group count: #{@get('group').length}"
-#
-#   class Group extends BaseModel
-#     @attrs: ["title", "person_id"]
-#
-#     @belongs_to: [{model: "person", back: "id"}]
+#       "name: #{name}; id: #{id}}"
 #
 # @todo Callback support
 class Sirius.BaseModel
@@ -115,57 +108,6 @@ class Sirius.BaseModel
   ###
   @skip: false
 
-  ###
-    model names for relations.
-
-    From this property, will be generated helper methods: `add_x`, where `x` is a model name
-    @note model names, should be written in the next format: ModelName => model_name
-    @example
-      class Model extends Sirius.BaseModel
-        @has_many: ["other_model"]
-
-      my_model = new Model()
-      my_model.add_other_model(new OtherModel())
-  ###
-  @has_many: []
-
-  ###
-    model names for relations.
-
-    From this property, will be generated helper methods: `add_x`, where `x` is a model name
-    @note model names, should be written in the next format: ModelName => model_name
-    @note when you call `add_model` when `model` already exist
-    @example
-       class MyModel extends Sirius.BaseModel
-         @has_one: ["model"]
-       my_model = new MyModel()
-       my_model.add_model(new Model()) // => ok
-       my_model.add_model(new Model()) // => oops, exception
-       my_model.set("model", null)
-       my_model.add_model(new Model()) // => ok
-  ###
-  @has_one: []
-  ###
-    take a object `model` as model for association, and `back` as an `attributes` from `has_*` model,
-    key will be created with `compose` function, by default `compose` is a `(model, back) -> "#{model}_#{back}"`
-
-  @note for use need to add into `@attrs` the next attribute: `model_back`, see example
-    @example
-       class Person extends Sirius.BaseModel
-         @attrs: ["id"]
-         @has_many: ["group"]
-
-       class Group extends Sirius.BaseModel
-         @attrs: ["person_id"]
-         @belongs_to [{model: "person", back: "id", compose: (model, back) -> "#{model}_#{back}"}]
-
-       person = new Person({id: 1})
-       group  = new Group()
-       person.add_group(group) // when add new group, then in `group` set a `person_id` as id from Person instance
-
-       group.get('person_id') // => 1
-  ###
-  @belongs_to: []
 
   ###
     attribute name, for which generate guid
@@ -202,6 +144,8 @@ class Sirius.BaseModel
   ###
   @validate : {}
 
+  # save transformers for model
+
   # last argument function
   #
   # usage:
@@ -213,7 +157,6 @@ class Sirius.BaseModel
   #
   #
   @comp: (args...) ->
-    # TODO check cyclic references
     @::_cmp ||= []
     @::_cmp_fields ||= []
     @::_cmp_refs ||= {}
@@ -221,7 +164,8 @@ class Sirius.BaseModel
     if args.length == 0
       throw new Exception("Compute field is empty")
     if args.length == 2
-      throw new Exception("For computed fields need more fields")
+      txt = '@comp("default_computed_field", "first_name", "last_name")'
+      throw new Exception("Define compute field like: '#{txt}'")
 
     field = args[0]
     length = args.length
@@ -273,23 +217,25 @@ class Sirius.BaseModel
     Sirius.Utils.underscore(@constructor.name)
 
   # @nodoc
-  has_many: () ->
-    @constructor.has_many || []
-
-  # @nodoc
-  has_one: () ->
-    @constructor.has_one || []
-
-  # @nodoc
-  belongs_to: () ->
-    @constructor.belongs_to || [] #array with object
+  _klass_name: () ->
+    @constructor.name
 
   # @nodoc
   validators: () ->
     @constructor.validate
   # @nodoc
   guid_for: () ->
-    @constructor.guid_for
+    tmp = @constructor.guid_for
+    if tmp
+      if Sirius.Utils.is_string(tmp)
+        [tmp]
+      else if Sirius.Utils.is_array(tmp)
+        tmp
+      else
+        throw new Error("'@guid_for' must be array of string, but #{typeof(tmp)} given")
+    else
+      []
+
 
   # @nodoc
   _compute: (field, value) ->
@@ -324,15 +270,15 @@ class Sirius.BaseModel
   #   my_model.get("name") # => Abc
   #
   # @note Method generate properties for object from `@attrs` array.
-  # @note Method generate properties for `@has_many` and `@has_one` attributes.
-  # @note Method generate add_x, where `x` it's a attribute from `@has_many` or `@has_one`
   constructor: (obj = {}) ->
     # pre init
     @constructor::_cmp ||= []
     @constructor::_cmp_fields ||= []
 
+    @_listeners = []
+
+
     @logger = Sirius.Application.get_logger()
-    @callbacks = []
     # object, which contain all errors, which registers after validation
     @errors = {}
     @attributes = @normalize_attrs()
@@ -356,20 +302,6 @@ class Sirius.BaseModel
         @_gen_method_name_for_attribute(attr)
         @["_#{attr}"] = null
 
-    for klass in @has_many()
-      @logger.info("BaseModel: has many attribute: #{klass}", @logger.base_model)
-      @["_#{klass}"] = []
-      @attributes.push("#{klass}")
-      @_has_create(klass)
-      @_gen_method_name_for_attribute(klass, true)
-
-    for klass in @has_one()
-      @logger.info("BaseModel: has one attribute: #{klass}", @logger.base_model)
-      @["_#{klass}"] = null
-      @attributes.push("#{klass}")
-      @_has_create(klass, true)
-      @_gen_method_name_for_attribute(klass, true)
-
     skip = @constructor.skip
     attributes = @attributes
     # @attributes.indexOf(attr)
@@ -382,7 +314,8 @@ class Sirius.BaseModel
           @_call_callbacks(attr, obj[attr], oldvalue)
 
 
-    if g = @guid_for()
+    for g in @guid_for()
+      @logger.debug("Generate guid for '#{@_klass_name()}.#{g}'", @logger.base_model)
       @set(g, @_generate_guid())
 
     # need define validators key
@@ -395,7 +328,6 @@ class Sirius.BaseModel
       for validator_name, validator of value
         if @_registered_validators_keys.indexOf(validator_name) == -1 && validator_name != 'validate_with'
           throw new Error("Unregistered validator: #{validator_name}")
-        @errors[key][validator_name] = ""
 
 
     @after_create()
@@ -403,15 +335,12 @@ class Sirius.BaseModel
   # @private
   # @nodoc
   # "key-1" -> key_1
-  _gen_method_name_for_attribute: (attribute, when_has_attribute = false) ->
+  _gen_method_name_for_attribute: (attribute) ->
     normalize_name = Sirius.Utils.underscore(attribute)
     throw new Error("Method #{normalize_name} already exist") if Object.keys(@).indexOf(normalize_name) != -1
     @[normalize_name] = (value) =>
       if value?
-        if when_has_attribute
-          @["add_#{attribute}"](value)
-        else
-          @set(attribute, value)
+        @set(attribute, value)
       else
         @get(attribute)
 
@@ -422,42 +351,6 @@ class Sirius.BaseModel
   _generate_guid: () ->
     s4 = () -> Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1)
     "#{s4()}#{s4()}-#{s4()}-#{s4()}-#{s4()}-#{s4()}#{s4()}#{s4()}"
-
-  # @private
-  # @nodoc
-  _has_create: (klass, is_one = false) ->
-    @["add_#{klass}"] = (z) =>
-      name = z.constructor.name
-      me   = @normal_name()
-      m_name = @constructor.name
-
-      expected = klass.charAt(0).toUpperCase() + klass.slice(1)
-      throw new Error("Expected #{expected}, but given: #{name}") if name isnt expected
-
-      if is_one
-        if @get("#{klass}")
-          throw new Error("Model #{expected} already exist for #{m_name}")
-        @set("#{klass}", z)
-      else
-        @get("#{klass}").push(z)
-
-      #feedback
-      b_model = (for i in z.belongs_to() when i['model'] == me then i)[0]
-
-      if !b_model
-        throw new Error("Model #{name} must contain '@belongs_to: [{model: #{me}, back: #{me}_id]'")
-
-      if !(back = b_model['back'])
-        throw new Error("Define 'back' property for @belongs_to")
-
-      if @attributes.indexOf(back) == -1
-        throw new Error("Foreign key: '#{back}' not contain in a '#{m_name}' model")
-
-      key = (b_model['compose'] || (model, back) -> "#{model}_#{back}")(me, back)
-      if z.attributes.indexOf(key) == -1
-        throw new Error("Define #{key} in @attrs for '#{expected}' model")
-
-      z.set("#{key}", @get(back))
 
   #
   #
@@ -473,14 +366,19 @@ class Sirius.BaseModel
       false
 
   _attribute_present: (attr) ->
-    throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model") if @attributes.indexOf(attr) == -1
+    throw new Error("Attribute '#{attr}' not found for #{@_klass_name()} model") if @attributes.indexOf(attr) == -1
 
   _call_callbacks: (attr, value, oldvalue) ->
-    for clb in @callbacks
-      if clb[0] is attr
-        clb[1].apply(null, [attr, value, oldvalue])
+    for clb in @_listeners
+      clb.apply(null, [attr, value])
 
     @after_update(attr, value, oldvalue)
+
+  # @_call_callbacks_for_errors(key, validator_key, "")
+  _call_callbacks_for_errors: (key, validator_key, message) ->
+    key = "errors.#{key}.#{validator_key}"
+    for clb in @_listeners
+      clb.apply(null, [key, message])
   #
   # Base setter
   # @param attr [String] - attribute
@@ -490,7 +388,7 @@ class Sirius.BaseModel
   # @return [Void]
   set: (attr, value) ->
     if @_is_computed_attribute(attr)
-      throw new Error("Impossible set computed attribute #{attr} for #{@normal_name().toUpperCase()}")
+      throw new Error("Impossible set computed attribute #{attr} for #{@_klass_name()}")
 
     @_set(attr, value)
 
@@ -500,13 +398,9 @@ class Sirius.BaseModel
 
     oldvalue = @["_#{attr}"]
 
-    if Sirius.Utils.is_object(oldvalue)
-      if !Sirius.Utils.is_object(value)
-        throw new Error("Attribute '#{attr}' is object, but value '#{value}' not object.")
-      for k, v of value
-        oldvalue[k] = v
-    else
-      @["_#{attr}"] = value
+    @["_#{attr}"] = value
+
+    @logger.debug("[#{@constructor.name}] set: 'attr' to '#{value}'", @logger.base_model)
 
     @validate(attr)
     @_compute(attr, value)
@@ -531,8 +425,9 @@ class Sirius.BaseModel
   # @return [Void]
   reset: (args...) ->
     attrs = @attributes
+    @logger.debug("Reset attributes: '#{args}' for #{@_klass_name()}")
     for attr in args
-      throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model") if attrs.indexOf(attr) == -1
+      throw new Error("Attribute '#{attr}' not found for #{@_klass_name()} model") if attrs.indexOf(attr) == -1
       key = "_#{attr}"
       if typeof(@[key]) is 'number'
         @[key] = 0
@@ -554,7 +449,9 @@ class Sirius.BaseModel
   # Call when you want validate model
   # @nodoc
   validate: (field = null) ->
-    #FIXME work with relations
+    model = @_klass_name()
+    logger = @logger
+    ln = @logger.base_model
     Object.keys(@_model_validators || {}).filter(
       (key) ->
         if field?
@@ -577,13 +474,17 @@ class Sirius.BaseModel
 
         result = klass.validate(current_value, validator_value)
 
-        if !result # when `validate` return false
+        logger.debug("Validate: '#{model}.#{key} = #{current_value}' with '#{validator_key}' validator, valid?: '#{result}'", ln)
+
+        message = if !result # when `validate` return false
           @errors[key][validator_key] = klass.error_message()
           @_is_valid_attr[key] = false
+          klass.error_message()
         else #when true, then need set null for error
-          @errors[key][validator_key] = ""
+          delete @errors[key][validator_key]
           @_is_valid_attr[key] = true
-
+          ""
+        @_call_callbacks_for_errors(key, validator_key, message)
     )
 
 
@@ -594,7 +495,7 @@ class Sirius.BaseModel
   # @return [Object|Array] - return object with errors for current model
   get_errors: (attr = null) ->
     if @attributes.indexOf(attr) == -1 && attr != null
-      throw new Error("Attribute '#{attr}' not found for #{@normal_name().toUpperCase()} model")
+      throw new Error("Attribute '#{attr}' not found for #{@_klass_name()} model")
 
     if attr?
       result = []
@@ -623,14 +524,10 @@ class Sirius.BaseModel
     @_is_valid_attr[keys[0]] = false
 
   # @note must be redefine in descendants
-  # @param exception [Boolean] throw exception, when true and instance not valid,
-  # otherwise return false if not valid
-  # @throw Error, when `exception` in true
-  # @return [Void]
-  save: (exception = false) ->
+  # return false if not valid
+  # @return [Boolean]
+  save: () ->
     @validate()
-    name = @constructor.name
-    throw new Error("#{name} model not valid!") if exception && !@is_valid()
     return false if @is_valid()
     true
 
@@ -661,22 +558,18 @@ class Sirius.BaseModel
   #   // }
   #
   to_json: (args...) ->
+    JSON.stringify(@to_object(args...))
+
+  to_object: (args...) ->
     z = {}
 
     for attr in @attributes when args.indexOf(attr) == -1
-      value = @get("#{attr}")
-      z["#{attr}"] = if @has_many().indexOf(attr) > -1
-        for v in value then JSON.parse(v.to_json())
-      else if @has_one().indexOf(attr) > -1
-        JSON.parse(value.to_json())
-      else
-        value
-
-    JSON.stringify(z)
+      value = @get(attr)
+      z[attr] = value
+    z
 
   # Create a new model instance from json structure.
   # @param json [JSON] - json object
-  # @param models [Object] - object with model classes, see examples
   # @return [T < Sirius.BaseModel]
   #
   # @example
@@ -686,37 +579,17 @@ class Sirius.BaseModel
   #   m.get("description") // => "text"
   #   m.get("title") // => "default title"
   #
-  #   json = JSON.stringify({"id":1,"group":[{"name":"group-0","person_id":1},{"name":"group-1","person_id":1}]})
-  #   person = Person.from_json(json, {group: Group});
-  #   person.get('group') // => [Group, Group]
-  #
-  #   person0 = Person.from_json(json)
-  #   person.get('group') // => [{name: 'group-0', ... }, {name: 'group-1', ...}]
-  #
-  @from_json: (json, models = {}) ->
+  @from_json: (json) ->
     m = new @
     json = JSON.parse(json)
-    attrs = [].concat(m.attrs(), m.has_many(), m.has_one())
+    attrs = [].concat(m.attrs())
 
     for attr in attrs
       if typeof(attr) is "object"
         [key, ...] = Object.keys(attr)
         m.set(key, json[key] || attr[key])
       else
-        value = if m.has_many().indexOf(attr) > -1
-          model = models[attr]
-          if model
-            for z in json[attr] then model.from_json(JSON.stringify(z), models)
-          else
-            json[attr]
-        else if m.has_one().indexOf(attr) > -1
-          model = models[attr]
-          if model
-            model.from_json(JSON.stringify(json[attr]), models)
-          else
-            json[attr]
-        else
-          json[attr]
+        value = json[attr]
         m.set(attr, value || m.get(attr))
     m
 
@@ -740,257 +613,27 @@ class Sirius.BaseModel
   clone: () ->
     @constructor.from_json(@to_json())
 
-  #
-  # bind
-  #
-  # Method for bind model and view, all changes in model will be reflected in view.
-  #
-  # @param [Sirius.View] - you view for binding
-  # @param [Object] - object setting, should contain params for element.
-  # Instead of object setting, when you want bind more then one attribute use
-  # `data-bind-view-from` for define attribute from model, which will be used for element.
-  # element attribute defined with `data-bind-view-to`.
-  # `data-bind-view-from` - for model attribute.
-  # `data-bind-view-to` - for view attribute. By default it `text` (or value for input)
-  #
-  # @example
-  #   //html:
-  #   <input type='text' id='my-elem' />
-  #
-  #   model = new Model({title: ""})
-  #   view = new Sirius.View("#my-elem")
-  #   model.bind(view, {from: 'title', to : 'text'})
-  #   # is equal
-  #   model.bind(view, {from: 'title'})  # because by default 'to' is 'text'
-  #   # then
-  #   model.title("new title") # change model attribute
-  #   # in view
-  #   $("#my-elem").val() # => new title
-  #
-  #   # for element attribute
-  #   model.bind(view, {from: 'title', to : 'data-title'})
-  #   # then
-  #   model.title("new title")
-  #   # in view
-  #   $("#my-elem").data('name') # => new title
-  #
-  #   # For logical element like a checkbox, radio and select possible use
-  #
-  #   //html
-  #   <form id='my-form'>
-  #     <input type="checkbox" value="val1" data-bind-view-from='model_value' />
-  #     <input type="checkbox" value="val2" data-bind-view-from='model_value' />
-  #     <input type="checkbox" value="val3" data-bind-view-from='model_value' />
-  #   </form>
-  #
-  #   # you model is only Model with one attribute `model_value`
-  #   model = new Model()
-  #   view = new Sirius.View("#my-form")
-  #   model.bind(view)
-  #
-  #   # use it
-  #   model.model_value("val3")
-  #   # in element
-  #   $("#my-form input:checked").val() # => val3
-  #
-  #   The same for radio or select elements.
-  #
-  # Use data transformation and strategies
-  #
-  # @example
-  #     <span data-bind-view-from='title' data-bind-view-transform='wrap' data-bind-view-strategy='append'></span>
-  #
-  # From js code use css selectors for binding
-  # @example
-  #
-  #    // html
-  #    <div class='some-class'>
-  #       <input type="text" />
-  #       <div class="description"></div>
-  #    </div>
-  #
-  #    # coffee
-  #    model = new MyModel() # with id, title, description fields
-  #    view = new Sirius.View(".some-class")
-  #    model.bind(view, {
-  #       'input[type="text"]': {from: "title"},
-  #       '.description' : {from: "description"}
-  #    })
-  #
-  # Binding flow will be
-  # set new title in model -> transform with wrap method -> apply strategy -> result
-  #
-  # @note when you bind logical elements (option, radio or checkbox) value not changes if not present in `value` attribute
-  #
-  # @note when you use double side binding, and set the new value which equal previous, value has not changed
-  #
-  bind: (view, object_setting = {}) ->
-    current_model = @
+  # Sirius.ToViewTransformer
+  _register_state_listener: (transformer) ->
+    @logger.debug("Register new listener for #{@constructor.name}", @logger.base_model)
+    @_listeners.push(transformer)
 
-    if !(view.name && view.name() == "View")
-      msg = "Sirius.BaseModel#bind only work with Sirius.View"
-      @logger.error(msg, @logger.base_model)
-      throw new Error(msg)
+    # sync state
+    _attrs = @get_attributes()
+    for attr in _attrs
+      if @["_#{attr}"] isnt null
+        transformer.apply(null, [attr, @["_#{attr}"]])
 
-    @logger.info("Bind with #{view.element}", @logger.base_model)
+  pipe: (func, via = {}) ->
+    # TODO default attributes
+    t = new Sirius.Transformer(@, func)
+    t.run(via)
 
-    # if not transform for given key define default transform method
-    Object.keys(object_setting).map (key) =>
-      if Sirius.Utils.is_array(object_setting[key])
-        for i in [0...object_setting[key].length]
-          if !object_setting[key][i]['transform']?
-            @logger.info("bind define default transform method for '#{key}'", @logger.base_model)
-            object_setting[key][i]['transform'] = (x) -> x
-      else
-        if !object_setting[key]['transform']?
-          @logger.info("bind define default transform method for '#{key}'", @logger.base_model)
-        object_setting[key]['transform'] = (x) -> x
+    return
 
-
-    callbacks = @callbacks
-    errors = @errors
-    logger = @logger
-
-    Sirius.Application.get_adapter().and_then (adapter) =>
-      current = view.element
-
-      elements = new Sirius.BindHelper(current, false)
-      .extract(adapter, object_setting)
-
-      attributes = @attributes
-      self = @
-
-      for element in elements
-        do(element) ->
-          # it attribute or property
-          element.view ?= new Sirius.View(element.element)
-          strategy = element.strategy
-          transform = element.transform
-
-          if !Sirius.View.is_valid_strategy(strategy)
-            logger.error("Not valid strategy: '#{strategy}'", logger.base_model)
-            throw new Error("Strategy #{strategy} not valid")
-
-          # for attributes
-          if attributes.indexOf(element.from) != -1
-            clb = (attr, value, oldvalue) ->
-              result = element.transform(value)
-              tag = adapter.get_attr(element.element, 'tagName')
-              type = adapter.get_attr(element.element, 'type')
-              # recursion detect
-              # fixme maybe only for double side binding
-
-              if element.to is 'text' && tag != "SELECT" && (["checkbox", "radio"].indexOf(type) == -1)
-                if adapter.text(element.element) == result
-                  return
-              else
-                # for checked fixme
-                return if adapter.get_attr(element.element, element.to) == result
-
-              if attr is element.from
-                if element.to is 'text'
-                  if tag == 'OPTION'
-                    current_value = adapter.get_attr(element.element, 'value')
-                    if current_value == value
-                      adapter.set_prop(element.element, 'selected', true)
-                  else
-                    element.view.render(result)[strategy](element.to)
-                else if element.to is 'checked'
-                  current_value = adapter.get_attr(element.element, 'value')
-                  if value[current_value]?
-                    if value[current_value] == true
-                      adapter.set_prop(element.element, 'checked', true)
-                    else
-                      adapter.set_prop(element.element, 'checked', false)
-                    if type == 'radio'
-                      # need reset oldvalue manually
-                      for k, v of oldvalue when current_value != k
-                        self["_#{attr}"][k] = false
-                else
-                  element.view.render(result)[strategy](element.to)
-            callbacks.push([element.from, clb])
-          else
-            # for bind errors
-            from = element.from
-            if from.indexOf("errors") != 0
-              throw new Error("BaseModel for bind errors need pass 'errors.attr.validator' like: 'errors.name.length'")
-
-            prop = from.split(".")
-
-            logger.info("bind '#{element.from}' for model", logger.base_model)
-
-            if prop.length == 3
-              element.view.bind(current_model.errors, prop[1..-1].join("."), {
-                to: element.to,
-                strategy: strategy,
-                transform: transform
-              })
-            else if prop.length == 2
-              key = prop[1]
-              Object.keys(errors[key]).forEach((validator_name) ->
-                element.view.bind(current_model.errors, "#{key}.#{validator_name}", {
-                  to: element.to,
-                  strategy: strategy,
-                  transform: transform
-                })
-              )
-            else
-              throw new Error("Impossible bind '#{from}' with model")
-
-              # aggregate bind all errors for on attribute
-
-
-      # set default attributes, if present
-      # FIXME possible stackoverflow in IE9
-      # and need unbind event from current view and then bind again
-      for attr in @attributes when @get(attr) != null
-        @set(attr, @get(attr))
-
-
-
-
-
-  #
-  # bind2
-  # double-sided binding
-  # @param [Sirius.View] klass - Sirius.View
-  bind2: (klass) ->
-    @bind(klass)
-    if klass.name && klass.name() == "View"
-      if klass['bind'] && Sirius.Utils.is_function(klass['bind'])
-        klass.bind(@)
-      else
-        new Error("For double-sided binding need bind method, but it not found in #{klass}")
-    else
-      new Error("BaseModel#bind2 work only with Sirius.View")
-
-  #
-  # Helper for inline create model. Use it for creation models from javascript
-  #
-  # @example
-  #   setting = {attrs: ["id"], guid_for: "id", instance_method: function() { } }
-  #   var MyModel = Sirius.BaseModel.define_model(setting)
-  #
-  #   var instance = new MyModel()
-  #   instance.id() # => some uuid
-  #   instance.instance_method() # => call method
-  #
-  @define_model: (setting) ->
-    predefined_attributes = ['attrs', 'has_many', 'has_one', 'belongs_to', 'guid_for', 'validate']
-
-    class Tmp extends Sirius.BaseModel
-      @attrs      : setting.attrs || []
-      @has_many   : setting.has_many || []
-      @has_one    : setting.has_one || []
-      @belongs_to : setting.belongs_to || []
-      @guid_for   : setting.guid_for || null
-      @validate   : setting.validate || {}
-
-    # define instance methods
-    for k, v of setting when predefined_attributes.indexOf(k) == -1
-      Tmp.prototype[k] = v
-
-    Tmp
+  bind: (func, via = {}) ->
+    @pipe(func, via)
+  
   # Register pair - name and class for validate
   # @param [String] - validator name
   # @param [T <: Sirius.Validator] - class which extend Sirius.Validator
