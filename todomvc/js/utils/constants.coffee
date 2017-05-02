@@ -1,7 +1,7 @@
 
 HtmlElements =
   new_todo: '#new-todo'
-  toggle_all: '#todo-count'
+  toggle_all: '#toggle-all'
   todo_count: '#todo-count'
   footer: '#footer'
   todoapp: '#todoapp'

@@ -319,6 +319,16 @@ model.title() # => your input
 [more about binding](https://github.com/fntz/sirius/wiki/Binding)
 
 
+# run todo app
+
+1. install deps for todo app with `rake todo:install`
+
+2. compile: `rake todo:compile`
+
+3. run: `rake todo:run`
+
+4. open browser: `http://localhost:4567/` 
+
 
 # More info
 
