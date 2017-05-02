@@ -233,18 +233,31 @@ And it support all strategies (how to change content or attribute) or transform 
 
 ```coffee
 # view to view
- # html
- <input type='text' id='v1' />
- <span id='r1'></span>
+# html
 
- # coffee
- view1 = new Sirius.View('#v1')
- view2 = new Sirius.View('#r1')
- v1.bind(r1)
+# view1 
+<div id="element">
+  <p></p>
+</div>
 
- # when we enter some text into input
- # then
- $("#r1").data('name') # => equal to our input
+# view2
+<div id="my-input">
+  <input type="text" />
+</div>
+
+view1 = new Sirius.View("#element")
+view2 = new Sirius.View("#my-input")
+
+transformer = Sirius.Transformer.draw({
+  to: [{
+    from: 'input'
+    selector: 'p'
+    via: (new_value, selector, view, attribute) ->
+      view.zoom(selector).render(new_value).swap(attribute) 
+  }]
+})
+
+view2.bind(vew1, transformer)
 ```
 
 ```coffee
@@ -271,7 +284,7 @@ model.title() # => your input
 
 ```
 
-```
+```coffee
 # model to view
 <<div id="element">
    <p></p>
