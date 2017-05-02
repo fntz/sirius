@@ -1,3 +1,35 @@
+=== 1.0.0
+
+1. update docs, todo-app
+
+2. add sirius-core, for light-weight application (only routing, without models, binding, etc)
+
+3. use closure compiler instead of yuicompressor
+
+4. add scheduler support in routing
+
+5. rewrite binding
+
+6. vanillajs adapter is now default for `Sirius`
+ 
+7. add new `ignore_not_matched_urls` option for settings
+  
+8. remove binding for objects `Sirius.BaseModel`, `Sirius.View`
+
+9. remove two side binding `Sirius.BaseModel`, `Sirius.View`
+
+10. remove `has_*` relations `Sirius.BaseModel`
+ 
+11. remove `sync` settings from `Sirius.Collection`
+ 
+12. remove `from_json` from `Sirius.Collection`
+ 
+13. remove from plain routing `Sirius.Conversation`
+ 
+14. add new event method for `Sirius.View` 
+ 
+15. remove model definition from js side `Sirius.BaseModel` 
+
 === 0.8.5 computed field support
 
 ```coffee

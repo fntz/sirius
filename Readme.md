@@ -1,9 +1,11 @@
 
-[Sirius.js](http://fntzr.github.com/sirius) a coffeescript MVC framework.
-[post: Todo App with Sirius.js](http://fntz.github.io/coffeescript/2014/12/18/writing-todo-app-with-sirius.html)
+`Sirius` is a modern coffeescript MVC/MVVM framework for client side.
+
+[wiki](https://github.com/fntz/sirius/wiki)
+
+[todoapp sources](https://github.com/fntz/sirius/tree/master/todomvc)
 
 ### browser support: IE9+, FF, Opera, Chrome
-
 
 ### Features
 
@@ -14,8 +16,9 @@
 + Build-in Validators
 + Simple for customization
 + Adapters for jQuery, Prototype.js and for Vanillajs
-+ Support html5 routing, and converters to html5 routing
-+ Log all actions in application
++ Support html5 routing
++ Time events in routing
++ Log all actions in application [read about it](https://github.com/fntz/sirius/wiki/Logger)
 + Share actions between controllers
 + And many others
 
@@ -23,7 +26,9 @@
 
 `npm install sirius` 
 
-or download manually [sirius.min.js](https://raw.githubusercontent.com/fntzr/sirius/master/sirius.min.js) and [jquery_adapter.min.js](https://raw.githubusercontent.com/fntzr/sirius/master/jquery_adapter.min.js) or [prototype_js_adapter.min.js](https://raw.githubusercontent.com/fntzr/sirius/master/prototypejs_adapter.min.js) from repo.
+or download manually [sirius.min.js](https://raw.githubusercontent.com/fntz/sirius/master/sirius.min.js) and [jquery_adapter.min.js](https://raw.githubusercontent.com/fntz/sirius/master/jquery_adapter.min.js) or [prototype_js_adapter.min.js](https://raw.githubusercontent.com/fntz/sirius/master/prototypejs_adapter.min.js) from repo.
+
+or only core part: [sirius-core.min.js](https://raw.githubusercontent.com/fnt/sirius/master/sirius-core.min.js)
 
 #### TODO
 
@@ -95,9 +100,12 @@ Controller =
     "application:run"   : controller: MyController, action: "action"
     "/plain"            : controller: MyController, action: "plain"
     "#/:title"          : controller: MyController, action: "run"
+    "every 10s"         : controller: MyController, action: "refresh"
     "click #my-element" : controller: MyController, action: "event_action", guard: "guard_event", data: "id"  
 
 ```
+
+[more about routing and controllers](https://github.com/fntz/sirius/wiki/Controllers-and-Routing)
 
 ### 3. Define models
 
@@ -108,31 +116,19 @@ Controller =
      @comp("id_and_name", "id", "name") # <- computed field
      @guid_for: "id"
      @validate:
-       id: c only_integers: true
+       id: only_integers: true
 
 ```
 
-For work with models from javascript code, define models like:
-
-```js
-
-var MyModel = Sirius.BaseModel.define_model({
-  attrs: ["id", "name", "age"],
-  validate: {id: { numericality: { only_integers: true } } }
-  instance_method: function(){ }
-})
-
-var my_model = new MyModel()
-my_model.id() // => some guid
-my_model.instance_method() // => call
-
-```
+[more about models](https://github.com/fntz/sirius/wiki/Models)
 
 ### 4. Run Application
 
 ```coffee
   Sirius.Application.run({route: routes, adapter: new YourAdapter()})
 ```
+
+[more about application and settings](https://github.com/fntz/sirius/wiki/Application-&-Settings)
 
 ### 5. Use Validators
 
@@ -171,6 +167,8 @@ Sirius.BaseModel.register_validator("my_validator", MyValidator)
         my_validator: some_attribute: true
 
 ```
+
+[more about validators](https://github.com/fntz/sirius/wiki/Validators)
 
 ### 6. Views
 
@@ -212,19 +210,12 @@ Also you might swap content for any attribute:
 view.render("active").swap('class')
 ```
 
+[more about views](https://github.com/fntz/sirius/wiki/Views)
+
 ### 7. Use collections
 
 ```coffee
-persons = new Sirius.Collection(Person, [], {
-  every : 5000,
-  remote: () -> #ajax call
-  on_add: (model) ->
-    # sync with server
-    # add into html
-  on_remove: (model) ->
-    # sync with server
-    # remove from html
-})
+persons = new Sirius.Collection(Person, {index: ['name']})
 joe = new Person({"name": "Joe", "age" : 25})
 
 persons.add(joe)
@@ -232,10 +223,12 @@ persons.add(joe)
 person.find("name", "Joe").to_json() # => {"id" : "g-u-i-d", "name" : "Joe", "age" : 25}
 ```
 
+[more about collections](https://github.com/fntz/sirius/wiki/Collections)
+
 ### 8. Binding
 
-Support binding: view to model, view to view, view to model, view to javascript object property
-and model to view. And it support all strategies (how to change content or attribute) or transform (how to transform value) methods.
+Support binding: view to model, view to view, model to view, or model|view to function. 
+And it support all strategies (how to change content or attribute) or transform (how to transform value) methods.
 
 
 ```coffee
@@ -256,94 +249,61 @@ and model to view. And it support all strategies (how to change content or attri
 
 ```coffee
 # view to model
-  # html
-  <form id="form">
-    <input type='text'>
-    <textarea></textarea>
-  </form>
+# html
+<div id="my-input">
+  <input type="text" />
+</div>
 
-  # coffee
-  view = new Sirius.View("#form")
-  my_model = new MyModel()
-  view.bind(my_model, {
-    'input': {to: "title"}
-    'textarea': {to: "description"} 
-  })
+model = new MyModel() 
+view = new Sirius.View("#my-input")
+transformer = Sirius.Transformer.draw({
+  "input": {
+    to: 'title'
+    from: 'text'
+    via: (new_value, view, selector, from, event_target) ->
+      new_value
+  }
+})
 
-  # When we enter input, then
-  my_model.title() # => user input
-  my_model.description() # => user input
+# and then fill input, and check
 
-```
+model.title() # => your input
 
-```
-# view to object property
-//html
- <span></span>
-
- my_collection = new Sirius.Collection(MyModel)
- view = new Sirius.View("span")
- view.bind(my_collection.length)
-
- my_collection.push(new MyModel())
- # then in html
- <span>1</span>
 ```
 
 ```
 # model to view
-<form id='my-form'>
-  <input name="cgroup" type="checkbox" value="val1" />
-  <input name="cgroup" type="checkbox" value="val2" />
-  <input name="cgroup" type="checkbox" value="val3" />
-</form>
-
-# you model is only Model with one attribute `model_value`
-model = new Model({choice: {}})
-view = new Sirius.View("#my-form")
-model.bind(view, {
-  "input[type='checkbox']" : { from: "choice", to: "checked" } # for logical element use checked 
-})
-
-# use it
-model.model_value("val3")
-# in element
-$("#my-form input:checked").val() # => val3
+<<div id="element">
+   <p></p>
+ </div>
+ 
+ model = new MyModel() # [id, title]
+ view = new Sirius.View("#element")
+ 
+ transformer = Sirius.Transformer.draw({
+   "title": {
+     to: 'p'
+     attr: 'text'
+     via: (new_value, selector, view, attribute) -> 
+       view.zoom(selector).render(new_value).swap(attribute)
+   }
+ })
+ 
+ model.bind(view, transformer) 
+ 
+ # and then in application:
+ 
+ model.title("new title") 
+ 
+ # and new html
+ 
+ <div id="element">
+   <p>new title</p>
+ </div>
 
 ```
-Strategies and transform for binding
 
-```coffee
-
-# model
-source = new Source() # fields: `normalized`, `count`, `id`...  
-# view
-source_view = new Sirius.View("#source-id")
-
-source.bind(source_view,
-    "a.source-url":            # bind for `href` and `text` (content) 
-      [{           
-        from: "normalized"
-        to: "href"
-        transform: (x) ->  # wrap field
-          "/show/#{x}"}, 
-      {
-        from: "name"
-        to: "text"
-      }]
-
-
-    "span.source-count":
-      from: "count"
-      transform: (x) ->  # transform to normal string from int
-        if isNaN(parseInt(x, 10)) || x <= 0  
-          "0"
-        else
-          "#{x}"
-      strategy: "hide" # custom strategy if count eq 0, add hide class
-  )
-  
-```
+[more about binding](https://github.com/fntz/sirius/wiki/Binding)
 
 
 
