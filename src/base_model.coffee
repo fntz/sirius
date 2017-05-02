@@ -633,30 +633,7 @@ class Sirius.BaseModel
 
   bind: (func, via = {}) ->
     @pipe(func, via)
-  #
-  # Helper for inline create model. Use it for creation models from javascript
-  #
-  # @example
-  #   setting = {attrs: ["id"], guid_for: "id", instance_method: function() { } }
-  #   var MyModel = Sirius.BaseModel.define_model(setting)
-  #
-  #   var instance = new MyModel()
-  #   instance.id() # => some uuid
-  #   instance.instance_method() # => call method
-  #
-  @define_model: (setting) ->
-    predefined_attributes = ['attrs', 'guid_for', 'validate']
-
-    class Tmp extends Sirius.BaseModel
-      @attrs      : setting.attrs || []
-      @guid_for   : setting.guid_for || null
-      @validate   : setting.validate || {}
-
-    # define instance methods
-    for k, v of setting when predefined_attributes.indexOf(k) == -1
-      Tmp.prototype[k] = v
-
-    Tmp
+  
   # Register pair - name and class for validate
   # @param [String] - validator name
   # @param [T <: Sirius.Validator] - class which extend Sirius.Validator
