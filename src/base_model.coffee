@@ -524,14 +524,10 @@ class Sirius.BaseModel
     @_is_valid_attr[keys[0]] = false
 
   # @note must be redefine in descendants
-  # @param exception [Boolean] throw exception, when true and instance not valid,
-  # otherwise return false if not valid
-  # @throw Error, when `exception` in true
-  # @return [Void]
-  save: (exception = false) ->
+  # return false if not valid
+  # @return [Boolean]
+  save: () ->
     @validate()
-    name = @constructor.name
-    throw new Error("#{name} model not valid!") if exception && !@is_valid()
     return false if @is_valid()
     true
 
