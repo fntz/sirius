@@ -1,9 +1,6 @@
 
 "use strict"
 
-`var c = function(m){console.log(m);};`
-
-
 TodoList = new Sirius.Collection(Task)
 
 TodoList.subscribe('add', (todo) -> Renderer.append(todo))
