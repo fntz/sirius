@@ -108,7 +108,14 @@ task :build do
     view base_model transformer collection
   ))
 
+  core_files = coffee(src, %w(
+    comment_header version adapter vanilla_js_adapter
+    logger internal promise utils
+    sirius
+  ))
+
   system("cat #{lib_files} | coffee -c -b --stdio > #{path}/sirius.js")
+  system("cat #{core_files} | coffee -c -b --stdio > #{path}/sirius-core.js")
   system("cat #{prototype_files} | coffee -c -b --stdio > #{path}/prototypejs_adapter.js")
   system("cat #{jquery_files} | coffee -c -b --stdio > #{path}/jquery_adapter.js")
   system("cat #{vanilla_files} | coffee -c -b --stdio > #{path}/vanillajs_adapter.js")
@@ -126,6 +133,7 @@ task :minify => [:build] do
     p "Install closure-compiler first"
   else
     compiler = cc.first
+    %x[java -jar #{compiler} --js_output_file=sirius-core.min.js lib/sirius-core.js]
     %x[java -jar #{compiler} --js_output_file=sirius.min.js lib/sirius.js]
     %x[java -jar #{compiler} --js_output_file=jquery_adapter.min.js lib/jquery_adapter.js]
     %x[java -jar #{compiler} --js_output_file=prototypejs_adapter.min.js lib/prototypejs_adapter.js]
