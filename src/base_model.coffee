@@ -570,7 +570,6 @@ class Sirius.BaseModel
 
   # Create a new model instance from json structure.
   # @param json [JSON] - json object
-  # @param models [Object] - object with model classes, see examples
   # @return [T < Sirius.BaseModel]
   #
   # @example
@@ -580,14 +579,7 @@ class Sirius.BaseModel
   #   m.get("description") // => "text"
   #   m.get("title") // => "default title"
   #
-  #   json = JSON.stringify({"id":1,"group":[{"name":"group-0","person_id":1},{"name":"group-1","person_id":1}]})
-  #   person = Person.from_json(json, {group: Group});
-  #   person.get('group') // => [Group, Group]
-  #
-  #   person0 = Person.from_json(json)
-  #   person.get('group') // => [{name: 'group-0', ... }, {name: 'group-1', ...}]
-  #
-  @from_json: (json, models = {}) ->
+  @from_json: (json) ->
     m = new @
     json = JSON.parse(json)
     attrs = [].concat(m.attrs())
