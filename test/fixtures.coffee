@@ -56,6 +56,14 @@ class MyModel extends Sirius.BaseModel
 class MyModel0 extends Sirius.BaseModel
   @attrs: ["id", {title: {}}, "description"]
 
+
+class MyModelSkipFalse extends Sirius.BaseModel
+  @attrs: ["id"]
+
+class MyModelSkipTrue extends Sirius.BaseModel
+  @attrs: ["id"]
+  @skip: true
+
 class MyCustomValidator extends Sirius.Validator
   validate: (value, attrs) ->
     if value?

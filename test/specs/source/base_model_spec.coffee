@@ -21,6 +21,13 @@ describe "BaseModel", ->
     expect(model.title()).toEqual("new title")
     expect(model.description()).toEqual("description")
 
+  it "skip", ->
+    obj = {'id': 1, 'foo': "bar"}
+
+    expect(() -> new MyModelSkipFalse(obj)).toThrowError()
+    expect(() -> new MyModelSkipTrue(obj)).not.toThrowError()
+
+
   describe "Convert", ->
 
     it "to_json", ->
