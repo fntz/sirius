@@ -520,8 +520,10 @@ class Sirius.BaseModel
     if keys.length != 2
       throw new Error("Error must be pass as 'attr.validator' like 'name.length'")
 
-    @errors[keys[0]][keys[1]] = txt
-    @_is_valid_attr[keys[0]] = false
+    [key, validator_key] = keys
+    @errors[key][validator_key] = txt
+    @_is_valid_attr[key] = false
+    @_call_callbacks_for_errors(key, validator_key, txt)
 
   # @note must be redefine in descendants
   # return false if not valid

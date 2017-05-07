@@ -11,7 +11,7 @@
 
 + Template free — you may use any template engine or use any at all
 + MVC style
-+ MVVM binding (view to view, model to view, view to model, object property to view)
++ MVVM binding (view to view, model to view, view to model, etc)
 + Build-in Collections 
 + Build-in Validators
 + Simple for customization
@@ -172,7 +172,7 @@ Sirius.BaseModel.register_validator("my_validator", MyValidator)
 
 ### 6. Views
 
-In Sirius, views is an any element on page. You might bind view and other view, or model, or javascript object property.
+In Sirius, views is an any element on page. You might bind view and other view, or model.
 
 ```coffee
   view = new Sirius.View("#id", (x) -> "#{x}!!!")
