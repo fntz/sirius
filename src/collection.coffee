@@ -45,14 +45,14 @@ class Sirius.Collection
   # @param options [Object] - with keys necessary
   # @attr index [Array<String>] - fields for index
   constructor: (klass, options = {}) ->
-    if klass.__super__.__name isnt 'BaseModel'
+    unless klass.prototype instanceof Sirius.BaseModel
       throw new Error("Collection must be used only with `BaseModel` inheritor")
     @_array = []
     @logger = Sirius.Application.get_logger()
     # klasses, options
 
     @_klass = klass
-    @_type  = Sirius.Utils.fn_name(klass)
+    @_type  = klass.name
 
     @_indexes = options['index'] || []
     if @_indexes.length > 0
@@ -107,11 +107,18 @@ class Sirius.Collection
   # @nodoc
   # @private
   _add: (model) ->
-    type = Sirius.Utils.fn_name(model.constructor)
-    if @_type isnt type
-      msg = "Require `#{@_type}`, but given `#{type}`"
-      @logger.error("Collection: #{msg}", @logger.collection)
+    type = model.name
+
+    if model.constructor?
+      if @_type isnt model.constructor.name
+        msg = "Require `#{@_type}`, but given `#{type}`"
+        @logger.error("Collection: #{msg}", @logger.collection)
+        throw new Error(msg)
+    else
+      msg = "Seems #{model} is not instance of #{@_type}."
+      @logger.error(msg)
       throw new Error(msg)
+
     @_array.push(model) #maybe it's a hash ? because hash have a keys, and simple remove, but need a unique id
 
     # index

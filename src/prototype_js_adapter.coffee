@@ -5,6 +5,7 @@
 class PrototypeAdapter extends Adapter
 
   constructor: () ->
+    super()
     @__handlers = [] # {selector:'', event_name:'', fun: '', handler: ''}
 
   _get_element_from_selector: (selector) ->

@@ -719,7 +719,7 @@ Sirius.Application =
 
     @logger.info("Logger enabled? #{@log}", @logger.application)
     @logger.info("Log filters: #{@log_filters}", @logger.application)
-    @logger.info("Adapter: #{Sirius.Utils.fn_name(@adapter.constructor)}", @logger.application)
+    @logger.info("Adapter: #{@adapter.name}", @logger.application)
     @logger.info("Use hash routing for old browsers: #{@use_hash_routing_for_old_browsers}", @logger.application)
     @logger.info("Current browser: #{navigator.userAgent}", @logger.application)
     @logger.info("Ignore not matched urls: #{@ignore_not_matched_urls}", @logger.application)

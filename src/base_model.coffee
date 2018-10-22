@@ -282,7 +282,7 @@ class Sirius.BaseModel
     # object, which contain all errors, which registers after validation
     @errors = {}
     @attributes = @normalize_attrs()
-    name = Sirius.Utils.fn_name(@constructor)
+    name = @constructor.name
     @errors = {}
     @_is_valid_attr = {} # save pair attribute and validation state
     attrs0 = @attrs()
@@ -291,7 +291,8 @@ class Sirius.BaseModel
       # @attrs: [{key: value}]
       @logger.info("define '#{JSON.stringify(attr)}' attribute for '#{name}'", @logger.base_model)
       if Sirius.Utils.is_object(attr)
-        [key, ...] = Object.keys(attr)
+        tmp = Object.keys(attr)
+        key = tmp[0]
         if !key
           msg = "Attributes should have a key and value"
           @logger.error("#{msg}", @logger.base_model)
@@ -588,7 +589,8 @@ class Sirius.BaseModel
 
     for attr in attrs
       if typeof(attr) is "object"
-        [key, ...] = Object.keys(attr)
+        tmp = Object.keys(attr)
+        key = tmp[0]
         m.set(key, json[key] || attr[key])
       else
         value = json[attr]
