@@ -75,6 +75,7 @@ task :test_compile => [:build] do
     name = File.basename(file, ".coffee")
     %x(coffee -o test/specs/compile -b -c #{file})
   end
+  puts "===== done"
 end
 
 desc "Run test app"
@@ -89,6 +90,7 @@ end
 
 desc "Compile to javascript"
 task :build do
+  puts "build .js"
   path = "lib"
   if !File.directory?(path)
     FileUtils.mkdir_p(path)

@@ -547,8 +547,15 @@ Sirius.Internal.RouteSystem =
 Sirius.Application =
   ###
     disable or enable logs
+    @deprecated, use enable_logging
   ###
   log: false
+
+  ###
+    disable or enable logs
+  ###
+  enable_logging: false
+
   ###
     application adapter for javascript frameworks @see Adapter documentation
   ###
@@ -634,6 +641,13 @@ Sirius.Application =
   ###
   log_filters: []
 
+  ###
+    Minimum log level.
+    Default is: `debug`
+    Available options: debug, info, warn, error
+  ###
+  minimum_log_level: Sirius.Logger.Debug.get_value()
+
   # @private
   _wait: []
 
@@ -642,15 +656,16 @@ Sirius.Application =
   # @return [Object] - promise, which will be use for log information
   get_logger: () ->
     if !@logger
-      lvls = Sirius.Logger.Levels
-      o = {}
-      q = @_messages_queue
-      for l in lvls
-        do(l) ->
-          o[l] = (msg, location) -> q.push([l, msg, location])
+      levels = Sirius.Logger.Levels
+      obj = {}
+      current = @_messages_queue
+      for level in levels # LogLevel instance
+        do(level) ->
+          obj[level.get_value()] = (msg, location) -> current.push([level, msg, location])
       for f in Sirius.Logger.Filters
-        o[Sirius.Utils.underscore(f).toLowerCase()] = f
-      o
+        obj[Sirius.Utils.underscore(f).toLowerCase()] = f
+
+      obj
     else
       @logger
 
@@ -664,7 +679,6 @@ Sirius.Application =
     else
       new Sirius.Promise(@adapter)
 
-
   #
   # @method #run(options)
   # @param options [Object] - base options for application
@@ -676,12 +690,22 @@ Sirius.Application =
         _default
 
     @running = true
-    @log     = options["log"]     || @log
+    @enable_logging     = options["log"] || options['enable_logging'] || @enable_logging
     @adapter = options["adapter"] || new VanillaJsAdapter()
     @route   = options["route"]   || @route
     @mix_logger_into_controller = _get_key_or_default('mix_logger_into_controller', @mix_logger_into_controller)
     @log_filters = options["log_filters"] || @log_filters
     @ignore_not_matched_urls = _get_key_or_default('ignore_not_matched_urls', @ignore_not_matched_urls)
+
+    level_value = options["minimum_log_level"]
+
+    if level_value
+      if !Sirius.Logger.is_valid_level(level_value)
+        level_values =  Sirius.Logger.Levels.map (x) -> x.get_value()
+        throw new Error("Invalid 'minimum_log_level' value: '#{level_value}', available options are: #{level_values.join(", ")}")
+
+    @minimum_log_level = level_value || @minimum_log_level
+
     # check filters
     if @log_filters == 'all'
       @log_filters = Sirius.Logger.Filters
@@ -705,7 +729,7 @@ Sirius.Application =
       @log_filters = []#Sirius.Logger.Filters
 
 
-    @logger  = new Sirius.Logger(@log, @log_filters, options['logger'] || @default_log_function)
+    @logger  = new Sirius.Logger(@enable_logging, @log_filters, @minimum_log_level, options['logger'] || @default_log_function)
     @start   = options["start"] || @start
 
 
@@ -717,8 +741,9 @@ Sirius.Application =
     @use_hash_routing_for_old_browsers = _get_key_or_default("use_hash_routing_for_old_browsers",
       @use_hash_routing_for_old_browsers)
 
-    @logger.info("Logger enabled? #{@log}", @logger.application)
+    @logger.info("Logger enabled? #{@enable_logging}", @logger.application)
     @logger.info("Log filters: #{@log_filters}", @logger.application)
+    @logger.info("Minimum log level: #{@minimum_log_level}", @logger.application)
     @logger.info("Adapter: #{@adapter.name}", @logger.application)
     @logger.info("Use hash routing for old browsers: #{@use_hash_routing_for_old_browsers}", @logger.application)
     @logger.info("Current browser: #{navigator.userAgent}", @logger.application)
@@ -743,8 +768,6 @@ Sirius.Application =
         error : l.error
       }
 
-
-
     setting =
       old: @use_hash_routing_for_old_browsers
       support: @push_state_support
@@ -756,7 +779,7 @@ Sirius.Application =
         p.set_value(@adapter)
       @adapter.fire(document, "application:run", new Date())
       for message in @_messages_queue
-        @logger[message[0]].call(null, message[1], message[2])
+        @logger[message[0].get_value()].call(null, message[1], message[2])
 
     if @start
       Sirius.redirect(@start)
