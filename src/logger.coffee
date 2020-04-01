@@ -3,7 +3,21 @@
 # Base logger class for use in Sirius Application
 class Sirius.Logger
 
-  @Levels = ['debug', 'info', 'warn', 'error']
+  class LogLevel
+    constructor: (@value, @weight) ->
+
+    gte: (other) ->
+      other >= @weight
+
+    get_value: () -> @value
+
+
+  @Debug = new LogLevel("debug", 10)
+  @Info = new LogLevel("info", 20)
+  @Warn = new LogLevel("warn", 30)
+  @Error = new LogLevel("error", 40)
+
+  @Levels = [@Debug, @Info, @Warn, @Error]
 
   @Filters = [
       "BaseModel"
@@ -17,9 +31,13 @@ class Sirius.Logger
       "Transformer"
     ]
 
+  @is_valid_level: (str) ->
+    (Sirius.Logger.Levels.filter (x) -> x.get_value() == str).length != 0
+
   # @param [Boolean] - true, when log enabled
+  # @param [LogLevel] - minimum level
   # @param [Function] - logger function for application
-  constructor: (log_enabled, filters, logger_function) ->
+  constructor: (log_enabled, minimum_log_level, filters, logger_function) ->
     pre_filters = Sirius.Logger.Filters
 
     # define alias like @logger.application
@@ -28,15 +46,16 @@ class Sirius.Logger
 
     for level in Sirius.Logger.Levels
       do(level) =>
-        @[level] = (msg, location) ->
+        @[level.get_value()] = (msg, location) ->
           if log_enabled
-            # need print only in filter or user
-            unless location # => user log
-              logger_function(level.toUpperCase(), msg)
-            else
-              if filters.indexOf(location) != -1 || (!location? || pre_filters.indexOf(location) == -1)
-                msg = "[#{location.toUpperCase()}] #{msg}"
+            if level.gte(minimum_log_level)
+              # need print only in filter or user
+              unless location # => user log
                 logger_function(level.toUpperCase(), msg)
+              else
+                if filters.indexOf(location) != -1 || (!location? || pre_filters.indexOf(location) == -1)
+                  msg = "[#{location.toUpperCase()}] #{msg}"
+                  logger_function(level.toUpperCase(), msg)
 
 
 

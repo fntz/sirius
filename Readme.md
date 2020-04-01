@@ -84,9 +84,9 @@ Controller =
   action: (url) =
     # possible use
     # any method from CommonActions, like
-    logger("start ajax request")
+    logger.info("start ajax request")
     response = ajax(url)
-    logger("stop ajax request, response #{response} given")
+    logger.info("stop ajax request, response #{response} given")
 
 ```
 
