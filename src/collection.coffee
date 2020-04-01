@@ -1,6 +1,6 @@
 
-# A class which implement collection interface.
-# You might use it as alternative standard javascript arrays.
+# Class implements a collection-like interface.
+# Wrapper around javascript arrays + a few methods for the framework
 #
 # @example
 #
@@ -24,11 +24,11 @@
 #  myCollection.size() # => 3
 #  myCollection.length # => 3 // as property
 #
-#  @note for listen changes in collection use `subscribe` method
+#  @note for listening changes in collection use `subscribe` method
 #
 # Indexes
 #
-# Sirius.Collection support indexes. For create index you might pass field name for model:
+# Sirius.Collection support indexes. You should pass index name to collection to create indexes:
 #
 # @example
 #
@@ -66,7 +66,7 @@ class Sirius.Collection
 
       @_indexes.forEach (field) ->
         if attrs.indexOf(field) == -1
-          throw new Error("Collection: field #{field} from indexes: [#{@_indexes}] not exist in #{@_type}")
+          throw new Error("Collection: field #{field} from indexes: [#{@_indexes}] is not exist in #{@_type}")
 
       # i save models into array
       # index is a hash structure
@@ -107,19 +107,20 @@ class Sirius.Collection
   # @nodoc
   # @private
   _add: (model) ->
-    type = model.name
+    if !model
+      throw new Error("'#{@_type}' should not be null")
 
     if model.constructor?
       if @_type isnt model.constructor.name
-        msg = "Require `#{@_type}`, but given `#{type}`"
+        msg = "Require '#{@_type}', but given '#{model.constructor.name}'"
         @logger.error("Collection: #{msg}", @logger.collection)
         throw new Error(msg)
     else
-      msg = "Seems #{model} is not instance of #{@_type}."
+      msg = "Seems '#{model}' is not instance of #{@_type}"
       @logger.error(msg)
       throw new Error(msg)
 
-    @_array.push(model) #maybe it's a hash ? because hash have a keys, and simple remove, but need a unique id
+    @_array.push(model) #maybe it's a hash ? because hash has the keys, and simple to remove, but need to has an unique id
 
     # index
     if @_indexes.length > 0
@@ -130,7 +131,7 @@ class Sirius.Collection
 
     @_gen('add', model)
 
-  # remove model from collection
+  # remove a model from the collection
   # @param [T <: Sirius.Model]
   # @return [Void]
   remove: (other) ->
@@ -153,7 +154,7 @@ class Sirius.Collection
     return
 
   #
-  # Return index of model in collection or null, if not found
+  # Return an index of a model in the collection, otherwise null
   # @param model [T <: Sirius.BaseModel]
   # @return [Numeric | null]
   index: (other) ->
@@ -162,7 +163,7 @@ class Sirius.Collection
     inx
 
   #
-  # find model by key with value
+  # find a model by key with a value
   # @param key [String] - attribute
   # @param value [Any] - actual value
   # @return [Model | null]
@@ -181,7 +182,7 @@ class Sirius.Collection
       for model in @_array when model.get(key) == value then model
 
   #
-  # filter collection with `fn`, which must return boolean
+  # filter the collection with `fn`, fn: (T -> Boolean)
   # @param fn [Function]
   # @return [Array<Model>]
   filter: (fn = ->) ->
@@ -193,12 +194,12 @@ class Sirius.Collection
   each: (fn = ->) ->
     for model in @_array then fn.call(model)
 
-  # return first element in collection
+  # return the first element in the collection
   # @return [Model]
   first: () ->
     @_array[0]
 
-  # return last element in collection
+  # return the last element in the collection
   # @return [Model]
   last: () ->
     @_array[@_array.length - 1]
@@ -221,11 +222,11 @@ class Sirius.Collection
   map: (f) ->
     @collect(f)
 
-  # Apply given method for each element in collection and return result array
+  # Apply given method for each element in the collection and return result array
   collect: (f) ->
     @_array.map(f)
 
-  # Get first element by conditional
+  # Fetch the first element by conditional
   #
   # @example
   #   col = new Sirius.Collection(Model)
@@ -239,11 +240,11 @@ class Sirius.Collection
         break
     result
 
-  # @return [Numeric] size of collection
+  # @return [Numeric] size of the collection
   size: () ->
     @_array.length
 
-  # convert collection to json
+  # convert the collection to json-representation
   # @return [JSON]
   to_json: () ->
     z = for e in @_array then e.to_object()
@@ -252,11 +253,11 @@ class Sirius.Collection
   #
   #
   # @param [String] - event name for subscribing [add, remove]
-  # @param [String|Function] - when it function, then when event will be occurred, then it
-  # call given function, when it event (it's should be custom event name) it will be fired.
+  # @param [String|Function] -
+  #  - function, the function will be called when the event occurs
+  #  - string custom event will be fired.
   #
   # @example
-  #
   #
   #   myCollection.subscribe('add', (model) -> console.log('upd'))
   #   myCollection.subscribe('add', 'my_collection:update')
@@ -274,10 +275,10 @@ class Sirius.Collection
       throw new Error("For 'subscribe' method available only [#{@constructor._EVENTS}], but given '#{event}'")
 
     if Sirius.Utils.is_string(fn_or_event) or Sirius.Utils.is_function(fn_or_event)
-      @logger.info("Collection: Add new subscriber for '#{event}' event", @logger.collection)
+      @logger.info("Add new subscriber for '#{event}' event", @logger.collection)
       @_subscribers[event].push(fn_or_event)
     else
-      throw new Error("Second parameter for 'subscribe' method must be Function or String, but '#{typeof(fn_or_event)}' given")
+      throw new Error("Second parameter for 'subscribe' method must be a Function or a String, but '#{typeof(fn_or_event)}' given")
 
     return
 
