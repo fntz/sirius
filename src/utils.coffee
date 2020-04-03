@@ -22,11 +22,11 @@ class Sirius.Utils
     Object.prototype.toString.call(maybe) is '[object Array]'
 
   #
-  # @param [Any] a - check if `a` is Object
-  # @return [Boolean] - true, when is object, otherwise return false
+  # @param [Any] maybe - check if `maybe` is Object
+  # @return [Boolean]
   #
   @is_object: (maybe) ->
-    a != null && typeof(maybe) == 'object'
+    maybe != null && typeof(maybe) == 'object'
   #
   # Upper case first letter in string
   #

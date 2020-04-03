@@ -106,11 +106,6 @@ class ModelwithValidators extends Sirius.BaseModel
 
 
 
-class UModel extends Sirius.BaseModel
-  @attrs: ["id"]
-  @guid_for : "id"
-
-
 class TodoList extends Sirius.BaseModel
   @attrs: ["title", {completed: {}}, "id"]
   @guid_for : "id"
@@ -142,18 +137,6 @@ Controller0 =
 class SkipFieldsModel extends Sirius.BaseModel
   @attrs: ["id"]
   @skip : true
-
-
-class ComputedFieldModel extends Sirius.BaseModel
-  @attrs: ["first_name", "last_name"]
-  @comp("full_name", "first_name", "last_name")
-  @comp("full_name1", "first_name", "last_name", (f, l) -> "#{f}-#{l}")
-  @comp("full", "full_name", "full_name1")
-  @validate :
-    full_name:
-      length: min: 3, max: 7
-
-
 
 
 class MyTestIndexModel extends Sirius.BaseModel
