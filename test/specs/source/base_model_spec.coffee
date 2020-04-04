@@ -44,9 +44,6 @@ describe "BaseModel", ->
     expect(t.__name).toBe("BaseModel")
     expect(t._klass_name()).toBe("FooBarModel")
 
-  it "returns validators", ->
-    expect(Object.keys(new ModelwithValidators().validators())).toEqual(["id", "title", "description"])
-
   it "generate guids", ->
     class Test1 extends Sirius.BaseModel
       @attrs: ["id"]
@@ -188,9 +185,54 @@ describe "BaseModel", ->
       expect(t.id()).toEqual(t.get('id'))
       expect(after_update).toEqual(["id", 1, null, "id", 10, 1])
 
-#  describe "reset, is_valid, validate, set/get_errors, save", ->
-#    it "should be implemented", ->
-#      expect(1).toEqual(1)
+  describe "reset", ->
+
+    class Test1 extends Sirius.BaseModel
+      @attrs: ["id", "foo"]
+      @validate:
+        id:
+          presence: true
+
+    it "fails when attribute is not exist", ->
+      expect( () ->
+        t = new Test1()
+        t.reset("boom")
+      ).toThrowError("Attribute 'boom' not found for Test1 model")
+
+    it "string to empty string", ->
+      t = new Test1({"id": "asd"})
+      t.reset('id')
+      expect(t.id()).toBeNull()
+
+    it "number to zero", ->
+      t = new Test1({"id": 1})
+      t.reset('id')
+      expect(t.id()).toBeNull()
+
+    it "array to empty array", ->
+      t = new Test1({"id": ["asd"]})
+      t.reset('id')
+      expect(t.id()).toBeNull()
+
+    it "reset only necessary attrs", ->
+      t = new Test1({"id": 1, foo: "bar"})
+      t.reset('id')
+      expect(t.id()).toBeNull()
+      expect(t.foo()).toEqual("bar")
+
+    it "reset all attributes", ->
+      t = new Test1({id: 1, foo: "bar"})
+      t.reset()
+      expect(t.id()).toBeNull()
+      expect(t.foo()).toBeNull()
+
+    it "reset errors also", ->
+      t = new Test1({"id": ["asd"]})
+      t.set_error("id.presence", "boom")
+      expect(t.get_errors("id")).not.toEqual([])
+      t.reset('id')
+      expect(t.id()).toBeNull()
+      expect(t.get_errors("id")).toEqual([])
 
   describe "Convert", ->
 
@@ -222,55 +264,93 @@ describe "BaseModel", ->
     beforeEach () ->
       m = new ModelwithValidators()
 
-    describe "validate id", ->
+    it "failed when validate_with defined with not a function", ->
+      class Test1 extends Sirius.BaseModel
+        @attrs: ["id"]
+        @validate:
+          id:
+            validate_with: 123
 
+      expect(() -> new Test1()).toThrowError(
+        "Validator for attribute: 'id.validate_with' should be a function, number given"
+      )
+
+    it "returns validators", ->
+      expect(new MyModel().validators()).toEqual({})
+      expect(Object.keys(new ModelwithValidators().validators())).toEqual(["id", "title", "description"])
+
+    describe "validate id", ->
       it "failed on numeric and range", ->
         m.id("asd")
-        expect(m.get_errors('id').length).toEqual(2)
+        expect(m.get_errors('id')).not.toEqual([])
+        expect(m.get_errors('title')).toEqual([])
+        expect(m.get_errors('description')).toEqual([])
+        expect(m.is_valid()).toBeFalse()
 
       it "failed only integers and range", ->
         m.id("123.1")
         expect(m.get_errors('id').length).toEqual(2)
+        expect(m.is_valid()).toBeFalse()
 
       it "failed in range", ->
         m.id(12)
         expect(m.get_errors('id').length).toEqual(1)
-
+        expect(m.is_valid()).toBeFalse()
 
     describe "validate title", ->
       it "failed format", ->
         m.title("asd")
         expect(m.get_errors('title').length).toEqual(1)
+        expect(m.is_valid()).toBeFalse()
 
       it "failed length #min", ->
         m.title("Fo")
         expect(m.get_errors('title').length).toEqual(1)
+        expect(m.is_valid()).toBeFalse()
 
       it "failed length #max", ->
         m.title("FooBarBaz")
         expect(m.get_errors('title').length).toEqual(1)
+        expect(m.is_valid()).toBeFalse()
 
       it "failed inclusion", ->
         m.title("Title")
         expect(m.get_errors('title').length).toEqual(1)
+        expect(m.is_valid()).toBeFalse()
 
     describe "validate description", ->
       it "validate with length", ->
         m.description("1234")
         expect(m.get_errors('description').length).toEqual(2)
+        m.description("foo")
+        expect(m.get_errors('description')).toEqual([])
+        expect(m.is_valid()).toBeFalse()
 
-    describe "#validate", ->
-      it "should contain errors when fields not set", ->
-        m.validate()
-        expect(m.get_errors('description').length).toEqual(2)
+    it "success flow", ->
+      m.description("foo")
+      m.title("Test")
+      m.id(3)
+      expect(m.is_valid()).toBeTrue()
+
+    it "set_errors/get_errors", ->
+      m.description("1")
+      expect(m.get_errors('description')).toEqual(['Value length must be 3', 'Description must be foo'])
+      m.set_error("description.custom", "foo")
+      expect(m.get_errors('description')).toEqual(['foo', 'Description must be foo'])
+      m.set_error("description.validate_with", "bar")
+      expect(m.get_errors('description')).toEqual(['foo', 'bar'])
+      expect(() -> m.set_error("description.asd", "asd")).toThrowError("Unexpected key: 'asd' for 'description' attribute")
+      expect(() -> m.set_error("description.asd.123", "qwe")).toThrowError()
+      expect(() -> m.set_error("description", "asd")).toThrowError()
+      expect(() -> m.get_errors("asd")).toThrowError()
 
     describe "when success", ->
-
       beforeEach () ->
         m.validate()
 
       it "should reset errors when set correct value", ->
         m.id(9)
+        m.validate()
         expect(m.get_errors('title').length + m.get_errors('description').length).toEqual(5)
 
     it "unexpected validators", ->

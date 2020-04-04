@@ -5,6 +5,9 @@
 # Base class for implement all Validators
 #
 class Sirius.Validator
+  # const
+  @ValidateWith = "validate_with"
+
   constructor: () ->
     @logger = Sirius.Application.get_logger()
     @msg = null
