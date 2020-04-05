@@ -19,6 +19,9 @@ set_value = (element, text) ->
   else
     document.querySelector(element).value = text
 
+get_attr = (element, attr) ->
+  adapter.get_attr(element, attr)
+
 get_value = (element) ->
   document.querySelector(element).value
 

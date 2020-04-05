@@ -17,13 +17,42 @@
 
 
 <div id="views">
-  <input type='text' id='txt' class="input-class" data-name="input" value="default" />
-  <select id="views-select">
-    <option value="val1">1</option>
-    <option value="val2">2</option>
-    <option value="val3">3</option>
-  </select>
-  <div id="content"></div>
+  <div id="view-custom-transform"></div>
+
+  <div id="view-events"></div>
+
+  <div id="zoom-test">
+    <span class="zoom-class"></span>
+  </div>
+
+  <div id="append-view">
+    <input value="test"/>
+    <select>
+      <option>123</option>
+    </select>
+    <textarea>123</textarea>
+    <span>123</span>
+  </div>
+
+  <div id="prepend-view">
+    <input value="test"/>
+    <select>
+      <option>123</option>
+    </select>
+    <textarea>123</textarea>
+    <span>123</span>
+  </div>
+
+  <div id="swap-view">
+    <span class="swap-text">123</span>
+    <span class="swap-data" data-name="swap-data">123</span>
+    <input class="swap-checkbox" type="checkbox" value="swap-checkbox" checked>
+  </div>
+
+  <div id="clear-view">
+    <span>clear</span>
+  </div>
+
 </div>
 
 
@@ -75,17 +104,17 @@
 <script type="text/javascript" src="../lib/sirius.js"></script>
 <script type="text/javascript" src="fixtures.js"></script>
 <!-- include spec files here... -->
-<script type="text/javascript" src="specs/compile/app_spec.js"></script>
-<script type="text/javascript" src="specs/compile/collection_spec.js"></script>
-<script type="text/javascript" src="specs/compile/validation_spec.js"></script>
-<script type="text/javascript" src="specs/compile/control_flow_spec.js"></script>
-<script type="text/javascript" src="specs/compile/base_model_spec.js"></script>
-<script type="text/javascript" src="specs/compile/view2view_spec.js"></script>
+<!--<script type="text/javascript" src="specs/compile/app_spec.js"></script>-->
+<!--<script type="text/javascript" src="specs/compile/collection_spec.js"></script>-->
+<!--<script type="text/javascript" src="specs/compile/validation_spec.js"></script>-->
+<!--<script type="text/javascript" src="specs/compile/control_flow_spec.js"></script>-->
+<!--<script type="text/javascript" src="specs/compile/base_model_spec.js"></script>-->
+<!--<script type="text/javascript" src="specs/compile/view2view_spec.js"></script>-->
 <script type="text/javascript" src="specs/compile/views_spec.js"></script>
-<script type="text/javascript" src="specs/compile/model_to_function_spec.js"></script>
-<script type="text/javascript" src="specs/compile/model2view_spec.js"></script>
-<script type="text/javascript" src="specs/compile/view2model_spec.js"></script>
-<script type="text/javascript" src="specs/compile/routing_spec.js"></script>
+<!--<script type="text/javascript" src="specs/compile/model_to_function_spec.js"></script>-->
+<!--<script type="text/javascript" src="specs/compile/model2view_spec.js"></script>-->
+<!--<script type="text/javascript" src="specs/compile/view2model_spec.js"></script>-->
+<!--<script type="text/javascript" src="specs/compile/routing_spec.js"></script>-->
 
 </body>
 </html>
