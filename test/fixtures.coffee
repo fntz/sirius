@@ -8,8 +8,6 @@ adapter = if JQueryAdapter?
 Sirius.Application.adapter = adapter
 
 
-
-
 get_text = (element) ->
   adapter.text(element)
 

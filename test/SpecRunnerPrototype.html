@@ -91,6 +91,30 @@
   <input type="text" name="email"/>
 </div>
 
+<div id="adapter">
+  <span class="adapter-class"></span>
+  <span class="adapter-class"></span>
+  <span class="another-adapter-class">boom</span>
+
+  <span class="get-attr second-class-attr" data-test="boom"></span>
+  <input class="input-attr" value="test" />
+
+  <input class="checkbox1" value="test" checked/>
+  <input class="checkbox2" value="test" />
+
+  <input class="input-attr-text" value="test" />
+
+  <select class="select1">
+    <option value="1">1</option>
+    <option value="10">10</option>
+  </select>
+
+  <select class="select2">
+    <option value="1">1</option>
+    <option value="10" selected>10</option>
+  </select>
+</div>
+
 <script type="text/javascript" src="../vendor/prototype.js"></script>
 <script type="text/javascript" src="jasmine/lib/jasmine.js"></script>
 <script type="text/javascript" src="jasmine/lib/jasmine-html.js"></script>
@@ -108,11 +132,11 @@
 <!--<script type="text/javascript" src="specs/compile/control_flow_spec.js"></script>-->
 <!--<script type="text/javascript" src="specs/compile/base_model_spec.js"></script>-->
 <!--<script type="text/javascript" src="specs/compile/view2view_spec.js"></script>-->
-<script type="text/javascript" src="specs/compile/views_spec.js"></script>
+<!--<script type="text/javascript" src="specs/compile/views_spec.js"></script>-->
 <!--<script type="text/javascript" src="specs/compile/view_or_model_to_function_spec.js"></script>-->
 <!--<script type="text/javascript" src="specs/compile/model2view_spec.js"></script>-->
 <!--<script type="text/javascript" src="specs/compile/routing_spec.js"></script>-->
-
+<script type="text/javascript" src="specs/compile/adapter_specs.js"></script>
 
 </body>
 </html>

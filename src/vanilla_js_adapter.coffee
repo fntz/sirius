@@ -47,10 +47,18 @@ class VanillaJsAdapter extends Adapter
   get_attr: (element, attr) ->
     elem = @_get_element_from_selector(element)
     r = elem.getAttribute(attr)
-    if !r?
-      elem[attr]
+
+    if r?
+      if attr is "checked" || attr is "selected"
+        if r == "false"
+          false
+        else
+          true
+      else
+        r
     else
-      r
+      elem[attr]
+
 
   swap: (element, content) ->
     elem = @_get_element_from_selector(element)

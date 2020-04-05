@@ -53,9 +53,17 @@ class PrototypeAdapter extends Adapter
   get_attr: (element, attr) ->
     elem = @_get_element_from_selector(element)
     r = elem.readAttribute(attr)
-    if !r?
-      r = elem[attr]
-    r
+
+    if r?
+      if attr is "checked" || attr is "selected"
+        if r == "false"
+          false
+        else
+          true
+      else
+        r
+    else
+      elem[attr]
 
   set_attr: (element, attr, value) ->
     @_get_element_from_selector(element).writeAttribute(attr, value)

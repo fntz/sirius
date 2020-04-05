@@ -5,18 +5,18 @@
 #
 class Adapter
 
-  #   Attach event to element
-  #   @param [String] main element for bind
-  #   @param [String] selector - selector string
+  #   Attach event to an element
+  #   @param [String] main the element for bind
+  #   @param [String] selector - selector query string
   #   @param [String] event - event name
   #   @param [Function] fn - callback, will be called, when event fired
   #   @return [Void]
   #
   bind: (element, selector, event, fn) ->
 
-  #   Remove event listener for element
-  #   @param [String] main element for bind
-  #   @param [String] selector - selector string
+  #   Remove event listener for an element
+  #   @param [String] main the element for bind
+  #   @param [String] selector - selector query string
   #   @param [String] event - event name
   #   @param [Function] fn - callback, will be called, when event fired
   #   @return [Void]
@@ -24,16 +24,16 @@ class Adapter
   off: (element, selector, event, fn) ->
 
 
-  #   Call custom event with params
-  #   @param [String] element - selector for event
+  #   Call an custom event with params
+  #   @param [String] element - selector for the event
   #   @param [String] event   - event name
   #   @param [Array]  params  - params which will be passed into event callback
   #   @return [Void]
   #
   fire: (element, event, params...) ->
 
-  #    Extract attribute from target element from event
-  #    @param [EventObject] event - event object
+  #    Extract attribute from a target element from an event
+  #    @param [EventObject] event - the event object
   #    @param [Array<String>] properties - names of attributes
   #    @return [Array<String>]
   #
@@ -43,6 +43,7 @@ class Adapter
 
 
   set_prop: (element, attr, value) ->
+
   # Change content into element
   # @param   [String] element - selector
   # @content [String] content - new content
