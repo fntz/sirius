@@ -214,17 +214,20 @@ class Sirius.View
   @is_valid_strategy: (s) ->
     @_Strategies.filter((arr) -> arr[0] == s).length != 0
 
-  bind: (output, via) ->
-    @pipe(output, via)
 
-  pipe: (output, via) ->
+  #  @alias `bind`
+  pipe: (output, materializer) ->
+    @bind(output, materializer)
+
+  bind: (output, materializer) ->
     t = new Sirius.Transformer(@, output)
-    t.run(via)
+    t.run(materializer)
 
     return
 
 
-  # Register new strategy for View
+
+# Register new strategy for View
   # @param [String] - strategy name
   # @param [Object] - object with transform and render functions, take oldvalue, and newvalue for attribute
   # transform [Function] - transform function, take oldvalue, and newvalue for attribute

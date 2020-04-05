@@ -279,6 +279,24 @@ describe "BaseModel", ->
       expect(new MyModel().validators()).toEqual({})
       expect(Object.keys(new ModelwithValidators().validators())).toEqual(["id", "title", "description"])
 
+    it "checks is_valid_validator", ->
+      a = new ModelwithValidators()
+      expect(a._is_valid_validator("id.presence")).toBeTrue()
+      expect(a._is_valid_validator("id.numericality")).toBeTrue()
+      expect(a._is_valid_validator("id.inclusion")).toBeTrue()
+      expect(a._is_valid_validator("id.validate_with")).toBeTrue()
+      expect(a._is_valid_validator("id.format")).toBeFalse()
+
+      expect(a._is_valid_validator("title.presence")).toBeTrue()
+      expect(a._is_valid_validator("title.format")).toBeTrue()
+      expect(a._is_valid_validator("title.length")).toBeTrue()
+      expect(a._is_valid_validator("title.exclusion")).toBeTrue()
+      expect(a._is_valid_validator("title.inclusion")).toBeFalse()
+
+      expect(a._is_valid_validator("description.custom")).toBeTrue()
+      expect(a._is_valid_validator("description.validate_with")).toBeTrue()
+      expect(a._is_valid_validator("description.exclusion")).toBeFalse()
+
     describe "validate id", ->
       it "failed on numeric and range", ->
         m.id("asd")

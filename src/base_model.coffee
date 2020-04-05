@@ -451,6 +451,16 @@ class Sirius.BaseModel
 
     return
 
+  # @private
+  # @nodoc
+  _is_valid_validator: (str) -> # id.numericality
+    tmp = str.split(".")
+    if tmp.length == 2 # @_applicable_validators: {id: {presence: ..., numericality: ...}
+      [attribute, validator_key] = tmp
+      @_applicable_validators[attribute]? && @_applicable_validators[attribute][validator_key]?
+
+    else
+      false
 
   # Check, if model instance is valid
   # @return [Boolean] true, when is valid, otherwise false
@@ -623,6 +633,8 @@ class Sirius.BaseModel
   clone: () ->
     @constructor.from_json(@to_json())
 
+  # @private
+  # @nodoc
   # Sirius.ToViewTransformer
   _register_state_listener: (transformer) ->
     @logger.debug("Register new listener for #{@constructor.name}", @logger.base_model)
@@ -634,15 +646,18 @@ class Sirius.BaseModel
       if @["_#{attr}"] isnt null
         transformer.apply(null, [attr, @["_#{attr}"]])
 
-  pipe: (func, via = {}) ->
+  #  @alias `bind`
+  pipe: (output, materializer = {}) ->
     # TODO default attributes
     t = new Sirius.Transformer(@, func)
-    t.run(via)
+    t.run(materializer)
 
     return
 
-  bind: (func, via = {}) ->
-    @pipe(func, via)
+  # @param [Function] - binding function
+  # @param [Object]   - pet-attribute transformation description
+  bind: (output, materializer = {}) ->
+    @pipe(output, materializer)
   
   # Register pair - name and class for validate
   # @param [String] - validator name

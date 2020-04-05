@@ -1,19 +1,26 @@
-describe "Model or View To Function", ->
-  it "push attribute changes from model to function", ->
-    _tmp_attr = null
-    _tmp_value = null
-    t = "new"
-    f = (attr, value) ->
-      _tmp_attr = attr
-      _tmp_value = value
 
-    model = new MyTestModel2FunctionSpecModel()
+describe "Model To Function Transformation", ->
+  it "push attribute changes from model to function", ->
+    class Test1 extends Sirius.BaseModel
+      @attrs: ["name"]
+
+    tmp = []
+    new_name = "new"
+    f = (attr, value) ->
+      tmp.push(attr, value)
+
+    model = new Test1()
     model.pipe(f)
 
-    model.name(t)
-    expect(model.name()).toEqual(t)
-    expect(_tmp_attr).toEqual("name")
-    expect(_tmp_value).toEqual(t)
+    model.name(new_name)
+    expect(model.name()).toEqual(new_name)
+    expect(tmp).toEqual(["name", new_name])
+
+    new_name1 = "boo"
+    model.set("name", new_name1)
+    expect(model.get('name')).toEqual(new_name1)
+    expect(tmp).toEqual(["name", new_name, "name", new_name1])
+
 
   it "failed when 'from' is not present", ->
     element = "#view2function"
