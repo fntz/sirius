@@ -36,10 +36,6 @@ class JQueryAdapter extends Adapter
       jQuery(element).data(attr.replace("data-", ""), value)
     return
 
-  # @deprecated
-  set_prop: (element, prop, value) ->
-    jQuery(element).prop(prop, value)
-
   append: (element, content) ->
     jQuery(element).append(content)
     return

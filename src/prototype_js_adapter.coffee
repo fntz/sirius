@@ -68,10 +68,6 @@ class PrototypeAdapter extends Adapter
   set_attr: (element, attr, value) ->
     @_get_element_from_selector(element).writeAttribute(attr, value)
 
-  set_prop: (element, prop, value) ->
-    @_get_element_from_selector(element)[prop] = value
-    return
-
   swap: (element, content) ->
     elem = @_get_element_from_selector(element)
     tag = elem.tagName

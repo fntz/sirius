@@ -36,14 +36,17 @@ describe "Adapter", ->
       expect(adapter.get_attr("#adapter .checkbox2", "checked")).toEqual(true)
 
 
-  describe "#strategies mirror", ->
-      it "append", ->
+  describe "#swap", ->
+    it "in the text", ->
 
-      it "prepend", ->
+    it "in the class", ->
 
-      it "clear", ->
+    it "in the data", ->
 
-      it "swap", ->
+    it "in the checkbox", ->
+
+    it "in the input/value", ->
+
 
   describe "#text", ->
     it "from the input", ->

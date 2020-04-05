@@ -73,10 +73,6 @@ class VanillaJsAdapter extends Adapter
     @_get_element_from_selector(element).setAttribute(attr, value)
     return
 
-  set_prop: (element, prop, value) ->
-    @_get_element_from_selector(element).setAttribute(prop, value)
-    return
-
   append: (element, content) ->
     elem = @_get_element_from_selector(element)
     old = elem.textContent

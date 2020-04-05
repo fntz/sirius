@@ -293,7 +293,7 @@ Sirius.View.register_strategy('swap',
         else
           !!result
 
-        adapter.set_prop(element, 'checked', r)
+        adapter.set_attr(element, 'checked', r)
       else
         adapter.set_attr(element, attribute, result)
 )
