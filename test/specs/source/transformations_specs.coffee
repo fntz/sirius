@@ -123,6 +123,41 @@ describe "Transformations", ->
         ).toThrowError(/View to Function binding must contain/)
 
   describe "model to function", ->
+    class Test1 extends Sirius.BaseModel
+      @attrs: ["name"]
+      @validate:
+        name:
+          length: min: 3, max: 7
+
+    it "push attribute changes from model to function", ->
+      tmp = []
+      new_name = "new"
+      f = (attr, value) ->
+        tmp.push(attr, value)
+
+      model = new Test1()
+      model.pipe(f)
+
+      model.name(new_name)
+      expect(model.name()).toEqual(new_name)
+
+      new_name1 = "boo"
+      model.set("name", new_name1)
+      expect(model.get('name')).toEqual(new_name1)
+      expect(tmp.indexOf("name")).not.toEqual(-1)
+      expect(tmp.indexOf(new_name)).not.toEqual(-1)
+      expect(tmp.indexOf(new_name1)).not.toEqual(-1)
+
+    it "calls on invalid validation too", ->
+      tmp = []
+      f = (attr, value) ->
+        tmp.push(attr, value)
+
+      model = new Test1()
+      model.pipe(f)
+      model.name("1")
+      expect(model.is_valid()).toBeFalse()
+      expect(tmp).toEqual(["errors.name.length", "Required length in range [0..7], given: 1", 'name', "1"])
 
   describe "model to view", ->
 
@@ -131,4 +166,24 @@ describe "Transformations", ->
   describe "view to view", ->
 
   describe "view to function", ->
+    # todo different type of events ?
+    it "push changes from view", ->
+      elementId = "#view2function"
+      inputElementSelector = "input[name='email']"
+      view = new Sirius.View(elementId)
+
+      result = null
+      func = (result, view, logger) ->
+        result = result['text']
+
+      materializer = Sirius.Transformer.draw({
+        inputElementSelector: {
+          from: 'text'
+        }
+      })
+      view.pipe(func, materializer)
+      test_text = "baz"
+      input_text("#{elementId} #{inputElementSelector}", test_text)
+
+      expect(result).toEqual(test_text)
 

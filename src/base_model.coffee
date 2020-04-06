@@ -649,7 +649,7 @@ class Sirius.BaseModel
   #  @alias `bind`
   pipe: (output, materializer = {}) ->
     # TODO default attributes
-    t = new Sirius.Transformer(@, func)
+    t = new Sirius.Transformer(@, output)
     t.run(materializer)
 
     return

@@ -55,6 +55,8 @@
 
 class Sirius.Internal.AbstractTransformer
 
+  @DefaultProperty = "text"
+
   constructor: (@_path, @_from, @_to) ->
     @logger = Sirius.Application.get_logger()
     @_ln = @logger.transformer # logger name
@@ -63,7 +65,10 @@ class Sirius.Internal.AbstractTransformer
   _register: () ->
 
 
+# @private
+# @nodoc
 class Sirius.Internal.ToFunctionTransformer extends Sirius.Internal.AbstractTransformer
+
   _register: () ->
     if @_from instanceof Sirius.BaseModel
       @_from._register_state_listener(@_to)
@@ -71,16 +76,16 @@ class Sirius.Internal.ToFunctionTransformer extends Sirius.Internal.AbstractTran
       @_from._register_state_listener(@)
       clb = @_fire_generator()
       top = @_from.get_element()
-      for k, v of @_path
-        w = @_path["from"] || "text"
-        new Sirius.Internal.Observer("#{top} #{k}", k, w, clb)
+      for selector, v of @_path
+        from_property = @_path["from"] || Sirius.Internal.DefaultProperty
+        new Sirius.Internal.Observer("#{top} #{selector}", selector, from_property, clb)
 
   _fire_generator: () ->
     view = @_from
-    f = @_to
+    func = @_to
 
     callback = (result) ->
-      f(result, view)
+      func(result, view)
 
     callback
 
@@ -97,7 +102,7 @@ class Sirius.Internal.ToViewTransformer extends Sirius.Internal.AbstractTransfor
         [w, attr, selector] = if Sirius.Utils.is_string(o)
           [null, 'text', o]
         else
-          [o['from'] || top, o['attribute'] || 'text', o['selector']]
+          [o['from'] || top, o['attribute'] || Sirius.Internal.DefaultProperty, o['selector']]
 
         top = if top == w
           top
@@ -107,7 +112,6 @@ class Sirius.Internal.ToViewTransformer extends Sirius.Internal.AbstractTransfor
           top
 
         @logger.debug("Observe '#{top}' -> '#{@_to.get_element()} #{selector}'", @_ln)
-
         new Sirius.Internal.Observer(top, w, attr, clb)
 
     else # Model
@@ -329,12 +333,16 @@ class Sirius.Transformer
   # called implicitly with a `materializer` method
   run: (materializer) ->
     throw new Error("Materializer must be object, '#{typeof materializer}' given") unless Sirius.Utils.is_object(materializer)
-    throw new Error("Materializer must be non empty object") if Object.keys(materializer).length == 0
+
+    unless Sirius.Utils.is_function(@_to)
+      throw new Error("Materializer must be non empty object") if Object.keys(materializer).length == 0
+
     throw new Error("Not all parameters defined for transformer: from: #{@_from}, to: #{@_to}") if !@_from || !@_to
 
     # checkers
     @_check_from_model_compliance(materializer)
     @_check_to_model_compliance(materializer)
+
     if @_from instanceof Sirius.View && @_to instanceof Sirius.View
       @_path = @_check_view_to_view_compliance(materializer)
     else if @_from instanceof Sirius.View && Sirius.Utils.is_function(@_to)

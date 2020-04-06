@@ -7,17 +7,14 @@ get '/' do
 end
 
 get '/prototype' do
-  system("rake test_compile")
   File.read("#{File.dirname(__FILE__)}/SpecRunnerPrototype.html")
 end
 
 get '/jquery' do
-  system("rake test_compile")
   File.read("#{File.dirname(__FILE__)}/SpecRunner.html")
 end
 
 get '/vanilla' do
-  system("rake test_compile")
   File.read("#{File.dirname(__FILE__)}/SpecRunnerVanilla.html")
 end
 
