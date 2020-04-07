@@ -261,6 +261,9 @@ describe "Transformations", ->
       })
       check_element("#{rootElement} input[name='bool-source']", true)
       expect(model.is_checked()).toBeTrue()
+      check_element("#{rootElement} input[name='bool-source']", false)
+      expect(model.is_checked()).toBeFalse()
+
 
 
   describe "view to view", ->

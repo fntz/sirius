@@ -87,8 +87,29 @@
   </div>
 </div>
 
+
 <div id="view2function">
   <input type="text" name="email"/>
+  <input type="checkbox" name="checkbox" value="checkbox" />
+</div>
+
+<div id="model2view">
+  <input name="output-foo" />
+  <span class="output-foo"></span>
+  <span class="output-validation-foo"></span>
+</div>
+
+<div id="view2view">
+  <input name="source" />
+  <div class="mirror">
+    <span class="mirror1"></span>
+    <span class="mirror-attr1"></span>
+  </div>
+</div>
+
+<div id="view2model">
+  <input name="source"/>
+  <input name="bool-source" type="checkbox"/>
 </div>
 
 <div id="adapter">
@@ -126,17 +147,15 @@
 <script type="text/javascript" src="fixtures.js"></script>
 <!-- include spec files here... -->
 
-<!--<script type="text/javascript" src="specs/compile/app_spec.js"></script>-->
-<!--<script type="text/javascript" src="specs/compile/collection_spec.js"></script>-->
-<!--<script type="text/javascript" src="specs/compile/validation_spec.js"></script>-->
-<!--<script type="text/javascript" src="specs/compile/control_flow_spec.js"></script>-->
-<!--<script type="text/javascript" src="specs/compile/base_model_spec.js"></script>-->
-<!--<script type="text/javascript" src="specs/compile/view2view_spec.js"></script>-->
+<script type="text/javascript" src="specs/compile/app_spec.js"></script>
+<script type="text/javascript" src="specs/compile/collection_spec.js"></script>
+<script type="text/javascript" src="specs/compile/validation_spec.js"></script>
+<script type="text/javascript" src="specs/compile/control_flow_spec.js"></script>
+<script type="text/javascript" src="specs/compile/base_model_spec.js"></script>
 <script type="text/javascript" src="specs/compile/views_spec.js"></script>
-<!--<script type="text/javascript" src="specs/compile/view_or_model_to_function_spec.js"></script>-->
-<!--<script type="text/javascript" src="specs/compile/model2view_spec.js"></script>-->
-<!--<script type="text/javascript" src="specs/compile/routing_spec.js"></script>-->
-<!--<script type="text/javascript" src="specs/compile/adapter_specs.js"></script>-->
+<script type="text/javascript" src="specs/compile/routing_spec.js"></script>
+<script type="text/javascript" src="specs/compile/adapter_specs.js"></script>
+<script type="text/javascript" src="specs/compile/transformations_specs.js"></script>
 
 </body>
 </html>
