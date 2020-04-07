@@ -160,10 +160,135 @@ describe "Transformations", ->
       expect(tmp).toEqual(["errors.name.length", "Required length in range [0..7], given: 1", 'name', "1"])
 
   describe "model to view", ->
+    class Test1 extends Sirius.BaseModel
+      @attrs: ["foo", "is_checked"]
+      @validate:
+        foo:
+          length: min: 3, max: 10
+
+    rootElement = "#model2view"
+    view = new Sirius.View(rootElement)
+
+    it "pass from property to input", () ->
+      model = new Test1()
+      output = "input[name='output-foo']"
+      model.bind(view, {
+        "foo": {
+          "to": output
+        }
+      })
+      model.foo("abcd")
+
+      get_text("#{rootElement} #{output}")
+
+
+    it "pass from property to data-attribute", () ->
+      model = new Test1()
+      output = "input[name='output-foo']"
+      model.bind(view, {
+        "foo": {
+          "to": output,
+          "attr": "data-output"
+        }
+      })
+      model.foo("booom!")
+
+      expect(adapter.get_attr("#{rootElement} #{output}", "data-output")).toEqual(model.foo())
+
+    it "pass from property to span", () ->
+      more = "+test"
+      model = new Test1()
+      output = "span.output-foo"
+      model.bind(view, {
+        "foo": {
+          "to": output,
+          "with": (value, selector, view, attribute = 'text') ->
+            view.zoom(selector).render("#{value}#{more}").swap(attribute)
+        }
+      })
+      model.foo("span!")
+
+      expect(get_text("#{rootElement} #{output}")).toEqual("#{model.foo()}#{more}")
+
+    it "pass from validation to span", ->
+      model = new Test1()
+      output = "span.output-validation-foo"
+      model.bind(view, {
+        "errors.foo.length": {
+          "to": output
+        }
+      })
+      model.foo("Z")
+
+      expect(get_text("#{rootElement} #{output}")).toMatch(/Required length/)
+
+      # and reset validation
+      model.foo("abcd")
+      expect(get_text("#{rootElement} #{output}")).toBe("")
 
   describe "view to model", ->
+    class Test1 extends Sirius.BaseModel
+      @attrs: ["foo", "is_checked"]
+      @validate:
+        foo:
+          length: min: 3, max: 10
+
+    rootElement = "#view2model"
+    view = new Sirius.View(rootElement)
+
+    it "from text to model (+validation)", ->
+      model = new Test1({foo: "abcd"})
+      view.bind(model, {
+        "input[name='source']": {
+          to: "foo",
+          with: (value) -> "#{value}!"
+        }
+      })
+      input = "q"
+      input_text("#{rootElement} input[name='source']", input)
+      expect(model.foo()).toEqual("#{input}!")
+      expect(model.is_valid()).toBeFalse()
+
+    it "from checkbox to bool attribute", ->
+      model = new Test1()
+      view.bind(model, {
+        "input[name='bool-source']": {
+          to: "is_checked"
+          from: "checked"
+          with: (value) ->
+            value == "on"
+        }
+      })
+      check_element("#{rootElement} input[name='bool-source']", true)
+      expect(model.is_checked()).toBeTrue()
+
 
   describe "view to view", ->
+    rootElement = "#view2view"
+    view = new Sirius.View(rootElement)
+
+    it "from source to mirror", ->
+      more = "+bar"
+      sourceElement = "input[name='source']"
+      source = view.zoom(sourceElement)
+      mirror = view.zoom(".mirror")
+      source.bind(mirror, {
+        to: [
+          {
+          "selector": ".mirror1"
+          },
+          "selector": ".mirror-attr1",
+          "attribute": "data-mirror",
+          "with" : (value, selector, view, attribute = 'text') ->
+            view.zoom(selector).render("#{value}#{more}").swap(attribute)
+        ]
+      })
+
+      text = "foo"
+      input_text("#{rootElement} #{sourceElement}", text)
+      expect(get_text("#{rootElement} .mirror1")).toEqual(text)
+      expect(adapter.get_attr("#{rootElement} .mirror-attr1", 'data-mirror')).toEqual("#{text}#{more}")
+
 
   describe "view to function", ->
     rootElement = "#view2function"

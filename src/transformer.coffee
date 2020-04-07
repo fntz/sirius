@@ -133,14 +133,14 @@ class Sirius.Internal.ToViewTransformer extends Sirius.Internal.AbstractTransfor
         value = result.text
         for o in to
           if Sirius.Utils.is_string(o)
-            via = Sirius.Internal.ToViewTransformer._default_materializer_method()
-            via(value, o, view, attribute)
+            materializer = Sirius.Internal.ToViewTransformer._default_materializer_method()
+            materializer(value, o, view, attribute)
 
           else # object
             selector = o['selector']
             attr = o['attribute'] || 'text'
-            via = o['with'] || Sirius.Internal.ToViewTransformer._default_materializer_method()
-            via(value, selector, view, attr)
+            materializer = o['with'] || Sirius.Internal.ToViewTransformer._default_materializer_method()
+            materializer(value, selector, view, attr)
 
 
       callback
@@ -186,10 +186,10 @@ class Sirius.Internal.ToModelTransformer extends Sirius.Internal.AbstractTransfo
       if value
         to = value['to']
         from = value['from'] || 'text'
-        via = value['via'] || ((value) -> value)
+        materializer = value['with'] || ((value) -> value)
         logger.debug("Apply new value from #{result.from} (#{result.original}) to #{model._klass_name()}.#{to}", ln)
         # result, view, selector, attribute, element
-        model.set(to, via(result.text, view, result.original, from, result.element))
+        model.set(to, materializer(result.text, view, result.original, from, result.element))
 
     callback
 
