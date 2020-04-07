@@ -7,7 +7,6 @@ adapter = if JQueryAdapter?
 
 Sirius.Application.adapter = adapter
 
-
 get_text = (element) ->
   adapter.text(element)
 
@@ -16,6 +15,9 @@ set_value = (element, text) ->
     jQuery(element).val(text)
   else
     document.querySelector(element).value = text
+
+set_check = (element, bool) ->
+  document.querySelector(element).checked = bool
 
 get_attr = (element, attr) ->
   adapter.get_attr(element, attr)
@@ -46,6 +48,17 @@ input_text = (element, value) ->
 
   _element.dispatchEvent(event)
 
+check_element = (element, should_be_checked) ->
+  set_check(element, should_be_checked)
+
+  _element = document.querySelector(element)
+
+  event = new Event('change', {
+    'bubbles': true,
+    'cancelable': true
+  })
+
+  _element.dispatchEvent(event)
 
 class MyModel extends Sirius.BaseModel
   @attrs: ["id", {title: "default title"}, "description"]

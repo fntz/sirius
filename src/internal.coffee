@@ -1,2 +1,4 @@
 # all non-public api
-Sirius.Internal = {}
+Sirius.Internal = {
+  DefaultProperty: "text"
+}

@@ -166,24 +166,74 @@ describe "Transformations", ->
   describe "view to view", ->
 
   describe "view to function", ->
-    # todo different type of events ?
-    it "push changes from view", ->
-      elementId = "#view2function"
-      inputElementSelector = "input[name='email']"
-      view = new Sirius.View(elementId)
+    rootElement = "#view2function"
+    inputElement = "input[name='email']"
+    inputCheckbox = "input[type='checkbox']"
 
-      result = null
+    view = new Sirius.View(rootElement)
+
+
+    it "push changes from view", (done) ->
+      expected = "baz"
+      given = null
       func = (result, view, logger) ->
-        result = result['text']
+        given = result['text']
+
 
       materializer = Sirius.Transformer.draw({
-        inputElementSelector: {
+        "#{inputElement}": {
           from: 'text'
         }
       })
       view.pipe(func, materializer)
-      test_text = "baz"
-      input_text("#{elementId} #{inputElementSelector}", test_text)
 
-      expect(result).toEqual(test_text)
+      input_text("#{rootElement} #{inputElement}", expected)
+      setTimeout(
+        () ->
+          expect(given).toEqual(expected)
+          done()
+        1000
+      )
+
+    it "push changes from checkbox view", (done) ->
+      given = null
+      func = (result, view, logger) ->
+        given = result['state']
+
+      materializer = Sirius.Transformer.draw({
+        "#{inputCheckbox}": {
+          from: 'text'
+        }
+      })
+      view.pipe(func, materializer)
+
+      check_element("#{rootElement} #{inputCheckbox}", true)
+      setTimeout(
+        () ->
+          expect(given).toEqual(true)
+          done()
+        1000
+      )
+
+    it "push changes from view#attribute", (done) ->
+      expected = "new-bind-class"
+      given = []
+      func = (result, view, logger) ->
+        given.push(result['attribute'], result['text'])
+
+      materializer = Sirius.Transformer.draw({
+        "#{inputElement}": {
+          from: 'class'
+        }
+      })
+      view.pipe(func, materializer)
+
+      adapter.set_attr("#{rootElement} #{inputElement}", "class", expected)
+
+      setTimeout(
+        () ->
+          expect(given).toEqual(["class", expected])
+          done()
+        1000
+      )
 

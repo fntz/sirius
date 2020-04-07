@@ -55,8 +55,6 @@
 
 class Sirius.Internal.AbstractTransformer
 
-  @DefaultProperty = "text"
-
   constructor: (@_path, @_from, @_to) ->
     @logger = Sirius.Application.get_logger()
     @_ln = @logger.transformer # logger name
@@ -76,8 +74,8 @@ class Sirius.Internal.ToFunctionTransformer extends Sirius.Internal.AbstractTran
       @_from._register_state_listener(@)
       clb = @_fire_generator()
       top = @_from.get_element()
-      for selector, v of @_path
-        from_property = @_path["from"] || Sirius.Internal.DefaultProperty
+      for selector, value of @_path
+        from_property = value["from"] || Sirius.Internal.DefaultProperty
         new Sirius.Internal.Observer("#{top} #{selector}", selector, from_property, clb)
 
   _fire_generator: () ->
