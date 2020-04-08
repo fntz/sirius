@@ -47,10 +47,18 @@ class VanillaJsAdapter extends Adapter
   get_attr: (element, attr) ->
     elem = @_get_element_from_selector(element)
     r = elem.getAttribute(attr)
-    if !r?
-      elem[attr]
+
+    if r?
+      if attr is "checked" || attr is "selected"
+        if r == "false"
+          false
+        else
+          true
+      else
+        r
     else
-      r
+      elem[attr]
+
 
   swap: (element, content) ->
     elem = @_get_element_from_selector(element)
@@ -63,10 +71,6 @@ class VanillaJsAdapter extends Adapter
 
   set_attr: (element, attr, value) ->
     @_get_element_from_selector(element).setAttribute(attr, value)
-    return
-
-  set_prop: (element, prop, value) ->
-    @_get_element_from_selector(element).setAttribute(prop, value)
     return
 
   append: (element, content) ->
@@ -101,5 +105,3 @@ class VanillaJsAdapter extends Adapter
       else
         elem.textContent
 
-  get_state: (element) ->
-    @_get_element_from_selector(element).checked

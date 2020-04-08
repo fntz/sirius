@@ -5,17 +5,20 @@
 # Base class for implement all Validators
 #
 class Sirius.Validator
+  # const
+  @ValidateWith = "validate_with"
+
   constructor: () ->
     @logger = Sirius.Application.get_logger()
     @msg = null
 
   #
-  # Return error when value not valid
-  # @return [String] - messages
+  # Return an error when a value is not valid
+  # @return [String] - message
   error_message: () ->
     @msg
 
-# Class for validate length.
+# Length validator
 #
 # @example
 #   attr0 : length: {min: 10}
@@ -28,8 +31,8 @@ class Sirius.LengthValidator extends Sirius.Validator
   # @param [Object] attributes - options for validator [min, max, length]
   #
   # Attribute keys:
-  # + min - min length for `value`
-  # + max - max length for `value`
+  # + min - min length for a `value`
+  # + max - max length for a `value`
   # + length - define length which must be have a `value`
   #
   # @return [Boolean]
@@ -58,14 +61,14 @@ class Sirius.LengthValidator extends Sirius.Validator
       false
 
 
-# Class for validate value which excluded in range, which define with `within` option.
+# Validate value which be excluded in a range, range can be defined with `within` option.
 #
 # @example
 #   letter: exclusion: {within: ["A", "B, "C"]}
 class Sirius.ExclusionValidator extends Sirius.Validator
   #
   # @param [Any] value for validation
-  # @param [Object] attributes - object with range, range define with `within`
+  # @param [Object] attributes - object with range, range should be defined with `within` property
   # @return [Boolean]
   validate: (value, attributes) ->
     @logger.info("ExclusionValidator: start validate '#{value}'", @logger.validation)
@@ -76,14 +79,14 @@ class Sirius.ExclusionValidator extends Sirius.Validator
       @msg = "Value #{value} reserved"
       false
 
-# Class for validate value which included in range, which define with `within` option.
+# Validate value which be included in a range, which define with `within` option.
 #
 # @example
 #   letter: inclusion: {within: ["A", "B, "C"]}
 class Sirius.InclusionValidator extends Sirius.Validator
   #
   # @param [Any] value - value for validation
-  # @param [Object] attributes - object with range, range define with `within`
+  # @param [Object] attributes - object with range, range should be defined `within` property
   # @return [Boolean]
   validate: (value, attributes) ->
     @logger.info("InclusionValidator: start validate '#{value}'", @logger.validation)
@@ -94,14 +97,14 @@ class Sirius.InclusionValidator extends Sirius.Validator
       @msg = "Value #{value} should be in range #{range}"
       false
 
-# Validate value corresponds given format.
+# Format validator
 #
 # @example
 #   name: format: {with: /\w+/}
 class Sirius.FormatValidator extends Sirius.Validator
   #
   # @param [Any] value - value for validation
-  # @param [Object] attributes - object with format, format define with `format` key.
+  # @param [Object] attributes - object with format, format should be defined with `format` key.
   # @return [Boolean]
   validate: (value, attributes) ->
     @logger.info("FormatValidator: start validate '#{value}'", @logger.validation)
@@ -110,13 +113,13 @@ class Sirius.FormatValidator extends Sirius.Validator
       if format.test(value)
         true
       else
-        @msg = "Value #{value} not for current format"
+        @msg = "Value #{value} not in current format"
         false
     else
       @msg = "Given null for Format"
       false
 
-# Check if value is a number or integer number
+# Check if value is a number or an integer number
 #
 # @example
 #   value : numericality : {only_integers: true}
@@ -124,7 +127,7 @@ class Sirius.FormatValidator extends Sirius.Validator
 class Sirius.NumericalityValidator extends Sirius.Validator
   #
   # @param [Any] value - value for validation
-  # @param [Object] attributes - object which might contain, `only_integers` key
+  # @param [Object] attributes - object with `only_integers` property
   # @return [Boolean]
   validate: (value, attributes = {}) ->
     @logger.info("NumericalityValidator: start validate '#{value}'", @logger.validation)

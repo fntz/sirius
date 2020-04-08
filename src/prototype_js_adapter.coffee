@@ -53,16 +53,20 @@ class PrototypeAdapter extends Adapter
   get_attr: (element, attr) ->
     elem = @_get_element_from_selector(element)
     r = elem.readAttribute(attr)
-    if !r?
-      r = elem[attr]
-    r
+
+    if r?
+      if attr is "checked" || attr is "selected"
+        if r == "false"
+          false
+        else
+          true
+      else
+        r
+    else
+      elem[attr]
 
   set_attr: (element, attr, value) ->
     @_get_element_from_selector(element).writeAttribute(attr, value)
-
-  set_prop: (element, prop, value) ->
-    @_get_element_from_selector(element)[prop] = value
-    return
 
   swap: (element, content) ->
     elem = @_get_element_from_selector(element)
@@ -102,6 +106,3 @@ class PrototypeAdapter extends Adapter
         elem.innerText
       else
         elem.textContent
-
-  get_state: (element) ->
-    @_get_element_from_selector(element).checked

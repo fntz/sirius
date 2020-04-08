@@ -1,32 +1,32 @@
 #
-# Utils class with helpers for application
+# Utils class with helpers for the framework
 #
 class Sirius.Utils
   #
-  # @param [Any] a - check, that `a` is Function
-  # @return [Boolean] - true, when is Function, otherwise return false
+  # @param [Any] maybe - check, that `maybe` is Function
+  # @return [Boolean]
   #
-  @is_function: (a) ->
-    Object.prototype.toString.call(a) is '[object Function]'
+  @is_function: (maybe) ->
+    Object.prototype.toString.call(maybe) is '[object Function]'
   #
-  # @param [Any] a - check, that `a` is String
-  # @return [Boolean] - true, when is String, otherwise return false
+  # @param [Any] maybe - check, that `maybe` is String
+  # @return [Boolean]
   #
-  @is_string: (a) ->
-    Object.prototype.toString.call(a) is '[object String]'
+  @is_string: (maybe) ->
+    Object.prototype.toString.call(maybe) is '[object String]'
   #
-  # @param [Any] a - check, that `a` is Array
-  # @return [Boolean] - true, when is Array, otherwise return false
+  # @param [Any] maybe - check, that `maybe` is Array
+  # @return [Boolean]
   #
-  @is_array: (a) ->
-    Object.prototype.toString.call(a) is '[object Array]'
+  @is_array: (maybe) ->
+    Object.prototype.toString.call(maybe) is '[object Array]'
 
   #
-  # @param [Any] a - check if `a` is Object
-  # @return [Boolean] - true, when is object, otherwise return false
+  # @param [Any] maybe - check if `maybe` is Object
+  # @return [Boolean]
   #
-  @is_object: (a) ->
-    a != null && typeof(a) == 'object'
+  @is_object: (maybe) ->
+    maybe != null && typeof(maybe) == 'object'
   #
   # Upper case first letter in string
   #

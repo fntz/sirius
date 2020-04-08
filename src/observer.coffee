@@ -34,7 +34,7 @@ class Sirius.Internal.Observer
        window.WebKitMutationObserver ||
        window.MozMutationObserver || null
 
-  ONCHANGE_TAGS = ["INPUT", "TEXTAREA", "SELECT"]
+  INPUT_LIKE_TAGS = ["INPUT", "TEXTAREA", "SELECT"]
   BOOL_TYPES = ["checkbox", "radio"]
   OPTION = "OPTION"
 
@@ -50,7 +50,7 @@ class Sirius.Internal.Observer
 
 
   @TextEvents = [@Ev.input, @Ev.childList,
-                 @Ev.change, @Ev.DOMNodeInserted,
+                 @Ev.DOMNodeInserted,
                  @Ev.selectionchange]
 
   @is_text_event: (e) -> @TextEvents.indexOf(e.type) != -1
@@ -90,7 +90,7 @@ class Sirius.Internal.Observer
 
     O = Sirius.Internal.Observer
 
-
+    # base callback
     handler = (e) ->
       logger.debug("Handler Function: given #{e.type} event", logger.binding)
       result = {text: null, attribute: null, from: from, original: original, element: e.target}
@@ -104,7 +104,7 @@ class Sirius.Internal.Observer
         current_value = txt
 
       if e.type == O.Ev.change # get a state for input enable or disable
-        result['state'] = adapter.get_state(from)
+        result['state'] = adapter.get_attr(from, 'checked')
 
       if e.type == "attributes"
         attr_name = e.attributeName
@@ -125,11 +125,13 @@ class Sirius.Internal.Observer
 
       clb(result)
 
-    if watch_for == "text"
+    # how to handle
+
+    if watch_for == Sirius.Internal.DefaultProperty
       # text + input
 
-      if ONCHANGE_TAGS.indexOf(tag) != -1
-        logger.debug("It is not a #{ONCHANGE_TAGS}", logger.binding)
+      if INPUT_LIKE_TAGS.indexOf(tag) != -1
+        logger.debug("It is not a #{INPUT_LIKE_TAGS}", logger.binding)
         if BOOL_TYPES.indexOf(type) != -1 || tag == OPTION
           logger.debug("Get a #{type} & #{tag} element for bool elements", logger.binding)
           adapter.bind(document, from, O.Ev.change, handler)

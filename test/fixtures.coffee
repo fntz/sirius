@@ -7,9 +7,6 @@ adapter = if JQueryAdapter?
 
 Sirius.Application.adapter = adapter
 
-
-
-
 get_text = (element) ->
   adapter.text(element)
 
@@ -18,6 +15,12 @@ set_value = (element, text) ->
     jQuery(element).val(text)
   else
     document.querySelector(element).value = text
+
+set_check = (element, bool) ->
+  document.querySelector(element).checked = bool
+
+get_attr = (element, attr) ->
+  adapter.get_attr(element, attr)
 
 get_value = (element) ->
   document.querySelector(element).value
@@ -45,6 +48,17 @@ input_text = (element, value) ->
 
   _element.dispatchEvent(event)
 
+check_element = (element, should_be_checked) ->
+  set_check(element, should_be_checked)
+
+  _element = document.querySelector(element)
+
+  event = new Event('change', {
+    'bubbles': true,
+    'cancelable': true
+  })
+
+  _element.dispatchEvent(event)
 
 class MyModel extends Sirius.BaseModel
   @attrs: ["id", {title: "default title"}, "description"]
@@ -106,11 +120,6 @@ class ModelwithValidators extends Sirius.BaseModel
 
 
 
-class UModel extends Sirius.BaseModel
-  @attrs: ["id"]
-  @guid_for : "id"
-
-
 class TodoList extends Sirius.BaseModel
   @attrs: ["title", {completed: {}}, "id"]
   @guid_for : "id"
@@ -142,18 +151,6 @@ Controller0 =
 class SkipFieldsModel extends Sirius.BaseModel
   @attrs: ["id"]
   @skip : true
-
-
-class ComputedFieldModel extends Sirius.BaseModel
-  @attrs: ["first_name", "last_name"]
-  @comp("full_name", "first_name", "last_name")
-  @comp("full_name1", "first_name", "last_name", (f, l) -> "#{f}-#{l}")
-  @comp("full", "full_name", "full_name1")
-  @validate :
-    full_name:
-      length: min: 3, max: 7
-
-
 
 
 class MyTestIndexModel extends Sirius.BaseModel

@@ -2,7 +2,7 @@
 # private class
 class ComputedField
   # @fields array of string
-  # fn - function which compute result. By default joun
+  # fn - function which compute result. By default null
   constructor: (@main, @fields, @fn = null) ->
     @_count = @fields.length
     @_values = []
@@ -83,15 +83,15 @@ class Sirius.BaseModel
   ###
     the attributes for model.
 
-    When attribute defined as object, then key, will be a `attribute` and `value` it's default value for this `attribute`
+    Default values should be defined with object {key:value} pair. See example below
     @example
       @attrs: ["id", "title", {description : "Lorem ipsum ..."}]
-      //now, model attribute `description` have a default value "Lorem ipsum ..."
+      //now, the attribute `description` has a default value "Lorem ipsum ..."
   ###
   @attrs: []
 
   ###
-   Skip fields, when it not define in model
+   Skip fields, when they are not defined in model.
 
    @example
 
@@ -110,7 +110,7 @@ class Sirius.BaseModel
 
 
   ###
-    attribute name, for which generate guid
+    attribute name, guid will be generated for that field
     @example
        class Person extends
          @attrs: ["id", "name"]
@@ -119,11 +119,11 @@ class Sirius.BaseModel
   @guid_for: null
 
   ###
-    object, where keys, is a defined `@attrs` and values is a validator objects or function
+    object, where keys are defined `@attrs` and values are validator objects or function
 
     @note validator object, it's a default Validators @see Sirius.Validator
     @example
-       class ModelwithValidators extends Sirius.BaseModel
+       class ModelWithValidators extends Sirius.BaseModel
          @attrs: ["id", {title: "t"}, "description"]
          @validate :
            id:
@@ -132,7 +132,7 @@ class Sirius.BaseModel
              inclusion: within: [1..10]
              validate_with:  (value) ->
                if not condition ....
-                 @msg = .... #define a user friendly message
+                 @msg = .... # some user-friendly message
                else
                  true
 
@@ -146,7 +146,7 @@ class Sirius.BaseModel
 
   # save transformers for model
 
-  # last argument function
+  # last argument is a function
   #
   # usage:
   #
@@ -162,10 +162,10 @@ class Sirius.BaseModel
     @::_cmp_refs ||= {}
 
     if args.length == 0
-      throw new Exception("Compute field is empty")
+      throw new Error("Computed fields are empty")
     if args.length == 2
       txt = '@comp("default_computed_field", "first_name", "last_name")'
-      throw new Exception("Define compute field like: '#{txt}'")
+      throw new Error("Define compute field like: '#{txt}'")
 
     field = args[0]
     length = args.length
@@ -186,13 +186,16 @@ class Sirius.BaseModel
     _tmp = @attrs.concat(@::_cmp_fields)
     deps.forEach (f) ->
       if _tmp.indexOf(f) == -1
-        throw new Error("Field is '#{f}' not found, for '#{field}'")
+        throw new Error("Field '#{f}' was not found, for '#{field}'")
 
     # check cyclic references
+    # probably this part of code is unreachable, because I do not see how to make such properties
+    # because comp arguments should be defined one by one (no forward references)
+    # maybe I should make comp is lazy ?
     if @::_cmp_fields.length > 0
       r = deps.filter (f) => @::_cmp_refs[f] && @::_cmp_refs[f].indexOf(field) != -1
       if r.length > 0
-        throw new Error("Cyclic references detected in '#{field}' field")
+        throw new Error("Cyclic references were detected in '#{field}' field")
 
     Sirius.Application.get_logger()
     .info("Define compute field '#{field}' <- '[#{deps}]'",
@@ -201,8 +204,6 @@ class Sirius.BaseModel
     @::_cmp_refs[field] = deps
     @::_cmp_fields.push(field)
     @::_cmp.push(new ComputedField(field, xs, fn))
-
-
 
   # @nodoc
   attrs: () ->
@@ -222,7 +223,8 @@ class Sirius.BaseModel
 
   # @nodoc
   validators: () ->
-    @constructor.validate
+    @constructor.validate || {}
+
   # @nodoc
   guid_for: () ->
     tmp = @constructor.guid_for
@@ -236,7 +238,6 @@ class Sirius.BaseModel
     else
       []
 
-
   # @nodoc
   _compute: (field, value) ->
     self = @
@@ -246,9 +247,8 @@ class Sirius.BaseModel
         if cf.is_full() # progress
           self._set(cf.field_name() , r)
 
-
   #
-  #  Because models contain attributes as object, this method extract only keys
+  #  Because models can fit the attributes as an object, this method will fetch only keys
   #  attrs : [{"id" : 1}] => after normalization ["id"]
   #  @nodoc
   normalize_attrs: () ->
@@ -269,7 +269,7 @@ class Sirius.BaseModel
   #   my_model = new MyModel({name: "Abc"})
   #   my_model.get("name") # => Abc
   #
-  # @note Method generate properties for object from `@attrs` array.
+  # @note Method will generate properties for object from `@attrs` array.
   constructor: (obj = {}) ->
     # pre init
     @constructor::_cmp ||= []
@@ -277,42 +277,42 @@ class Sirius.BaseModel
 
     @_listeners = []
 
-
     @logger = Sirius.Application.get_logger()
-    # object, which contain all errors, which registers after validation
+    # save errors, which will be added after validation
     @errors = {}
     @attributes = @normalize_attrs()
     name = @constructor.name
     @errors = {}
-    @_is_valid_attr = {} # save pair attribute and validation state
-    attrs0 = @attrs()
+    @_is_valid_attr = {}     # save pair attribute and validation state
+    attrs0 = @attrs()        # from class body
 
     for attr in attrs0
       # @attrs: [{key: value}]
       @logger.info("define '#{JSON.stringify(attr)}' attribute for '#{name}'", @logger.base_model)
-      if Sirius.Utils.is_object(attr)
+      if Sirius.Utils.is_object(attr)    # {k: v}
         tmp = Object.keys(attr)
         key = tmp[0]
-        if !key
-          msg = "Attributes should have a key and value"
+        if tmp.length == 0               # empty object
+          msg = "@attrs must be defined as: '@attrs:['id', {'k':'v'}]'"
           @logger.error("#{msg}", @logger.base_model)
           throw new Error(msg)
+        # method uniques defined below
         @["_#{key}"] = attr[key]
         @_gen_method_name_for_attribute(key)
-      else
+      else                               # just a property
         @_gen_method_name_for_attribute(attr)
         @["_#{attr}"] = null
 
     skip = @constructor.skip
     attributes = @attributes
     # @attributes.indexOf(attr)
-    if Object.keys(obj).length != 0
-      for attr in Object.keys(obj)
-        if !(attributes.indexOf(attr) == -1 && skip)
-          @_attribute_present(attr)
-          oldvalue = @["_#{attr}"]
-          @["_#{attr}"] = obj[attr]
-          @_call_callbacks(attr, obj[attr], oldvalue)
+    # remove below line if...
+    for attr in Object.keys(obj)
+      if !(attributes.indexOf(attr) == -1 && skip)
+        @_attribute_present(attr)
+        oldvalue = @["_#{attr}"]
+        @["_#{attr}"] = obj[attr]
+        @_call_callbacks(attr, obj[attr], oldvalue)
 
 
     for g in @guid_for()
@@ -320,16 +320,34 @@ class Sirius.BaseModel
       @set(g, @_generate_guid())
 
     # need define validators key
-    @_registered_validators = @constructor._Validators
-    @_registered_validators_keys = @_registered_validators.map((arr) -> arr[0])
+    @_registered_validators = @constructor._Validators # @see register_validator
+    @_registered_validators_keys = @_registered_validators.map((arr) -> arr[0]) # Object.keys todo
     @_model_validators = @validators()
-    for key, value of @_model_validators
+    @_applicable_validators = {}
+    for key, value of @_model_validators       # like: `id: length: min: 3, max: 7}`, k: id, v: ...
       @errors[key] = {}
       @_is_valid_attr[key] = false
-      for validator_name, validator of value
-        if @_registered_validators_keys.indexOf(validator_name) == -1 && validator_name != 'validate_with'
-          throw new Error("Unregistered validator: #{validator_name}")
+      for validator_name, validator_properties of value
+        validator = @_registered_validators[validator_name]
+        if @_registered_validators_keys.indexOf(validator_name) == -1 && validator_name != Sirius.Validator.ValidateWith
+          throw new Error("Unregistered validator: '#{validator_name}'")
 
+        if validator_name is Sirius.Validator.ValidateWith && !Sirius.Utils.is_function(validator_properties)
+          throw new Error("Validator for attribute: '#{key}.#{validator_name}' should be a function, #{typeof(validator_properties)} given")
+
+        [name, klass] = if validator_name == Sirius.Validator.ValidateWith
+          custom_validator = new Sirius.Validator()
+          custom_validator.validate = validator_properties
+          custom_validator.msg = null
+          [Sirius.Validator.ValidateWith, custom_validator]
+        else
+          custom_validator = @_registered_validators.filter((arr) -> arr[0] == validator_name)[0][1]
+          [validator_name, new custom_validator()]
+
+        # attribute: {validator_key: validator_instance}
+        tmp = @_applicable_validators[key] || {}
+        tmp[name] = klass
+        @_applicable_validators[key] = tmp
 
     @after_create()
 
@@ -338,7 +356,7 @@ class Sirius.BaseModel
   # "key-1" -> key_1
   _gen_method_name_for_attribute: (attribute) ->
     normalize_name = Sirius.Utils.underscore(attribute)
-    throw new Error("Method #{normalize_name} already exist") if Object.keys(@).indexOf(normalize_name) != -1
+    throw new Error("Method '#{normalize_name}' already exist") if Object.keys(@).indexOf(normalize_name) != -1
     @[normalize_name] = (value) =>
       if value?
         @set(attribute, value)
@@ -353,9 +371,7 @@ class Sirius.BaseModel
     s4 = () -> Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1)
     "#{s4()}#{s4()}-#{s4()}-#{s4()}-#{s4()}-#{s4()}#{s4()}#{s4()}"
 
-  #
-  #
-  # @return [Array] - return all attributes for current model
+  # @return [Array] - return all attributes for the model
   get_attributes: () ->
     @attributes
 
@@ -389,10 +405,10 @@ class Sirius.BaseModel
   # @return [Void]
   set: (attr, value) ->
     if @_is_computed_attribute(attr)
-      throw new Error("Impossible set computed attribute #{attr} for #{@_klass_name()}")
+      throw new Error("Impossible set computed attribute '#{attr}' in '#{@_klass_name()}'")
+
 
     @_set(attr, value)
-
 
   _set: (attr, value) ->
     @_attribute_present(attr)
@@ -401,7 +417,7 @@ class Sirius.BaseModel
 
     @["_#{attr}"] = value
 
-    @logger.debug("[#{@constructor.name}] set: 'attr' to '#{value}'", @logger.base_model)
+    @logger.debug("[#{@constructor.name}] set: '#{attr}' to '#{value}'", @logger.base_model)
 
     @validate(attr)
     @_compute(attr, value)
@@ -419,30 +435,34 @@ class Sirius.BaseModel
 
   # reset all attributes and validators in initial state
   # @param [String...] - attributes for reset, by default reset all attributes
-  # for string into ""
-  # for num into 0
-  # for array into []
+  # set every attribute to null
   # fixme default attributes
   # @return [Void]
   reset: (args...) ->
-    attrs = @attributes
-    @logger.debug("Reset attributes: '#{args}' for #{@_klass_name()}")
-    for attr in args
-      throw new Error("Attribute '#{attr}' not found for #{@_klass_name()} model") if attrs.indexOf(attr) == -1
-      key = "_#{attr}"
-      if typeof(@[key]) is 'number'
-        @[key] = 0
-      if Sirius.Utils.is_string(@[key])
-        @[key] = ""
-      if Sirius.Utils.is_array(@[key])
-        @[key] = []
-      if @errors[key]?
-        @errors[key] = {}
+    tmp = if args? && args.length != 0
+      args
+    else
+      @attrs()
+    @logger.debug("Reset attributes: '#{tmp.join(",")}' for #{@_klass_name()}")
+    for attr in tmp
+      @set(attr, null)
+      if @errors[attr]?
+        @errors[attr] = {}
 
     return
 
+  # @private
+  # @nodoc
+  _is_valid_validator: (str) -> # id.numericality
+    tmp = str.split(".")
+    if tmp.length == 2 # @_applicable_validators: {id: {presence: ..., numericality: ...}
+      [attribute, validator_key] = tmp
+      @_applicable_validators[attribute]? && @_applicable_validators[attribute][validator_key]?
 
-  # Check, if model instance valid
+    else
+      false
+
+  # Check, if model instance is valid
   # @return [Boolean] true, when is valid, otherwise false
   is_valid: () ->
     Object.keys(@_is_valid_attr).filter((key) => !@_is_valid_attr[key]).length == 0
@@ -453,41 +473,35 @@ class Sirius.BaseModel
     model = @_klass_name()
     logger = @logger
     ln = @logger.base_model
-    Object.keys(@_model_validators || {}).filter(
-      (key) ->
-        if field?
-          key == field
-        else
-          true
-    ).map((key) => # key is a current attribute
+
+    all_validators = Object.keys(@_model_validators || {})
+
+    xs = if field?
+      all_validators.filter((key) -> key == field)
+    else
+      all_validators
+
+    for key in xs
       current_value = @get(key)
-      value = @_model_validators[key]
+      applicable_validators = @_model_validators[key]               # validators for the attribute
 
-      for validator_key, validator_value of value
-        klass = if validator_key is "validate_with"
-          z = new Sirius.Validator()
-          z.validate = validator_value
-          z.msg = null
-          z
-        else
-          z = @_registered_validators.filter((arr) -> arr[0] == validator_key)[0][1]
-          new z()
+      # length: max: 3 <- !
+      for validator_key, validator_properties of applicable_validators
+        validator_instance = @_applicable_validators[key][validator_key]
+        validation_result = validator_instance.validate(current_value, validator_properties)
 
-        result = klass.validate(current_value, validator_value)
+        logger.debug("Validate: '#{model}.#{key} = #{current_value}' with '#{validator_key}' validator, valid?: '#{validation_result}'", ln)
 
-        logger.debug("Validate: '#{model}.#{key} = #{current_value}' with '#{validator_key}' validator, valid?: '#{result}'", ln)
-
-        message = if !result # when `validate` return false
-          @errors[key][validator_key] = klass.error_message()
+        message = unless validation_result # when `validate` return false
+          @errors[key][validator_key] = validator_instance.error_message()
           @_is_valid_attr[key] = false
-          klass.error_message()
-        else #when true, then need set null for error
+          validator_instance.error_message()
+        else                             #when true, then need set null for error
           delete @errors[key][validator_key]
           @_is_valid_attr[key] = true
           ""
+        # ? is it need? or only fail-flow
         @_call_callbacks_for_errors(key, validator_key, message)
-    )
-
 
     return
 
@@ -495,10 +509,8 @@ class Sirius.BaseModel
   # otherwise return array with errors for give field
   # @return [Object|Array] - return object with errors for current model
   get_errors: (attr = null) ->
-    if @attributes.indexOf(attr) == -1 && attr != null
-      throw new Error("Attribute '#{attr}' not found for #{@_klass_name()} model")
-
     if attr?
+      @_attribute_present(attr)
       result = []
       for key, value of @errors[attr]
         if value != ""
@@ -519,9 +531,13 @@ class Sirius.BaseModel
   set_error: (error, txt) ->
     keys = error.split(".")
     if keys.length != 2
-      throw new Error("Error must be pass as 'attr.validator' like 'name.length'")
+      throw new Error("Message must be pass as 'attr.validator' like 'name.length'")
 
     [key, validator_key] = keys
+
+    unless @_applicable_validators[key][validator_key]?
+      throw new Error("Unexpected key: '#{validator_key}' for '#{key}' attribute")
+
     @errors[key][validator_key] = txt
     @_is_valid_attr[key] = false
     @_call_callbacks_for_errors(key, validator_key, txt)
@@ -617,6 +633,8 @@ class Sirius.BaseModel
   clone: () ->
     @constructor.from_json(@to_json())
 
+  # @private
+  # @nodoc
   # Sirius.ToViewTransformer
   _register_state_listener: (transformer) ->
     @logger.debug("Register new listener for #{@constructor.name}", @logger.base_model)
@@ -628,33 +646,36 @@ class Sirius.BaseModel
       if @["_#{attr}"] isnt null
         transformer.apply(null, [attr, @["_#{attr}"]])
 
-  pipe: (func, via = {}) ->
+  #  @alias `bind`
+  pipe: (output, materializer = {}) ->
     # TODO default attributes
-    t = new Sirius.Transformer(@, func)
-    t.run(via)
+    t = new Sirius.Transformer(@, output)
+    t.run(materializer)
 
     return
 
-  bind: (func, via = {}) ->
-    @pipe(func, via)
+  # @param [Function] - binding function
+  # @param [Object]   - pet-attribute transformation description
+  bind: (output, materializer = {}) ->
+    @pipe(output, materializer)
   
   # Register pair - name and class for validate
   # @param [String] - validator name
-  # @param [T <: Sirius.Validator] - class which extend Sirius.Validator
+  # @param [T <: Sirius.Validator] - class which extends Sirius.Validator
   #
   # @example
   #
   #   class MyValidator extends Sirius.Validator
   #     validate: (value, attributes) ->
   #       if value.length != 3
-  #         @msg = "Error, #{value} must be have length 3, #{value.length} given"
+  #         @msg = "Error, #{value} must have length 3, #{value.length} given"
   #         false
   #       else
   #         true
   #
   #   Sirius.BaseModel.register_validator('my_validator' MyValidator)
   #
-  #   # then in you model
+  #   # then in your model
   #   class MyModel extends Sirius.BaseModel
   #     @attrs: ['name']
   #     @validate:
@@ -668,6 +689,7 @@ class Sirius.BaseModel
     @_Validators.push([name, klass])
     null
 
+# todo move to app code ?
 Sirius.BaseModel.register_validator("length", Sirius.LengthValidator)
 Sirius.BaseModel.register_validator("exclusion", Sirius.ExclusionValidator)
 Sirius.BaseModel.register_validator("inclusion", Sirius.InclusionValidator)

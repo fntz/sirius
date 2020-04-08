@@ -22,14 +22,6 @@ class JQueryAdapter extends Adapter
   get_property: (event, properties) ->
     for p in properties then jQuery(event.target).attr(p)
 
-  swap: (element, content) ->
-    tag = @get_attr(element, 'tagName')
-    if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
-      jQuery(element).val(content)
-    else
-      jQuery(element).text(content)
-    return
-
   get_attr: (element, attr) ->
     if attr.indexOf('data') == 0
       attr = attr.replace("data-", "")
@@ -44,9 +36,6 @@ class JQueryAdapter extends Adapter
       jQuery(element).data(attr.replace("data-", ""), value)
     return
 
-  set_prop: (element, prop, value) ->
-    jQuery(element).prop(prop, value)
-
   append: (element, content) ->
     jQuery(element).append(content)
     return
@@ -57,6 +46,14 @@ class JQueryAdapter extends Adapter
 
   clear: (element) ->
     jQuery(element).text("")
+    return
+
+  swap: (element, content) ->
+    tag = @get_attr(element, 'tagName')
+    if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
+      jQuery(element).val(content)
+    else
+      jQuery(element).text(content)
     return
 
   text: (element) ->
@@ -71,6 +68,3 @@ class JQueryAdapter extends Adapter
       jQuery(element).find("option:selected").val()
     else
       jQuery(element).text()
-
-  get_state: (element) ->
-    jQuery(element).prop('checked')

@@ -16,49 +16,92 @@
 
 
 <div id="views">
-  <input type='text' id='txt' class="input-class" data-name="input" value="default" />
-  <select id="views-select">
-    <option value="val1">1</option>
-    <option value="val2">2</option>
-    <option value="val3">3</option>
-  </select>
-  <div id="content"></div>
-</div>
+  <div id="view-custom-transform"></div>
 
+  <div id="view-events"></div>
 
-
-<div id="view2model_spec">
-  <input type="text" name="model-name" />
-  <div class="view2model_spec-div" data-name="empty"></div>
-</div>
-
-<div id="model2view_spec">
-  <input type="text" name="model-name" />
-  <div class="model2view_spec-text"></div>
-  <div class="model2view_spec-data-name"></div>
-</div>
-
-<div id="view2view_spec">
-  <div id="input2input">
-    <input type="text" name="input-1">
-    <input type="text" name="input-2">
+  <div id="zoom-test">
+    <span class="zoom-class"></span>
   </div>
-  <div id="input2attribute">
-    <input type="text" name="input-1">
-    <input type="text" name="input-2" data-name="foo">
+
+  <div id="append-view">
+    <input value="test"/>
+    <select>
+      <option>123</option>
+    </select>
+    <textarea>123</textarea>
+    <span>123</span>
   </div>
-  <div id="attribute2attribute">
-    <input type="text" name="input-1" data-attr="foo">
-    <input type="text" name="input-2" data-attr="foo">
+
+  <div id="prepend-view">
+    <input value="test"/>
+    <select>
+      <option>123</option>
+    </select>
+    <textarea>123</textarea>
+    <span>123</span>
   </div>
-  <div id="attribute2text">
-    <input type="text" name="input-1" data-attr="foo">
-    <input type="text" name="input-2">
+
+  <div id="swap-view">
+    <span class="swap-text">123</span>
+    <span class="swap-data" data-name="swap-data">123</span>
+    <input class="swap-checkbox" type="checkbox" value="swap-checkbox" checked>
   </div>
+
+  <div id="clear-view">
+    <span>clear</span>
+  </div>
+
 </div>
 
 <div id="view2function">
   <input type="text" name="email"/>
+  <input type="checkbox" name="checkbox" value="checkbox" />
+</div>
+
+<div id="model2view">
+  <input name="output-foo" />
+  <span class="output-foo"></span>
+  <span class="output-validation-foo"></span>
+</div>
+
+<div id="view2view">
+  <input name="source" />
+  <div class="mirror">
+    <span class="mirror1"></span>
+    <span class="mirror-attr1"></span>
+  </div>
+</div>
+
+<div id="view2model">
+  <input name="source"/>
+  <input name="bool-source" type="checkbox"/>
+</div>
+
+<div id="adapter">
+  <span class="adapter-class"></span>
+  <span class="adapter-class"></span>
+  <span class="another-adapter-class">boom</span>
+
+  <span class="get-attr second-class-attr" data-test="boom"></span>
+  <input class="input-attr" value="test" />
+
+  <input class="checkbox1" value="test" checked/>
+  <input class="checkbox2" value="test" />
+
+  <input class="input-attr-text" value="test" />
+
+  <select class="select1">
+    <option value="1">1</option>
+    <option value="10">10</option>
+  </select>
+
+  <select class="select2">
+    <option value="1">1</option>
+    <option value="10" selected>10</option>
+  </select>
+
+  <input name="adapter-attr" type="checkbox" />
 </div>
 
 <script type="text/javascript" src="../vendor/bililiteRange.js"></script>
@@ -80,11 +123,10 @@
 <script type="text/javascript" src="specs/compile/validation_spec.js"></script>
 <script type="text/javascript" src="specs/compile/control_flow_spec.js"></script>
 <script type="text/javascript" src="specs/compile/base_model_spec.js"></script>
-<script type="text/javascript" src="specs/compile/view2view_spec.js"></script>
-<script type="text/javascript" src="specs/compile/model2view_spec.js"></script>
-<script type="text/javascript" src="specs/compile/view_or_model_to_function_spec.js"></script>
 <script type="text/javascript" src="specs/compile/views_spec.js"></script>
 <script type="text/javascript" src="specs/compile/routing_spec.js"></script>
+<script type="text/javascript" src="specs/compile/adapter_specs.js"></script>
+<script type="text/javascript" src="specs/compile/transformations_specs.js"></script>
 
 </body>
 </html>

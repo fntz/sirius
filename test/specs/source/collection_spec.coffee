@@ -1,5 +1,49 @@
 describe "Collections", ->
 
+  it "fail when index field are not exist", ->
+    expect(() ->
+      new Sirius.Collection(MyModel, {index: ["foo"]})
+    ).toThrowError()
+
+  it "fail when we try to add incorrect model", ->
+    collection = new Sirius.Collection(MyModel)
+
+    expect(() ->
+      collection.add("test")
+    ).toThrowError("Require 'MyModel', but given 'String'")
+
+    expect(() -> collection.add(new MyModel0()))
+      .toThrowError("Require 'MyModel', but given 'MyModel0'")
+
+    expect( () -> collection.add(null))
+      .toThrowError("'MyModel' should not be null")
+
+  it "fails with subscribe", ->
+    collection = new Sirius.Collection(MyModel)
+    expect(() ->
+      collection.subscribe("boom", "asd")
+    ).toThrowError()
+
+    expect(() ->
+      collection.subscribe("add", 1)
+    ).toThrowError()
+
+
+  it "subscribe checks", ->
+    is_remove_called = false
+    is_add_called = true
+    collection = new Sirius.Collection(MyModel)
+    collection.subscribe('add', (e) -> is_add_called = true)
+    collection.subscribe('remove', (e) -> is_remove_called = true)
+
+    m = new MyModel()
+    collection.add(m)
+    collection.remove(m)
+
+    expect(is_add_called).toBeTrue()
+    expect(is_remove_called).toBeTrue()
+
+
   it "base methods", ->
     model = new MyModel({id: 10})
 
@@ -16,6 +60,7 @@ describe "Collections", ->
     mc = new Sirius.Collection(MyModel, [], options)
 
     expect(mc.size()).toEqual(0)
+    expect(mc.length).toEqual(0)
     expect(mc.find("id", 10)).toBeNull()
     expect(mc.find_all("id", 10)).toEqual([])
 

@@ -31,10 +31,13 @@ class Sirius.Logger
       "Transformer"
     ]
 
+  ###
+    Check if given string is valid log level
+  ###
   @is_valid_level: (str) ->
     (Sirius.Logger.Levels.filter (x) -> x.get_value() == str).length != 0
 
-  # @param [Boolean] - true, when log enabled
+  # @param [Boolean] - true, if log is enabled
   # @param [LogLevel] - minimum level
   # @param [Function] - logger function for application
   constructor: (log_enabled, minimum_log_level, filters, logger_function) ->

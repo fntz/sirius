@@ -1,13 +1,14 @@
 
-# Class which represent Views for Application
-# Fluent interface for manipulate views
+# Views representation for an Application
+# Fluent interface for manipulating views
+# From high-view views are wrapper around html-document with a few convenient methods
 #
-# @note By default this function mark elements with id
+# @note By default the function mark elements with id
 #
 # @example:
 #
 #   myView = new Sirius.View("body", (content) -> "<div>#{content}</div>"
-#   # in controller
+#   # in a controller
 #   myView.render(results_from_ajax_to_html).swap() # change body content
 #
 #   myView.clear().render('results')
@@ -16,7 +17,7 @@
 #
 class Sirius.View
 
-  name: () -> 'View' # define name, because `constructor.name` not works in IE
+  name: () -> 'View' # define name, because `constructor.name` does not works in IE
 
   # contain all strategies for view
   @_Strategies = []
@@ -30,19 +31,19 @@ class Sirius.View
     eq: (another) ->
       @selector == another.selector and
       @event_name == another.event_name and
-      # last arguments is a function
+      # last argument should be a function
       @custom_event_name.toString == another.custom_event_name.toString
 
-
-  # @param [String] - selector for element
+  # @param [String]   - selector for element
   # @param [Function] - transform function for new content
   #
   constructor: (@element, @clb = (txt) -> txt) ->
     element = @element
     clb = @clb
+
+    # one per on element
     view = Sirius.View._Cache.filter (v) ->
       v.element == element && "#{v.clb}" == "#{clb}"
-
 
     if view.length != 0
       return view[0]
@@ -58,16 +59,15 @@ class Sirius.View
 
     for strategy in @constructor._Strategies
       do(strategy) =>
-        name = strategy[0]
-        @logger.debug("Define #{name} strategy", @logger.view)
-        transform = strategy[1]
-        render = strategy[2]
+        [name, transform, render] = strategy
+        @logger.debug("Define '#{name}' strategy", @logger.view)
         @[name] = (attribute = "text") =>
           # @render already called
           # and we have @_result
           result = @_result
           element = @element
-          @logger.debug("Start processing strategy for #{element}", @logger.view)
+          # TODO get element identifier or toString somehow
+          @logger.debug("Start processing strategy for the #{element}", @logger.view)
           Sirius.Application.get_adapter().and_then (adapter) ->
             # need extract old value
             oldvalue = if attribute is 'text'
@@ -83,13 +83,16 @@ class Sirius.View
   get_element: () ->
     @element
 
+  # internal method for binding only
+  # @private
+  # @nodoc
   _register_state_listener: (clb) ->
-    @logger.debug("Register new listener for element: #{@get_element}", @logger.view)
+    @logger.debug("Register new listener for element: #{@get_element()}", @logger.view)
     @_listeners.push(clb)
 
   # compile function
-  # @param [Array] with arguments, which pass into transform function
-  # By default transform function take arguments and return it `(x) -> x`
+  # @param [Array] of arguments, which will be passed into `transform` function
+  # By default transform function take arguments and return it `(x) -> x` (identity)
   # @return [Sirius.View]
   render: (args...) ->
     @logger.debug("Call render for #{args}", @logger.view)
@@ -97,11 +100,16 @@ class Sirius.View
     @
 
   #
-  # call strategy on inner element
+  # call strategy on an inner element
   # @param [String] - inner element selector
   # @example
   #   //coffee
+  #   # <div id="some-view"><span class="inner-element"></span>
+  #   v = new Sirius.View("#some-view")
   #   v.render("new-class").zoom(".inner-element").swap('class')
+  #
+  #   # result is:
+  #   # <div id="some-view"><span class="new-class"></span>
   zoom: (selector) ->
     v = if selector == @element
       @
@@ -114,10 +122,10 @@ class Sirius.View
   #
   # @param [String] - selector in element
   # @param [String] - event name
-  # @param [String] - custom event name, which will be fired on event name
-  # @param [Array]  - parameters which will be pass into method for custom event name
-  # @note  First param for bind method is an Custom Event
-  # @note  Second param for bind method is an Original Event
+  # @param [String] - custom event name, which will be fired on the event name
+  # @param [Array]  - arguments will be pass into method for custom event name
+  # @note  First parameter for bind method is a Custom Event
+  # @note  Second parameter for bind method is an Original Event
   # @example
   #    //html
   #    <div id="my-div">
@@ -132,7 +140,7 @@ class Sirius.View
   #
   #    routes =
   #      "button:click": (custom_event, original_event, p1, p2, p3) ->
-  #         # you code
+  #         # your code
   on: (selector, event_name, custom_event_name, params...) ->
     selector = if selector == @element
       selector
@@ -144,7 +152,7 @@ class Sirius.View
     else if Sirius.Utils.is_function(custom_event_name)
       1
     else
-      throw new Error("View: 'custom_event_name' must be string or function, #{typeof(custom_event_name)} given")
+      throw new Error("View: 'custom_event_name' must be string or function, '#{typeof(custom_event_name)}' given")
 
     current = new EventHandlerParams(selector, event_name, custom_event_name)
 
@@ -206,14 +214,17 @@ class Sirius.View
   @is_valid_strategy: (s) ->
     @_Strategies.filter((arr) -> arr[0] == s).length != 0
 
-  bind: (output, via) ->
-    @pipe(output, via)
 
-  pipe: (output, via) ->
+  #  @alias `bind`
+  pipe: (output, materializer) ->
+    @bind(output, materializer)
+
+  bind: (output, materializer) ->
     t = new Sirius.Transformer(@, output)
-    t.run(via)
+    t.run(materializer)
 
     return
+
 
 
 # Register new strategy for View
@@ -251,24 +262,24 @@ class Sirius.View
     transform = object.transform
     render = object.render
     if !Sirius.Utils.is_function(transform)
-      msg = "Strategy must be Function, but #{typeof transform} given."
+      msg = "Strategy 'transform' must be a function, but #{typeof transform} given"
       logger.error("View: #{msg}", logger.view)
       throw new Error(msg)
 
     if !Sirius.Utils.is_function(render)
-      msg = "Strategy must be Function, but #{typeof render} given."
+      msg = "Strategy 'render' must be a function, but #{typeof render} given"
       logger.error("View: #{msg}", logger.view)
       throw new Error(msg)
 
     if !Sirius.Utils.is_string(name)
-      msg = "Strategy name must be String, but #{typeof name} given."
+      msg = "Strategy 'name' must be a string, but #{typeof name} given"
       logger.error("View: #{msg}", logger.view)
       throw new Error(msg)
 
     @_Strategies.push([name, transform, render])
     null
 
-
+# TODO: call in the application: run ?
 Sirius.View.register_strategy('swap',
   transform: (oldvalue, newvalue) -> "#{newvalue}"
   render: (adapter, element, result, attribute) ->
@@ -285,7 +296,7 @@ Sirius.View.register_strategy('swap',
         else
           !!result
 
-        adapter.set_prop(element, 'checked', r)
+        adapter.set_attr(element, 'checked', r)
       else
         adapter.set_attr(element, attribute, result)
 )
@@ -295,12 +306,12 @@ Sirius.View.register_strategy('append',
   render: (adapter, element, result, attribute) ->
     tag = adapter.get_attr(element, 'tagName')
     if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
-      throw new Error("'append' strategy not work for `input` or `textarea` or `select` elements")
+      throw new Error("'append' strategy does not work for `input` or `textarea` or `select` elements")
 
     if attribute == 'text'
       adapter.append(element, result)
     else
-      throw new Error("Strategy 'append' only work for 'text' content, not for '#{attribute}'")
+      throw new Error("Strategy 'append' works only for 'text' content, your call with attribute:'#{attribute}'")
 )
 
 Sirius.View.register_strategy('prepend',
@@ -308,12 +319,12 @@ Sirius.View.register_strategy('prepend',
   render: (adapter, element, result, attribute) ->
     tag = adapter.get_attr(element, 'tagName')
     if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
-      throw new Error("'prepend' strategy not work for `input` or `textarea` or `select` elements")
+      throw new Error("'prepend' strategy does not work for `input` or `textarea` or `select` elements")
 
     if attribute == 'text'
       adapter.prepend(element, result)
     else
-      throw new Error("Strategy 'prepend' only work for 'text' content, not for '#{attribute}'")
+      throw new Error("Strategy 'prepend' works only for 'text' content, your call with attribute:'#{attribute}'")
 )
 
 Sirius.View.register_strategy('clear',
