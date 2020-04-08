@@ -68,6 +68,3 @@ class JQueryAdapter extends Adapter
       jQuery(element).find("option:selected").val()
     else
       jQuery(element).text()
-
-  get_state: (element) ->
-    jQuery(element).prop('checked')

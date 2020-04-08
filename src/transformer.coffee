@@ -189,7 +189,7 @@ class Sirius.Internal.ToModelTransformer extends Sirius.Internal.AbstractTransfo
         materializer = value['with'] || ((value) -> value)
         logger.debug("Apply new value from #{result.from} (#{result.original}) to #{model._klass_name()}.#{to}", ln)
         # result, view, selector, attribute, element
-        model.set(to, materializer(result.text, view, result.original, from, result.element))
+        model.set(to, materializer(result.text || result.state, view, result.original, from, result.element))
 
     callback
 

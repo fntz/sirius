@@ -106,6 +106,3 @@ class PrototypeAdapter extends Adapter
         elem.innerText
       else
         elem.textContent
-
-  get_state: (element) ->
-    @_get_element_from_selector(element).checked

@@ -255,8 +255,6 @@ describe "Transformations", ->
         "input[name='bool-source']": {
           to: "is_checked"
           from: "checked"
-          with: (value) ->
-            value == "on"
         }
       })
       check_element("#{rootElement} input[name='bool-source']", true)

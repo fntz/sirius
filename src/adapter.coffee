@@ -77,5 +77,3 @@ class Adapter
   # first from selector
   get: (selector) ->
     document.querySelector(selector)
-
-  state: (selector) ->

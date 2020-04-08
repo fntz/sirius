@@ -50,7 +50,7 @@ class Sirius.Internal.Observer
 
 
   @TextEvents = [@Ev.input, @Ev.childList,
-                 @Ev.change, @Ev.DOMNodeInserted,
+                 @Ev.DOMNodeInserted,
                  @Ev.selectionchange]
 
   @is_text_event: (e) -> @TextEvents.indexOf(e.type) != -1
@@ -104,7 +104,7 @@ class Sirius.Internal.Observer
         current_value = txt
 
       if e.type == O.Ev.change # get a state for input enable or disable
-        result['state'] = adapter.get_state(from)
+        result['state'] = adapter.get_attr(from, 'checked')
 
       if e.type == "attributes"
         attr_name = e.attributeName

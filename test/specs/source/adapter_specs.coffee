@@ -35,17 +35,14 @@ describe "Adapter", ->
       adapter.set_attr("#adapter .checkbox2", "checked", true)
       expect(adapter.get_attr("#adapter .checkbox2", "checked")).toEqual(true)
 
-
-  describe "#swap", ->
-    it "in the text", ->
-
-    it "in the class", ->
-
-    it "in the data", ->
-
-    it "in the checkbox", ->
-
-    it "in the input/value", ->
+  describe "get_attr", ->
+    it "from checkbox", ->
+      element = "#adapter input[name='adapter-attr']"
+      expect(adapter.get_attr(element, "checked")).toBeFalse()
+      check_element(element, true)
+      expect(adapter.get_attr(element, "checked")).toBeTrue()
+      check_element(element, false)
+      expect(adapter.get_attr(element, "checked")).toBeFalse()
 
 
   describe "#text", ->
