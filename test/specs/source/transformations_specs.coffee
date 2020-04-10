@@ -306,11 +306,11 @@ describe "Transformations", ->
         given = result['text']
 
 
-      materializer = Sirius.Transformer.draw({
+      materializer = {
         "#{inputElement}": {
           from: 'text'
         }
-      })
+      }
       view.pipe(func, materializer)
 
       input_text("#{rootElement} #{inputElement}", expected)
@@ -326,11 +326,11 @@ describe "Transformations", ->
       func = (result, view, logger) ->
         given = result['state']
 
-      materializer = Sirius.Transformer.draw({
+      materializer = {
         "#{inputCheckbox}": {
           from: 'text'
         }
-      })
+      }
       view.pipe(func, materializer)
 
       check_element("#{rootElement} #{inputCheckbox}", true)
@@ -347,11 +347,11 @@ describe "Transformations", ->
       func = (result, view, logger) ->
         given.push(result['attribute'], result['text'])
 
-      materializer = Sirius.Transformer.draw({
+      materializer = {
         "#{inputElement}": {
           from: 'class'
         }
-      })
+      }
       view.pipe(func, materializer)
 
       adapter.set_attr("#{rootElement} #{inputElement}", "class", expected)
