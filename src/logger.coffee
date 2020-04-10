@@ -7,7 +7,7 @@ class Sirius.Logger
     constructor: (@value, @weight) ->
 
     gte: (other) ->
-      other >= @weight
+      @weight >= other.weight
 
     get_value: () -> @value
 
@@ -19,17 +19,17 @@ class Sirius.Logger
 
   @Levels = [@Debug, @Info, @Warn, @Error]
 
-  @Filters = [
-      "BaseModel"
-      "Binding"
-      "Collection"
-      "View"
-      "Routing"
-      "Application"
-      "Redirect"
-      "Validation"
-      "Transformer"
-    ]
+  # @private
+  # @nodoc
+  @_get_logger_from_input: (str) ->
+    return @Debug unless str?
+    return @Debug unless Sirius.Utils.is_string(str)
+
+    maybe = @Levels.filter((x) => x.get_value() == str.toLowerCase())
+    if maybe && maybe.length == 0
+      @Debug
+    else
+      maybe[0]
 
   ###
     Check if given string is valid log level
@@ -40,25 +40,14 @@ class Sirius.Logger
   # @param [Boolean] - true, if log is enabled
   # @param [LogLevel] - minimum level
   # @param [Function] - logger function for application
-  constructor: (log_enabled, minimum_log_level, filters, logger_function) ->
-    pre_filters = Sirius.Logger.Filters
-
-    # define alias like @logger.application
-    for f in pre_filters
-      @[Sirius.Utils.underscore(f).toLowerCase()] = f
-
+  constructor: (log_enabled, log_source, minimum_log_level, logger_function) ->
     for level in Sirius.Logger.Levels
       do(level) =>
-        @[level.get_value()] = (msg, location) ->
+        value = level.get_value()
+        @[value] = (msg) ->
           if log_enabled
             if level.gte(minimum_log_level)
-              # need print only in filter or user
-              unless location # => user log
-                logger_function(level.toUpperCase(), msg)
-              else
-                if filters.indexOf(location) != -1 || (!location? || pre_filters.indexOf(location) == -1)
-                  msg = "[#{location.toUpperCase()}] #{msg}"
-                  logger_function(level.toUpperCase(), msg)
+              logger_function(value.toUpperCase(), log_source, msg)
 
 
 

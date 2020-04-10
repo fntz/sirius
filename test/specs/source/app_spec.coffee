@@ -1,63 +1,85 @@
-AppSpecController =
-  message: false
-  action: () ->
-    try
-      logger.info("test")
-      @message = true
-    catch e
-      #ignore
-
-  is_logger_available: () ->
-    @message
-
 describe "Application", ->
-  it "should log, when log is enabled", ->
+  warn = "warn"
+  debug = "debug"
+  error = "error"
+  info = "info"
+  available = [warn, debug, error, info]
+
+
+  it "should log, when log is enabled", (done) ->
     queue = []
-    Sirius.Application.run
+    options =
       enable_logging: true
-        logger: (level, message) ->
-          queue.push("#{level}:#{message}")
+      log_to: (level, log_source, message) ->
+        if available.indexOf(message) != -1
+          queue.push(message)
 
-    logger = Sirius.Application.get_logger()
+    logger = Sirius.Application._initialize(options).logger
+
     logger.warn("warn")
     logger.debug("debug")
     logger.error("error")
     logger.info("info")
-    expect(queue, ["warn", "debug", "error", "info"])
 
-  it "should ignore logs, when log is disabled", ->
+    setTimeout(
+      () ->
+        expect(queue).toEqual(["warn", "debug", "error", "info"])
+        done()
+      1000
+    )
+
+
+
+  it "should ignore logs, when log is disabled", (done) ->
     queue = []
-    Sirius.Application.run
+    options =
       enable_logging: false
-      logger: (level, message) ->
-        queue.push("#{level}:#{message}")
+      log_to: (level, log_source, message) ->
+        if available.indexOf(message) != -1
+          queue.push(message)
 
-    logger = Sirius.Application.get_logger()
+    logger = Sirius.Application._initialize(options).logger
+
     logger.warn("warn")
     logger.debug("debug")
     logger.error("error")
     logger.info("info")
-    expect(queue, [])
+    setTimeout(
+      () ->
+        expect(queue).toEqual([])
+        done()
+      1000
+    )
 
-  it "should use log level", ->
+
+  it "should use log level", (done) ->
     queue = []
-    Sirius.Application.run
+    options =
       enable_logging: true
       minimum_log_level: "warn"
-      logger: (level, message) ->
-        queue.push("#{level}:#{message}")
+      log_to: (level, log_source, message) ->
+        if available.indexOf(message) != -1
+          queue.push(message)
 
-    logger = Sirius.Application.get_logger()
+    logger = Sirius.Application._initialize(options).logger
+
     logger.warn("warn")
     logger.debug("debug")
     logger.error("error")
     logger.info("info")
-    expect(queue, ["warn", "error"])
+    setTimeout(
+      () ->
+        expect(queue).toEqual(["warn", "error"])
+        done()
+      1000
+    )
+
 
   it "should fail if log level are not valid", ->
     expect(() ->
-      Sirius.Application.run
+      options =
         enable_logging: true
         minimum_log_level: "asd"
+      Sirius.Application.run options
     ).toThrowError()
 

@@ -197,9 +197,8 @@ class Sirius.BaseModel
       if r.length > 0
         throw new Error("Cyclic references were detected in '#{field}' field")
 
-    Sirius.Application.get_logger()
-    .info("Define compute field '#{field}' <- '[#{deps}]'",
-      Sirius.Application.get_logger().base_model)
+    Sirius.Application.get_logger("Sirius.BaseModel")
+    .info("Define compute field '#{field}' <- '[#{deps}]'")
 
     @::_cmp_refs[field] = deps
     @::_cmp_fields.push(field)
@@ -277,7 +276,7 @@ class Sirius.BaseModel
 
     @_listeners = []
 
-    @logger = Sirius.Application.get_logger()
+    @logger = Sirius.Application.get_logger(@constructor.name)
     # save errors, which will be added after validation
     @errors = {}
     @attributes = @normalize_attrs()
@@ -288,13 +287,13 @@ class Sirius.BaseModel
 
     for attr in attrs0
       # @attrs: [{key: value}]
-      @logger.info("define '#{JSON.stringify(attr)}' attribute for '#{name}'", @logger.base_model)
+      @logger.info("define '#{JSON.stringify(attr)}' attribute for '#{name}'")
       if Sirius.Utils.is_object(attr)    # {k: v}
         tmp = Object.keys(attr)
         key = tmp[0]
         if tmp.length == 0               # empty object
           msg = "@attrs must be defined as: '@attrs:['id', {'k':'v'}]'"
-          @logger.error("#{msg}", @logger.base_model)
+          @logger.error("#{msg}")
           throw new Error(msg)
         # method uniques defined below
         @["_#{key}"] = attr[key]
@@ -316,7 +315,7 @@ class Sirius.BaseModel
 
 
     for g in @guid_for()
-      @logger.debug("Generate guid for '#{@_klass_name()}.#{g}'", @logger.base_model)
+      @logger.debug("Generate guid for '#{@_klass_name()}.#{g}'")
       @set(g, @_generate_guid())
 
     # need define validators key
@@ -417,7 +416,7 @@ class Sirius.BaseModel
 
     @["_#{attr}"] = value
 
-    @logger.debug("[#{@constructor.name}] set: '#{attr}' to '#{value}'", @logger.base_model)
+    @logger.debug("[#{@constructor.name}] set: '#{attr}' to '#{value}'")
 
     @validate(attr)
     @_compute(attr, value)
@@ -472,7 +471,6 @@ class Sirius.BaseModel
   validate: (field = null) ->
     model = @_klass_name()
     logger = @logger
-    ln = @logger.base_model
 
     all_validators = Object.keys(@_model_validators || {})
 
@@ -490,7 +488,7 @@ class Sirius.BaseModel
         validator_instance = @_applicable_validators[key][validator_key]
         validation_result = validator_instance.validate(current_value, validator_properties)
 
-        logger.debug("Validate: '#{model}.#{key} = #{current_value}' with '#{validator_key}' validator, valid?: '#{validation_result}'", ln)
+        logger.debug("Validate: '#{model}.#{key} = #{current_value}' with '#{validator_key}' validator, valid?: '#{validation_result}'")
 
         message = unless validation_result # when `validate` return false
           @errors[key][validator_key] = validator_instance.error_message()
@@ -637,7 +635,7 @@ class Sirius.BaseModel
   # @nodoc
   # Sirius.ToViewTransformer
   _register_state_listener: (transformer) ->
-    @logger.debug("Register new listener for #{@constructor.name}", @logger.base_model)
+    @logger.debug("Register new listener for #{@constructor.name}")
     @_listeners.push(transformer)
 
     # sync state
@@ -684,8 +682,8 @@ class Sirius.BaseModel
   #
   # @return [Void]
   @register_validator: (name, klass) ->
-    logger = Sirius.Application.get_logger()
-    logger.info("register validator: #{name}", logger.base_model)
+    logger = Sirius.Application.get_logger("Sirius.BaseModel.Static")
+    logger.info("register validator: #{name}")
     @_Validators.push([name, klass])
     null
 
