@@ -248,16 +248,16 @@ And it support all strategies (how to change content or attribute) or transform 
 view1 = new Sirius.View("#element")
 view2 = new Sirius.View("#my-input")
 
-transformer = Sirius.Transformer.draw({
+materializer = {
   to: [{
     from: 'input'
     selector: 'p'
-    via: (new_value, selector, view, attribute) ->
+    with: (new_value, selector, view, attribute) ->
       view.zoom(selector).render(new_value).swap(attribute) 
   }]
-})
+}
 
-view2.bind(vew1, transformer)
+view2.bind(vew1, materializer)
 ```
 
 ```coffee
@@ -269,14 +269,16 @@ view2.bind(vew1, transformer)
 
 model = new MyModel() 
 view = new Sirius.View("#my-input")
-transformer = Sirius.Transformer.draw({
+materializer = {
   "input": {
     to: 'title'
     from: 'text'
-    via: (new_value, view, selector, from, event_target) ->
+    with: (new_value, view, selector, from, event_target) ->
       new_value
   }
-})
+}
+view.bind(model, materializer)
+
 
 # and then fill input, and check
 
@@ -286,23 +288,24 @@ model.title() # => your input
 
 ```coffee
 # model to view
-<<div id="element">
+
+<div id="element">
    <p></p>
- </div>
+</div>
  
  model = new MyModel() # [id, title]
  view = new Sirius.View("#element")
  
- transformer = Sirius.Transformer.draw({
+ materializer = {
    "title": {
      to: 'p'
      attr: 'text'
      via: (new_value, selector, view, attribute) -> 
        view.zoom(selector).render(new_value).swap(attribute)
    }
- })
+ }
  
- model.bind(view, transformer) 
+ model.bind(view, materializer) 
  
  # and then in application:
  

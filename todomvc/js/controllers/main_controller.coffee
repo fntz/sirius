@@ -17,13 +17,13 @@ MainController =
         view  = new Sirius.View(HtmlElements.todoapp)
         model = new Task()
 
-        transformer = Sirius.Transformer.draw({
+        transformer = {
           "#{HtmlElements.new_todo}": {
             to: 'title'
           }
-        })
+        }
 
-        view.bind(model,transformer)
+        view.bind(model, transformer)
 
         view.on(HtmlElements.new_todo, 'keypress', 'todo:create', model)
 
