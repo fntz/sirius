@@ -1,9 +1,10 @@
 {
   "name": "sirius",
-  "description": "A light weight javascript MVC framework",
+  "description": "A light weight coffeescript/javascript MVC framework",
   "url": "https://github.com/fntz/sirius",
   "keywords": [
     "framework",
+    "coffeescript",
     "router",
     "client",
     "mvc",
@@ -29,7 +30,7 @@
     "doc": "cake doc"
   },
   "main": "sirius.min.js",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "license": "MIT",
   "repository": {
     "type": "git",
