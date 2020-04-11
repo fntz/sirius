@@ -56,8 +56,7 @@
 class Sirius.Internal.AbstractTransformer
 
   constructor: (@_path, @_from, @_to) ->
-    @logger = Sirius.Application.get_logger()
-    @_ln = @logger.transformer # logger name
+    @logger = Sirius.Application.get_logger(@constructor.name)
     @_register()
 
   _register: () ->
@@ -109,7 +108,7 @@ class Sirius.Internal.ToViewTransformer extends Sirius.Internal.AbstractTransfor
         else
           top
 
-        @logger.debug("Observe '#{top}' -> '#{@_to.get_element()} #{selector}'", @_ln)
+        @logger.debug("Observe '#{top}' -> '#{@_to.get_element()} #{selector}'")
         new Sirius.Internal.Observer(top, w, attr, clb)
 
     else # Model
@@ -124,7 +123,6 @@ class Sirius.Internal.ToViewTransformer extends Sirius.Internal.AbstractTransfor
     view = @_to
     path = @_path
     logger = @logger
-    ln = @_ln
 
     # view 2 view
     if @_from instanceof Sirius.View
@@ -150,7 +148,7 @@ class Sirius.Internal.ToViewTransformer extends Sirius.Internal.AbstractTransfor
       callback = (attribute, value) ->
         obj = path[attribute]
         if obj
-          logger.debug("Apply new value for '#{attribute}' for '#{view.get_element()}', value: #{value} from #{model._klass_name()}", ln)
+          logger.debug("Apply new value for '#{attribute}' for '#{view.get_element()}', value: #{value} from #{model._klass_name()}")
           to = obj['to']
           attr = obj['attr'] || 'text'
           materializer = obj['with'] || Sirius.Internal.ToViewTransformer._default_materializer_method()
@@ -178,7 +176,6 @@ class Sirius.Internal.ToModelTransformer extends Sirius.Internal.AbstractTransfo
     path = @_path
     model = @_to
     logger = @logger
-    ln = @_ln
 
     callback = (result) ->
 
@@ -187,7 +184,7 @@ class Sirius.Internal.ToModelTransformer extends Sirius.Internal.AbstractTransfo
         to = value['to']
         from = value['from'] || 'text'
         materializer = value['with'] || ((value) -> value)
-        logger.debug("Apply new value from #{result.from} (#{result.original}) to #{model._klass_name()}.#{to}", ln)
+        logger.debug("Apply new value from #{result.from} (#{result.original}) to #{model._klass_name()}.#{to}")
         # result, view, selector, attribute, element
         model.set(to, materializer(result.text || result.state, view, result.original, from, result.element))
 
@@ -212,8 +209,7 @@ class Sirius.Transformer
   _path: null
 
   constructor: (from, to) ->
-    @logger = Sirius.Application.get_logger()
-    @ln = @logger.transformer
+    @logger = Sirius.Application.get_logger(@constructor.name)
 
     if from instanceof Sirius.BaseModel
       @_from = from
@@ -243,7 +239,6 @@ class Sirius.Transformer
       name = @_from._klass_name()
       attrs = @_from.get_attributes()
 
-
       for k, v of materializer
         txt = "Attribute '#{k}' not found in model attributes: '#{name}', available: '[#{attrs}]'"
         is_validator = false
@@ -264,7 +259,7 @@ class Sirius.Transformer
         throw new Error(txt) if attrs.indexOf(k) == -1 && !is_validator
 
         # actual bind
-        @logger.debug("bind: '#{name}.#{k}' -> #{v['to']}", @ln)
+        @logger.debug("bind: '#{name}.#{k}' -> #{v['to']}")
 
   # @nodoc
   # @private
@@ -279,7 +274,7 @@ class Sirius.Transformer
         else
           attrs = @_to.get_attributes()
           throw new Error("Unexpected '#{attr}' for model binding. Model is: '#{name}', available attributes: '[#{attrs}]'") if attrs.indexOf(attr) == -1
-          @logger.debug("bind: '#{k}' -> '#{name}.#{attr}'", @ln)
+          @logger.debug("bind: '#{k}' -> '#{name}.#{attr}'")
 
   # @private
   # @nodoc
@@ -302,7 +297,7 @@ class Sirius.Transformer
             throw new Error("#{_e1} #{_e2}")
           else
             selector = element['selector']
-            @logger.debug("bind: '#{e}' -> '#{e1} #{selector}'", @ln)
+            @logger.debug("bind: '#{e}' -> '#{e1} #{selector}'")
 
         return materializer
       else if Sirius.Utils.is_string(to)
@@ -324,7 +319,7 @@ class Sirius.Transformer
           throw new Error("View to Function binding must contain 'from'-property: #{correct_way}")
         else
           f = v['from']
-          @logger.debug("bind: '#{element} #{k}' (from '#{f}') -> function", @ln)
+          @logger.debug("bind: '#{element} #{k}' (from '#{f}') -> function")
 
       materializer
 
@@ -356,14 +351,6 @@ class Sirius.Transformer
     else if Sirius.Utils.is_function(@_to)
       new Sirius.Internal.ToFunctionTransformer(materializer, @_from, @_to)
 
-
-  @draw: (object) ->
-
-    logger = Sirius.Application.get_logger()
-
-    logger.debug("Draw Transformer", logger.transformer)
-
-    object
 
 
 

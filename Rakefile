@@ -68,7 +68,7 @@ task :install => [:vendor_install, :jasmine_install] do
 end
 
 desc "Compile test sources"
-task :test_compile => [:build] do
+task :test_compile do # => [:build] do
   puts "===== recompile..."
   %x(coffee -b -c test/fixtures.coffee)
   Dir["test/specs/source/*"].each do |file|

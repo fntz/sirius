@@ -18,7 +18,7 @@ Renderer =
     id = "\##{todo.id()}"
 
     todo_view = new Sirius.View(id)
-    to_view_transformer = Sirius.Transformer.draw({
+    to_view_transformer = {
       'completed': {
         to: "input[type='checkbox']",
         via: (value, selector, view, attribute) ->
@@ -27,10 +27,10 @@ Renderer =
       'title': {
         to: 'label'
       }
-    })
+    }
     todo.bind(todo_view, to_view_transformer)
 
-    to_model_transformer = Sirius.Transformer.draw({
+    to_model_transformer = {
       "input[type='checkbox']": {
         to: 'completed',
         from: 'checked',
@@ -40,7 +40,7 @@ Renderer =
       "input.edit": {
         to: 'title'
       }
-    })
+    }
     todo_view.bind(todo, to_model_transformer)
 
     todo_view.on('div', 'dblclick', (x) ->

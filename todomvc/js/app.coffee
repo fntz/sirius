@@ -24,9 +24,10 @@ routes =
 # ----------------------- Start -------------------- #
 
 $ ->
-  Sirius.Application.run
+  options =
     route   : routes
     adapter : new JQueryAdapter()
-    log: true
-    log_filters: []
+    enable_logging: true
+
+  Sirius.Application.run options
 

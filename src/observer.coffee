@@ -76,7 +76,7 @@ class Sirius.Internal.Observer
   # @nodoc
   # @private
   _create: (adapter) =>
-    logger  = Sirius.Application.get_logger()
+    logger  = Sirius.Application.get_logger(@constructor.name)
     clb  = @clb
     from = @from_element
     original = @original
@@ -86,13 +86,13 @@ class Sirius.Internal.Observer
     tag  = adapter.get_attr(from, 'tagName')
     type = adapter.get_attr(from, 'type')
 
-    logger.debug("Create binding for #{from}", logger.binding)
+    logger.debug("Create binding for #{from}")
 
     O = Sirius.Internal.Observer
 
     # base callback
     handler = (e) ->
-      logger.debug("Handler Function: given #{e.type} event", logger.binding)
+      logger.debug("Handler Function: given #{e.type} event")
       result = {text: null, attribute: null, from: from, original: original, element: e.target}
       return if O.is_focus_event(e)
       txt = adapter.text(from)
@@ -131,9 +131,9 @@ class Sirius.Internal.Observer
       # text + input
 
       if INPUT_LIKE_TAGS.indexOf(tag) != -1
-        logger.debug("It is not a #{INPUT_LIKE_TAGS}", logger.binding)
+        logger.debug("It is not a #{INPUT_LIKE_TAGS}")
         if BOOL_TYPES.indexOf(type) != -1 || tag == OPTION
-          logger.debug("Get a #{type} & #{tag} element for bool elements", logger.binding)
+          logger.debug("Get a #{type} & #{tag} element for bool elements")
           adapter.bind(document, from, O.Ev.change, handler)
           Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for,
             O.Ev.change, handler)
@@ -145,7 +145,7 @@ class Sirius.Internal.Observer
           #instead of using input event, which not work correctly in ie9
           #use own implementation of input event for form
           if Sirius.Utils.is_ie9()
-            logger.warn("Hook for work with IE9 browser", logger.binding)
+            logger.warn("Hook for work with IE9 browser")
             adapter.bind(document, from, O.Ev.selectionchange, handler)
             Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for,
               O.Ev.selectionchange, handler)
@@ -157,7 +157,7 @@ class Sirius.Internal.Observer
 
 
     else if MO # any element + not text
-      logger.debug("MutationObserver support", logger.binding)
+      logger.debug("MutationObserver support")
       observer = new MO( (mutations) ->
         mutations.forEach handler
       )
@@ -177,8 +177,8 @@ class Sirius.Internal.Observer
 
     else # when null, need register event with routes
       # FIXME stackoverflow
-      logger.warn("MutationObserver not supported", logger.binding)
-      logger.warn("Use Deprecated events for observe", logger.binding)
+      logger.warn("MutationObserver not supported")
+      logger.warn("Use Deprecated events for observe")
       adapter.bind(document, from, O.Ev.DOMNodeInserted, handler)
       adapter.bind(document, from, O.Ev.DOMAttrModified, handler)
       Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for,

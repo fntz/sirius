@@ -51,23 +51,23 @@ class Sirius.View
     @_listeners = []
 
     @_cache_event_handlers = []
-    @logger = Sirius.Application.get_logger()
+    @logger = Sirius.Application.get_logger(@constructor.name)
     @_result_fn = (args...) ->
       clb.apply(null, args...)
-    @logger.debug("Create a new View for #{@element}", @logger.view)
+    @logger.debug("Create a new View for #{@element}")
 
 
     for strategy in @constructor._Strategies
       do(strategy) =>
         [name, transform, render] = strategy
-        @logger.debug("Define '#{name}' strategy", @logger.view)
+        @logger.debug("Define '#{name}' strategy")
         @[name] = (attribute = "text") =>
           # @render already called
           # and we have @_result
           result = @_result
           element = @element
           # TODO get element identifier or toString somehow
-          @logger.debug("Start processing strategy for the #{element}", @logger.view)
+          @logger.debug("Start processing strategy for the #{element}")
           Sirius.Application.get_adapter().and_then (adapter) ->
             # need extract old value
             oldvalue = if attribute is 'text'
@@ -87,7 +87,7 @@ class Sirius.View
   # @private
   # @nodoc
   _register_state_listener: (clb) ->
-    @logger.debug("Register new listener for element: #{@get_element()}", @logger.view)
+    @logger.debug("Register new listener for element: #{@get_element()}")
     @_listeners.push(clb)
 
   # compile function
@@ -95,7 +95,7 @@ class Sirius.View
   # By default transform function take arguments and return it `(x) -> x` (identity)
   # @return [Sirius.View]
   render: (args...) ->
-    @logger.debug("Call render for #{args}", @logger.view)
+    @logger.debug("Call render for #{args}")
     @_result = @_result_fn(args)
     @
 
@@ -162,7 +162,7 @@ class Sirius.View
     if is_present.length == 0
 
       # TODO possible rebind ?
-      @logger.info("Bind event for #{selector}, event name: #{event_name}, will be called : #{custom_event_name}", @logger.view)
+      @logger.info("Bind event for #{selector}, event name: #{event_name}, will be called : #{custom_event_name}")
 
       if type == 0
         handler = (e) ->
@@ -257,81 +257,83 @@ class Sirius.View
   #
   # @return [Void]
   @register_strategy: (name, object = {}) ->
-    logger = Sirius.Application.get_logger()
-    logger.info("View: Register new Strategy #{name}", logger.view)
+    logger = Sirius.Application.get_logger("Sirius.View.Static")
+    logger.info("View: Register new Strategy #{name}")
     transform = object.transform
     render = object.render
     if !Sirius.Utils.is_function(transform)
       msg = "Strategy 'transform' must be a function, but #{typeof transform} given"
-      logger.error("View: #{msg}", logger.view)
+      logger.error("View: #{msg}")
       throw new Error(msg)
 
     if !Sirius.Utils.is_function(render)
       msg = "Strategy 'render' must be a function, but #{typeof render} given"
-      logger.error("View: #{msg}", logger.view)
+      logger.error("View: #{msg}")
       throw new Error(msg)
 
     if !Sirius.Utils.is_string(name)
       msg = "Strategy 'name' must be a string, but #{typeof name} given"
-      logger.error("View: #{msg}", logger.view)
+      logger.error("View: #{msg}")
       throw new Error(msg)
 
     @_Strategies.push([name, transform, render])
     null
 
-# TODO: call in the application: run ?
-Sirius.View.register_strategy('swap',
-  transform: (oldvalue, newvalue) -> "#{newvalue}"
-  render: (adapter, element, result, attribute) ->
-    if attribute == 'text'
-      adapter.swap(element, result)
-    else
-      if attribute == 'checked'
-        # for boolean attributes need remove it when result is false
-        r = if Sirius.Utils.is_string(result)
-          if result == 'true'
-            true
-          else
-            false
+  # @private
+  # @nodoc
+  @_run_view_strategy_registration: () ->
+    Sirius.View.register_strategy('swap',
+      transform: (oldvalue, newvalue) -> "#{newvalue}"
+      render: (adapter, element, result, attribute) ->
+        if attribute == 'text'
+          adapter.swap(element, result)
         else
-          !!result
+          if attribute == 'checked'
+            # for boolean attributes need remove it when result is false
+            r = if Sirius.Utils.is_string(result)
+              if result == 'true'
+                true
+              else
+                false
+            else
+              !!result
 
-        adapter.set_attr(element, 'checked', r)
-      else
-        adapter.set_attr(element, attribute, result)
-)
+            adapter.set_attr(element, 'checked', r)
+          else
+            adapter.set_attr(element, attribute, result)
+    )
 
-Sirius.View.register_strategy('append',
-  transform: (oldvalue, newvalue) -> newvalue
-  render: (adapter, element, result, attribute) ->
-    tag = adapter.get_attr(element, 'tagName')
-    if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
-      throw new Error("'append' strategy does not work for `input` or `textarea` or `select` elements")
+    Sirius.View.register_strategy('append',
+      transform: (oldvalue, newvalue) -> newvalue
+      render: (adapter, element, result, attribute) ->
+        tag = adapter.get_attr(element, 'tagName')
+        if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
+          throw new Error("'append' strategy does not work for `input` or `textarea` or `select` elements")
 
-    if attribute == 'text'
-      adapter.append(element, result)
-    else
-      throw new Error("Strategy 'append' works only for 'text' content, your call with attribute:'#{attribute}'")
-)
+        if attribute == 'text'
+          adapter.append(element, result)
+        else
+          throw new Error("Strategy 'append' works only for 'text' content, your call with attribute:'#{attribute}'")
+    )
 
-Sirius.View.register_strategy('prepend',
-  transform: (oldvalue, newvalue) -> newvalue
-  render: (adapter, element, result, attribute) ->
-    tag = adapter.get_attr(element, 'tagName')
-    if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
-      throw new Error("'prepend' strategy does not work for `input` or `textarea` or `select` elements")
+    Sirius.View.register_strategy('prepend',
+      transform: (oldvalue, newvalue) -> newvalue
+      render: (adapter, element, result, attribute) ->
+        tag = adapter.get_attr(element, 'tagName')
+        if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
+          throw new Error("'prepend' strategy does not work for `input` or `textarea` or `select` elements")
 
-    if attribute == 'text'
-      adapter.prepend(element, result)
-    else
-      throw new Error("Strategy 'prepend' works only for 'text' content, your call with attribute:'#{attribute}'")
-)
+        if attribute == 'text'
+          adapter.prepend(element, result)
+        else
+          throw new Error("Strategy 'prepend' works only for 'text' content, your call with attribute:'#{attribute}'")
+    )
 
-Sirius.View.register_strategy('clear',
-  transform: (oldvalue, newvalue) -> ""
-  render: (adapter, element, result, attribute) ->
-    adapter.clear(element)
-)
+    Sirius.View.register_strategy('clear',
+      transform: (oldvalue, newvalue) -> ""
+      render: (adapter, element, result, attribute) ->
+        adapter.clear(element)
+    )
 
 
 

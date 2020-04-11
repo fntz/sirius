@@ -48,7 +48,7 @@ class Sirius.Collection
     unless klass.prototype instanceof Sirius.BaseModel
       throw new Error("Collection must be used only with `BaseModel` inheritor")
     @_array = []
-    @logger = Sirius.Application.get_logger()
+    @logger = Sirius.Application.get_logger(@constructor.name)
     # klasses, options
 
     @_klass = klass
@@ -78,7 +78,7 @@ class Sirius.Collection
       # index_id: {100 => 0, 200 => 1, 300 => 2}
       #
       @_indexes.forEach (field) =>
-        @logger.debug("create index for #{field} field in #{@_type}", @logger.collection)
+        @logger.debug("create index for #{field} field in #{@_type}")
         @["index_#{field}"] = {}
 
 
@@ -113,7 +113,7 @@ class Sirius.Collection
     if model.constructor?
       if @_type isnt model.constructor.name
         msg = "Require '#{@_type}', but given '#{model.constructor.name}'"
-        @logger.error("Collection: #{msg}", @logger.collection)
+        @logger.error("Collection: #{msg}")
         throw new Error(msg)
     else
       msg = "Seems '#{model}' is not instance of #{@_type}"
@@ -275,7 +275,7 @@ class Sirius.Collection
       throw new Error("For 'subscribe' method available only [#{@constructor._EVENTS}], but given '#{event}'")
 
     if Sirius.Utils.is_string(fn_or_event) or Sirius.Utils.is_function(fn_or_event)
-      @logger.info("Add new subscriber for '#{event}' event", @logger.collection)
+      @logger.info("Add new subscriber for '#{event}' event")
       @_subscribers[event].push(fn_or_event)
     else
       throw new Error("Second parameter for 'subscribe' method must be a Function or a String, but '#{typeof(fn_or_event)}' given")
