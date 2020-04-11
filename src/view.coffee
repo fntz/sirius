@@ -279,59 +279,61 @@ class Sirius.View
     @_Strategies.push([name, transform, render])
     null
 
-# TODO: call in the application: run ?
-Sirius.View.register_strategy('swap',
-  transform: (oldvalue, newvalue) -> "#{newvalue}"
-  render: (adapter, element, result, attribute) ->
-    if attribute == 'text'
-      adapter.swap(element, result)
-    else
-      if attribute == 'checked'
-        # for boolean attributes need remove it when result is false
-        r = if Sirius.Utils.is_string(result)
-          if result == 'true'
-            true
-          else
-            false
+  # @private
+  # @nodoc
+  @_run_view_strategy_registration: () ->
+    Sirius.View.register_strategy('swap',
+      transform: (oldvalue, newvalue) -> "#{newvalue}"
+      render: (adapter, element, result, attribute) ->
+        if attribute == 'text'
+          adapter.swap(element, result)
         else
-          !!result
+          if attribute == 'checked'
+            # for boolean attributes need remove it when result is false
+            r = if Sirius.Utils.is_string(result)
+              if result == 'true'
+                true
+              else
+                false
+            else
+              !!result
 
-        adapter.set_attr(element, 'checked', r)
-      else
-        adapter.set_attr(element, attribute, result)
-)
+            adapter.set_attr(element, 'checked', r)
+          else
+            adapter.set_attr(element, attribute, result)
+    )
 
-Sirius.View.register_strategy('append',
-  transform: (oldvalue, newvalue) -> newvalue
-  render: (adapter, element, result, attribute) ->
-    tag = adapter.get_attr(element, 'tagName')
-    if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
-      throw new Error("'append' strategy does not work for `input` or `textarea` or `select` elements")
+    Sirius.View.register_strategy('append',
+      transform: (oldvalue, newvalue) -> newvalue
+      render: (adapter, element, result, attribute) ->
+        tag = adapter.get_attr(element, 'tagName')
+        if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
+          throw new Error("'append' strategy does not work for `input` or `textarea` or `select` elements")
 
-    if attribute == 'text'
-      adapter.append(element, result)
-    else
-      throw new Error("Strategy 'append' works only for 'text' content, your call with attribute:'#{attribute}'")
-)
+        if attribute == 'text'
+          adapter.append(element, result)
+        else
+          throw new Error("Strategy 'append' works only for 'text' content, your call with attribute:'#{attribute}'")
+    )
 
-Sirius.View.register_strategy('prepend',
-  transform: (oldvalue, newvalue) -> newvalue
-  render: (adapter, element, result, attribute) ->
-    tag = adapter.get_attr(element, 'tagName')
-    if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
-      throw new Error("'prepend' strategy does not work for `input` or `textarea` or `select` elements")
+    Sirius.View.register_strategy('prepend',
+      transform: (oldvalue, newvalue) -> newvalue
+      render: (adapter, element, result, attribute) ->
+        tag = adapter.get_attr(element, 'tagName')
+        if tag == "INPUT" || tag == "TEXTAREA" || tag == "SELECT"
+          throw new Error("'prepend' strategy does not work for `input` or `textarea` or `select` elements")
 
-    if attribute == 'text'
-      adapter.prepend(element, result)
-    else
-      throw new Error("Strategy 'prepend' works only for 'text' content, your call with attribute:'#{attribute}'")
-)
+        if attribute == 'text'
+          adapter.prepend(element, result)
+        else
+          throw new Error("Strategy 'prepend' works only for 'text' content, your call with attribute:'#{attribute}'")
+    )
 
-Sirius.View.register_strategy('clear',
-  transform: (oldvalue, newvalue) -> ""
-  render: (adapter, element, result, attribute) ->
-    adapter.clear(element)
-)
+    Sirius.View.register_strategy('clear',
+      transform: (oldvalue, newvalue) -> ""
+      render: (adapter, element, result, attribute) ->
+        adapter.clear(element)
+    )
 
 
 

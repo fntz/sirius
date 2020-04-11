@@ -687,13 +687,15 @@ class Sirius.BaseModel
     @_Validators.push([name, klass])
     null
 
-# todo move to app code ?
-Sirius.BaseModel.register_validator("length", Sirius.LengthValidator)
-Sirius.BaseModel.register_validator("exclusion", Sirius.ExclusionValidator)
-Sirius.BaseModel.register_validator("inclusion", Sirius.InclusionValidator)
-Sirius.BaseModel.register_validator("format", Sirius.FormatValidator)
-Sirius.BaseModel.register_validator("numericality", Sirius.NumericalityValidator)
-Sirius.BaseModel.register_validator("presence", Sirius.PresenceValidator)
+  # @private
+  # @nodoc
+  @_run_base_model_validator_registration: () ->
+    Sirius.BaseModel.register_validator("length", Sirius.LengthValidator)
+    Sirius.BaseModel.register_validator("exclusion", Sirius.ExclusionValidator)
+    Sirius.BaseModel.register_validator("inclusion", Sirius.InclusionValidator)
+    Sirius.BaseModel.register_validator("format", Sirius.FormatValidator)
+    Sirius.BaseModel.register_validator("numericality", Sirius.NumericalityValidator)
+    Sirius.BaseModel.register_validator("presence", Sirius.PresenceValidator)
 
 
 

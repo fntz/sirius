@@ -1,3 +1,8 @@
+# usual setup
+Sirius.Logger.Configuration.configure({})
+Sirius.BaseModel._run_base_model_validator_registration()
+Sirius.View._run_view_strategy_registration()
+
 adapter = if JQueryAdapter?
     new JQueryAdapter()
   else if PrototypeAdapter?

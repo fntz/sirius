@@ -531,10 +531,6 @@ Sirius.Internal.RouteSystem =
 
       fn()
 
-# @private
-class Sirius.Internal.Runnable
-  constructor: (@logger, @enable_logging) ->
-
 # @mixin
 # A main object, it's a start point all user applications
 # @example
@@ -543,15 +539,36 @@ class Sirius.Internal.Runnable
 #     "application: run"  : { controller : Controller, action: "run" },
 #     "click #my-element" : { controller : Controller, action: "click_action"}
 #   }
-#   my_logger = function(msg) { console.log("Log: " + msg); }
+#   my_logger = function(level, log_source, msg) { console.log("Log: " + msg); }
 #
-#   Sirius.Application.run({ route : routes, logger: my_logger, log: true, start: "#/" });
+#   Sirius.Application.run({
+#     route : routes,
+#     log_to: my_logger,
+#     enable_logging: true,
+#     start: "#/"
+#   });
 #
 Sirius.Application =
   ###
     disable or enable logs
   ###
-  enable_logging: false
+  enable_logging: Sirius.Logger.Default.enable_logging
+
+  ###
+    Minimum log level.
+    Default is: `debug`
+    Available options: debug, info, warn, error
+  ###
+  minimum_log_level: Sirius.Logger.Default.minimum_log_level
+
+  ###
+    custom log implementation
+
+    @param [String] - log level: [DEBUG, INFO, WARN, ERROR]
+    @param [String] - log source information from the framework or user controller, or whatever
+    @param msg [String] - message
+  ###
+  log_to: Sirius.Logger.Default.default_log_function
 
   ###
     application adapter for javascript frameworks @see Adapter documentation
@@ -578,11 +595,6 @@ Sirius.Application =
   }
 
   ###
-    add logger into controller wrapper
-  ###
-  mix_logger_into_controller: true
-
-  ###
     when true, then all routing will be redefined with hash based routing
     and convert all url href to hash based urls
     "/" => "#/"
@@ -598,47 +610,13 @@ Sirius.Application =
   ###
   ignore_not_matched_urls: true
 
-  #
-  # @method #logger(msg) - logger, default is writing message to console.log, redefine with `log_function` parameter
-  # @param [String] - log level: [DEBUG, INFO, WARN, ERROR]
-  # @param [String] - log source information from the framework or user controller, or whatever
-  # @param msg [String] - message
-  default_log_function: (level, log_source, msg) ->
-    if console && console.log
-      console.log "#{level} [#{log_source}]: #{msg}"
-    else
-      alert "Not supported `console`. You should define own `logger` function for a Sirius.Application"
-
-  ###
-    Minimum log level.
-    Default is: `debug`
-    Available options: debug, info, warn, error
-  ###
-  minimum_log_level: Sirius.Logger.Debug.get_value()
-
-  ###
-    custom log implementation
-  ###
-  log_to: null
-
   # @private
   _wait: []
 
-  _messages_queue: []
   #
   # @return [Object] - promise, which will be use for log information
   get_logger: (log_source) ->
-    if !@logger
-      levels = Sirius.Logger.Levels
-      obj = {}
-      current = @_messages_queue
-      for level in levels # LogLevel instance
-        do(level) ->
-          obj[level.get_value()] = (msg) -> current.push([level, log_source, msg])
-
-      obj
-    else
-      @logger
+    Sirius.Logger.build(log_source)
 
   #
   # @return [Function] - promise, when adapter not null then it function will be called
@@ -658,6 +636,18 @@ Sirius.Application =
     return
 
   _initialize: (options) ->
+    # configure logging
+    Sirius.Logger.Configuration.configure(options)
+
+    logger = new Sirius.Logger("Sirius.Application")
+
+    # especial for sirius-core where these modules are not available
+    if Sirius.BaseModel
+      Sirius.BaseModel._run_base_model_validator_registration()
+
+    if Sirius.View
+      Sirius.View._run_view_strategy_registration()
+
     _get_key_or_default = (k, _default) ->
       if options[k]?
         options[k]
@@ -665,24 +655,10 @@ Sirius.Application =
         _default
 
     @running = true
-    enable_logging = options['enable_logging'] || @enable_logging
     @adapter = options["adapter"] || new VanillaJsAdapter()
     @route   = options["route"]   || @route
-    @mix_logger_into_controller = _get_key_or_default('mix_logger_into_controller', @mix_logger_into_controller)
     @ignore_not_matched_urls = _get_key_or_default('ignore_not_matched_urls', @ignore_not_matched_urls)
 
-    level_value = options["minimum_log_level"]
-
-    if level_value
-      if !Sirius.Logger.is_valid_level(level_value)
-        level_values =  Sirius.Logger.Levels.map (x) -> x.get_value()
-        throw new Error("Invalid 'minimum_log_level' value: '#{level_value}', available options are: #{level_values.join(", ")}")
-
-    user_log_level = level_value || @minimum_log_level
-    @minimum_log_level = Sirius.Logger._get_logger_from_input(user_log_level)
-
-    @logger  = new Sirius.Logger(enable_logging, "Sirius.Application",
-      @minimum_log_level, options['log_to'] || @default_log_function)
     @start   = options["start"] || @start
 
     for key, value of (options["controller_wrapper"] || {})
@@ -693,31 +669,18 @@ Sirius.Application =
     @use_hash_routing_for_old_browsers = _get_key_or_default("use_hash_routing_for_old_browsers",
       @use_hash_routing_for_old_browsers)
 
-    @logger.info("Logger enabled? #{enable_logging}")
-    @logger.info("Minimum log level: #{@minimum_log_level}")
-    @logger.info("Adapter: #{@adapter.name}")
-    @logger.info("Use hash routing for old browsers: #{@use_hash_routing_for_old_browsers}")
-    @logger.info("Current browser: #{navigator.userAgent}")
-    @logger.info("Ignore not matched urls: #{@ignore_not_matched_urls}")
+    logger.info("Logger enabled? #{Sirius.Logger.Configuration.enable_logging}")
+    logger.info("Minimum log level: #{Sirius.Logger.Configuration.minimum_log_level.get_value()}")
+    logger.info("Adapter: #{@adapter.name}")
+    logger.info("Use hash routing for old browsers: #{@use_hash_routing_for_old_browsers}")
+    logger.info("Current browser: #{navigator.userAgent}")
+    logger.info("Ignore not matched urls: #{@ignore_not_matched_urls}")
 
     @push_state_support = history.pushState
-    @logger.info("History pushState support: #{@push_state_support}")
+    logger.info("History pushState support: #{@push_state_support}")
 
     if !@push_state_support && @use_hash_routing_for_old_browsers
-      @logger.warn("You browser does not support pushState, and you disabled hash routing for old browser")
-
-    @logger.info("Mix logger in controllers #{@mix_logger_into_controller}")
-
-    if @mix_logger_into_controller
-      if @controller_wrapper['logger']
-        @logger.warn("Logger method already in `controller_wrapper`")
-      l = @logger
-      @controller_wrapper['logger'] = {
-        info  : l.info
-        debug : l.debug
-        warn  : l.warn
-        error : l.error
-      }
+      logger.warn("You browser does not support pushState, and you disabled hash routing for old browser")
 
     setting =
       old: @use_hash_routing_for_old_browsers
@@ -729,13 +692,9 @@ Sirius.Application =
       for p in @_wait
         p.set_value(@adapter)
       @adapter.fire(document, "application:run", new Date())
-      for message in @_messages_queue
-        @logger[message[0].get_value()].call(null, message[2])
 
     if @start
       Sirius.redirect(@start)
-
-    new Sirius.Internal.Runnable(@logger, enable_logging)
 
 
 
