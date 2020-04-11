@@ -9,17 +9,16 @@
 
 ### Features
 
-+ Template free — you may use any template engine or use any at all
++ Template free — you may use any template engine or don't use any at all
 + MVC style
 + MVVM binding (view to view, model to view, view to model, etc)
 + Build-in Collections 
 + Build-in Validators
 + Simple for customization
-+ Adapters for jQuery, Prototype.js and for Vanillajs
++ Works for jQuery, Prototype.js and for Vanillajs
 + Support html5 routing
 + Time events in routing
-+ Log all actions in application [read about it](https://github.com/fntz/sirius/wiki/Logger)
-+ Share actions between controllers
++ Log all actions in an application [read about](https://github.com/fntz/sirius/wiki/Logger)
 + And many others
 
 # Install
@@ -62,15 +61,14 @@ MyController =
 
 #### 1.1 Advanced with controllers
 
-Sometimes you need share some actions between all controllers - logger, ajax requests, or some like this, that simple:
+Sometimes you need to share some actions between all controllers - some services/ajax requests, or some like this, that's simple:
 
 ```coffee
 
 CommonMethods =
 
   ajax: (args...) ->
-  logger: (args...) ->
-  another_action: (args...) ->
+  on_more_action: (args...) ->
 
 # then
   Sirius.Application.run
@@ -90,7 +88,7 @@ Controller =
 
 ```
 
-##### note: by default Sirius `controller_wrapper` contain only `redirect` action, and with `mix_logger_into_controller` options you might enable logger in controller actions
+##### note: by default Sirius `controller_wrapper` contain only `redirect` action
 
 
 ### 2. Define routes
@@ -204,7 +202,7 @@ view.render("some text").html()
 <span id='element'><b>some text</b></span>
 ```
 
-Also you might swap content for any attribute:
+Also you want to swap content for any attribute:
 
 ```coffee
 view.render("active").swap('class')
@@ -228,8 +226,7 @@ person.find("name", "Joe").to_json() # => {"id" : "g-u-i-d", "name" : "Joe", "ag
 ### 8. Binding
 
 Support binding: view to model, view to view, model to view, or model|view to function. 
-And it support all strategies (how to change content or attribute) or transform (how to transform value) methods.
-
+And ot them support all strategies (how to change a content or an attribute) or transform (how to transform a value) methods.
 
 ```coffee
 # view to view
@@ -321,6 +318,16 @@ model.title() # => your input
 
 [more about binding](https://github.com/fntz/sirius/wiki/Binding)
 
+### 9. Logger
+
+use as: 
+```
+MainController = 
+  logger: Sirius.Application.get_logger("MainController")
+  action: () ->
+    @logger.info("test")  
+```
+[more](https://github.com/fntz/sirius/wiki/Logger)
 
 # run todo app
 
@@ -335,11 +342,7 @@ model.title() # => your input
 
 # More info
 
-+ [Project page](http://fntzr.github.io/sirius)
-+ [TodoMVC Application](http://fntzr.github.io/sirius/todomvc/index.html) and [source](https://github.com/fntzr/sirius/blob/master/todomvc/js/app.coffee)
-+ [Docs](http://fntzr.github.io/sirius/doc/index.html)
-
-
++ [TodoMVC Application](https://github.com/fntz/sirius/tree/master/todomvc)
 
 # Tasks
 
