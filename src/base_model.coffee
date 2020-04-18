@@ -285,6 +285,8 @@ class Sirius.BaseModel
     @_is_valid_attr = {}     # save pair attribute and validation state
     attrs0 = @attrs()        # from class body
 
+    @binding = {}
+
     for attr in attrs0
       # @attrs: [{key: value}]
       @logger.info("define '#{JSON.stringify(attr)}' attribute for '#{name}'")
@@ -348,6 +350,8 @@ class Sirius.BaseModel
         tmp[name] = klass
         @_applicable_validators[key] = tmp
 
+    @_gen_binding_names()
+
     @after_create()
 
   # @private
@@ -361,6 +365,16 @@ class Sirius.BaseModel
         @set(attribute, value)
       else
         @get(attribute)
+
+  _gen_binding_names: () ->
+    obj = {}
+    for attribute in @get_attributes()
+      obj[attribute] = attribute
+
+    @binding = obj
+
+  get_binding: () ->
+    @binding
 
 
   # @private

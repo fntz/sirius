@@ -108,6 +108,7 @@ task :build do
     logger internal promise utils
     sirius validators observer
     view base_model transformer collection
+    materialization
   ))
 
   core_files = coffee(src, %w(
