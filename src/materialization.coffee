@@ -5,9 +5,9 @@
 
   Materializer.build(T <: BaseModel|View, R <: BaseModel|View|Function)
   .field((x) -> s.attr())               # does it possible in coffee?
-  .field('attr_name', to: "input[name='some-attr']", attribute: 'data-attr', with: () ->)
   # or
   field('attr_name').to("input").attribute("data-attr").with(() ->)
+
   field('attr_name).to("input")
   .dump() => log output as string, dump is a terminal operation
   # or build
@@ -49,7 +49,7 @@
 
 # ok, it's for BaseModelToView
 class FieldMaker
-  constructor: (@_from, @_to, @_attribute, @_with) ->
+  constructor: (@_from, @_to, @_attribute, @_transform, @_handle) ->
 
   has_to: () ->
     @_to?
@@ -57,8 +57,11 @@ class FieldMaker
   has_attribute: () ->
     @_attribute?
 
-  has_with: () ->
-    @_with?
+  has_transform: () ->
+    @_transform?
+
+  has_handle: () ->
+    @_handle?
 
   field: () ->
     @_from
@@ -69,23 +72,35 @@ class FieldMaker
     else
       @_to
 
-  attribute: (x) ->
-    @_attribute = x
+  handle: (x) ->
+    if x?
+      @_handle = x
+    else
+      @_handle
 
-  with: (x) ->
-    @_with = x
+  attribute: (x) ->
+    if x?
+      @_attribute = x
+    else
+      @_attribute
+
+  transform: (x) ->
+    if x?
+      @_transform = x
+    else
+      @_transform
 
   # fill with default parameters
   normalize: () ->
-    if !@has_with()
-      @_with = (x) -> x
+    if !@has_transform()
+      @_transform = (x) -> x
 
     if !@has_attribute()
       @_attribute = "text" # make constant
 
 
   to_string: () ->
-    "#{@_from} ~> #{@_with} ~> #{@_to}##{@_attribute}"
+    "#{@_from} ~> #{@_transform} ~> #{@_to}##{@_attribute}"
 
   @build: (from) ->
     new FieldMaker(from)
@@ -128,25 +143,29 @@ class AbstractMaterializer
   materialize: () ->
     @fields
 
+  run: () ->
+    throw new Error("Not Implemented")
+
 
 # interface-like
 class MaterializerWithImpl extends AbstractMaterializer
 
-  with: (f) ->
+  transform: (f) ->
     unless Sirius.Utils.is_function(f)
-      throw new Error("With attribute must be function, #{typeof f} given")
+      throw new Error("'transform' attribute must be function, #{typeof f} given")
 
     unless @current?
-      throw new Error("Incorrect call. Call 'with' after 'to' or 'attribute'")
+      throw new Error("Incorrect call. Call 'transform' after 'to' or 'attribute'")
 
     unless @current.has_to()
-      throw new Error("Incorrect call. Call 'to' before 'with'")
+      throw new Error("Incorrect call. Call 'to' before 'transform'")
 
-    if @current.has_with()
-      throw new Error("Incorrect call. The field already has 'with' function")
+    if @current.has_transform()
+      throw new Error("Incorrect call. The field already has 'transform' function")
 
-    @current.with(f)
+    @current.transform(f)
     @
+
 
 
 class ModelToViewMaterializer extends MaterializerWithImpl
@@ -193,6 +212,32 @@ class ModelToViewMaterializer extends MaterializerWithImpl
 
     @current.attribute(attr)
     @
+
+  handle: (f) ->
+    unless @current?
+      throw new Error("Incorrect call. 'field' is not defined")
+
+    unless @current.has_to()
+      throw new Error("Incorrect call. define 'to'")
+
+    unless Sirius.Utils.is_function(f)
+      throw new Error("'handle' must be a function")
+
+    if @current.has_handle()
+      throw new Error("'handle' already defined")
+
+    @current.handle(f)
+    @
+
+
+  run: () ->
+    obj = {}
+    for f in @fields
+      obj[f.field()] = f
+    clb = (attribute, changes) ->
+      if obj[attribute]?
+        f.trnaform(changes, f.to())
+
 
 class ViewToModelMaterializer extends MaterializerWithImpl
   field: (element) ->
@@ -252,6 +297,22 @@ class ViewToViewMaterializer extends ViewToModelMaterializer
       throw new Error("Element must be string or function, or instance of Sirius.View")
 
     super.to(el)
+    @
+
+  handle: (f) ->
+    unless @current?
+      throw new Error("Incorrect call. 'field' is not defined")
+
+    unless @current.has_to()
+      throw new Error("Incorrect call. define 'to'")
+
+    unless Sirius.Utils.is_function(f)
+      throw new Error("'handle' must be a function")
+
+    if @current.has_handle()
+      throw new Error("'handle' already defined")
+
+    @current.handle(f)
     @
 
 class ViewToFunctionMaterializer extends ViewToModelMaterializer

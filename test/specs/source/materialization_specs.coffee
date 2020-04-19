@@ -89,28 +89,52 @@ describe "Materialization",  ->
           materializer.field("id").to("test").attribute("class").attribute("class")
         ).toThrowError("Incorrect call. 'id' already has 'attribute'")
 
-    describe "with", ->
+    describe "transform", ->
       it "'with' are not a function", ->
         expect(() ->
           materializer.field("id")
-            .to("test").with(1)
-        ).toThrowError("With attribute must be function, #{typeof 1} given")
+            .to("test").transform(1)
+        ).toThrowError("'transform' attribute must be function, #{typeof 1} given")
 
-      it "'with' without field", ->
+      it "'transform' without field", ->
         expect(() ->
-          materializer.with(() ->)
-        ).toThrowError("Incorrect call. Call 'with' after 'to' or 'attribute'")
+          materializer.transform(() ->)
+        ).toThrowError("Incorrect call. Call 'transform' after 'to' or 'attribute'")
 
       it "without 'to'", ->
         expect( () ->
-          materializer.field("id").with(() ->)
-        ).toThrowError("Incorrect call. Call 'to' before 'with'")
+          materializer.field("id").transform(() ->)
+        ).toThrowError("Incorrect call. Call 'to' before 'transform'")
 
-      it "double-with", ->
+      it "double-transform", ->
         expect(() ->
           materializer.field("id")
-            .to("test").with(() ->).with(() ->)
-        ).toThrowError("Incorrect call. The field already has 'with' function")
+            .to("test").transform(() ->).transform(() ->)
+        ).toThrowError("Incorrect call. The field already has 'transform' function")
+
+    describe "handle", ->
+      it "without field", ->
+        expect(() ->
+          materializer.handle(() -> )
+        ).toThrowError("Incorrect call. 'field' is not defined")
+
+      it "without to", ->
+        expect(() ->
+          materializer.field((x) -> x.id)
+          .handle(() -> )
+        ).toThrowError("Incorrect call. define 'to'")
+
+      it "when not a function", ->
+        expect(() ->
+          materializer.field('id')
+          .to('input').handle(1)
+        ).toThrowError("'handle' must be a function")
+
+      it "double-handle", ->
+        expect(() ->
+          materializer.field('id').to('input').handle(() -> ).handle(() -> )
+        ).toThrowError("'handle' already defined")
+
 
   describe "View To Model", ->
 
@@ -168,28 +192,28 @@ describe "Materialization",  ->
           materializer.field("test").from("id").from("id")
         ).toThrowError("Incorrect call. '#test test' already has 'from'")
 
-    describe "with", ->
-      it "'with' are not function", ->
+    describe "transform", ->
+      it "'transform' are not function", ->
         expect(() ->
           materializer.field("input")
-            .to("id").with(1)
-        ).toThrowError("With attribute must be function, #{typeof 1} given")
+            .to("id").transform(1)
+        ).toThrowError("'transform' attribute must be function, #{typeof 1} given")
 
-      it "'with' without field", ->
+      it "'transform' without field", ->
         expect(() ->
-          materializer.with(() ->)
-        ).toThrowError("Incorrect call. Call 'with' after 'to' or 'attribute'")
+          materializer.transform(() ->)
+        ).toThrowError("Incorrect call. Call 'transform' after 'to' or 'attribute'")
 
       it "without 'to'", ->
         expect( () ->
-          materializer.field("input").with(() ->)
-        ).toThrowError("Incorrect call. Call 'to' before 'with'")
+          materializer.field("input").transform(() ->)
+        ).toThrowError("Incorrect call. Call 'to' before 'transform'")
 
-      it "double-with", ->
+      it "double-transform", ->
         expect(() ->
           materializer.field("input")
-            .to("id").with(() ->).with(() ->)
-        ).toThrowError("Incorrect call. The field already has 'with' function")
+            .to("id").transform(() ->).transform(() ->)
+        ).toThrowError("Incorrect call. The field already has 'transform' function")
 
   describe "View To View", ->
 
@@ -213,6 +237,38 @@ describe "Materialization",  ->
         expect(() ->
           materializer.field("test").to("asd")
         ).not.toThrowError()
+
+    describe "handle", ->
+      materializer = null
+
+      beforeEach () ->
+        materializer = Materializer.build(new Sirius.View("#test"), new Sirius.View("#test1"))
+
+      it "without field", ->
+        expect(() ->
+          materializer.handle(() ->)
+        ).toThrowError("Incorrect call. 'field' is not defined")
+
+      it "without to", ->
+        expect(() ->
+          materializer.field("input")
+          .handle(() -> )
+        ).toThrowError("Incorrect call. define 'to'")
+
+      it "when is not a function", ->
+        expect(() ->
+          materializer.field("input")
+          .to("div").handle(1)
+        ).toThrowError("'handle' must be a function")
+
+      it "double handle", ->
+        expect(() ->
+          materializer.field("input")
+          .to("div")
+          .handle(() -> )
+          .handle(() -> )
+        ).toThrowError("'handle' already defined")
+
 
   describe "View To Function", ->
 
