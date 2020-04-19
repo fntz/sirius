@@ -98,7 +98,7 @@ class MyCustomValidator extends Sirius.Validator
 Sirius.BaseModel.register_validator('custom', MyCustomValidator)
 
 class ModelwithValidators extends Sirius.BaseModel
-  @attrs: ["id", "title", "description"]
+  @attrs: ["id", "title", "description", "context"]
   @validate :
     id:
       presence: true,

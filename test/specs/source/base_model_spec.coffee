@@ -55,7 +55,7 @@ describe "BaseModel", ->
       @attrs: ["id"]
       @guid_for: ["id"]
 
-    expect(new Test1().id()).not.toBeNull()
+    expect(new Test2().id()).not.toBeNull()
 
     class Test3 extends Sirius.BaseModel
       @attrs: ["id"]
@@ -304,16 +304,19 @@ describe "BaseModel", ->
         expect(m.get_errors('title')).toEqual([])
         expect(m.get_errors('description')).toEqual([])
         expect(m.is_valid()).toBeFalse()
+        expect(m.is_valid('context')).toBeTrue()
 
       it "failed only integers and range", ->
         m.id("123.1")
         expect(m.get_errors('id').length).toEqual(2)
         expect(m.is_valid()).toBeFalse()
+        expect(m.is_valid('context')).toBeTrue()
 
       it "failed in range", ->
         m.id(12)
         expect(m.get_errors('id').length).toEqual(1)
         expect(m.is_valid()).toBeFalse()
+        expect(m.is_valid('context')).toBeTrue()
 
     describe "validate title", ->
       it "failed format", ->
@@ -403,7 +406,7 @@ describe "BaseModel", ->
         @comp("full", "full_name", "full_name1")
         @validate :
           full_name:
-            length: min: 3, max: 7
+            length: min: 3, max: 8
 
       model = new Test1()
       expect(model.full_name()).toBeNull()
@@ -413,7 +416,9 @@ describe "BaseModel", ->
       expect(model.full_name()).toEqual("John Doe")
       expect(model.full_name1()).toEqual("John-Doe")
       expect(model.full()).toEqual("John Doe John-Doe")
+      model.first_name("1")
       expect(model.get_errors('full_name').length).toEqual(1)
+      expect(model.full_name()).toEqual("John Doe")
 
     it "checks computed attributes", ->
       class Test1 extends Sirius.BaseModel

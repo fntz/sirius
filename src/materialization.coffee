@@ -140,6 +140,12 @@ class AbstractMaterializer
   has_to: () ->
     @_to?
 
+  fields_map: () ->
+    obj = {}
+    for f in @fields
+      obj[f.field()] = f
+    obj
+
   materialize: () ->
     @fields
 
@@ -148,7 +154,7 @@ class AbstractMaterializer
 
 
 # interface-like
-class MaterializerWithImpl extends AbstractMaterializer
+class MaterializerTransformImpl extends AbstractMaterializer
 
   transform: (f) ->
     unless Sirius.Utils.is_function(f)
@@ -168,7 +174,7 @@ class MaterializerWithImpl extends AbstractMaterializer
 
 
 
-class ModelToViewMaterializer extends MaterializerWithImpl
+class ModelToViewMaterializer extends MaterializerTransformImpl
   field: (from_name) ->
     result = from_name
     if Sirius.Utils.is_function(from_name)
@@ -231,15 +237,23 @@ class ModelToViewMaterializer extends MaterializerWithImpl
 
 
   run: () ->
-    obj = {}
-    for f in @fields
-      obj[f.field()] = f
-    clb = (attribute, changes) ->
-      if obj[attribute]?
-        f.trnaform(changes, f.to())
+    @current.normalize()
+
+    obj = @fields_map()
+    clb = (attribute, value) ->
+      f = obj[attribute]
+      if f?
+        transformed = f.transform().call(this, value, f.to())
+        if f.has_handle()
+          f.handle().call(null, f.to(), transformed) # view and changes
+        else
+          # default, just a swap
+          f.to().render(transformed).swap(f.attribute())
+
+    @_from._register_state_listener(clb)
 
 
-class ViewToModelMaterializer extends MaterializerWithImpl
+class ViewToModelMaterializer extends MaterializerTransformImpl
   field: (element) ->
     el = null
     if Sirius.Utils.is_string(element)
@@ -284,6 +298,27 @@ class ViewToModelMaterializer extends MaterializerWithImpl
     @current.to(result)
     @
 
+  run: () ->
+    @current.normalize()
+    model = @_to
+    for field in @fields
+      element = field.field().get_element()
+      clb = (result) ->
+        transformed = field.transform().call(null, result)
+        if field.to().indexOf(".") != -1 # validator
+          model.set_error(field.to(), transformed)
+        else
+          model.set(field.to(), transformed)
+
+      observer = new Sirius.Internal.Observer(
+        element,
+        element,
+        field.attribute(),
+        clb
+      )
+      field.field()._register_state_listener(observer)
+
+
 class ViewToViewMaterializer extends ViewToModelMaterializer
   to: (element) ->
     el = null
@@ -315,6 +350,27 @@ class ViewToViewMaterializer extends ViewToModelMaterializer
     @current.handle(f)
     @
 
+  run: () ->
+    @current.normalize()
+    for field in @fields
+      element = field.field().get_element()
+      clb = (result) ->
+        transformed = field.transform(result)
+        if field.has_handle()
+          field.handle().call(this, transformed, field.to())
+        else
+          # TODO checkbox !!!!
+          field.to().render(transformed).swap()
+
+      observer = new Sirius.Internal.Observer(
+        element,
+        element,
+        field.attribute(),
+        clb
+      )
+      field.field()._register_state_listener(observer)
+
+
 class ViewToFunctionMaterializer extends ViewToModelMaterializer
   to: (f) ->
     unless Sirius.Utils.is_function(f)
@@ -322,6 +378,20 @@ class ViewToFunctionMaterializer extends ViewToModelMaterializer
 
     super.to(f)
     @
+
+  run: () ->
+    @current.normalize()
+    # already zoomed
+    for field in @fields
+      element = field.field().get_element()
+      observer = new Sirius.Internal.Observer(
+        element,
+        element,
+        field.attribute(),
+        field.to()
+      )
+      field.field()._register_state_listener(observer)
+
 
 class ModelToFunctionMaterializer extends AbstractMaterializer
   field: (attr) ->
@@ -347,6 +417,14 @@ class ModelToFunctionMaterializer extends AbstractMaterializer
 
     @current.to(f)
     @
+
+  run: () ->
+    obj = @fields_map()
+    clb = (attribute, value) ->
+      if obj[attribute]?
+        obj[attribute].to().call(null, value)
+
+    @_from._register_state_listener(clb)
 
 
 class Materializer

@@ -425,28 +425,33 @@ class Sirius.BaseModel
   # Base setter
   # @param attr [String] - attribute
   # @param value [Any]   - value
-  # @note if attribute is object, then and value should be object, if value keys and values copy into attribute object
+  # an attribute will be updated only if the attriubute is valid
   # @throw Error, when attributes not defined for current model
   # @return [Void]
   set: (attr, value) ->
     if @_is_computed_attribute(attr)
       throw new Error("Impossible set computed attribute '#{attr}' in '#{@_klass_name()}'")
 
-
     @_set(attr, value)
 
-  _set: (attr, value) ->
+  _set: (attr, value, force = false) ->
     @_attribute_present(attr)
 
     oldvalue = @["_#{attr}"]
 
     @["_#{attr}"] = value
 
-    @logger.debug("[#{@constructor.name}] set: '#{attr}' to '#{value}'")
-
     @validate(attr)
-    @_compute(attr, value)
-    @_call_callbacks(attr, value, oldvalue)
+
+    # is should set any way if force is true
+    flag = force || @is_valid(attr)
+
+    if flag
+      @logger.debug("[#{@constructor.name}] set: '#{attr}' to '#{value}'")
+      @_compute(attr, value)
+      @_call_callbacks(attr, value, oldvalue)
+    else
+      @["_#{attr}"] = oldvalue
 
   #
   # Base getter
@@ -470,7 +475,7 @@ class Sirius.BaseModel
       @attrs()
     @logger.debug("Reset attributes: '#{tmp.join(",")}' for #{@_klass_name()}")
     for attr in tmp
-      @set(attr, null)
+      @_set(attr, null, true)
       if @errors[attr]?
         @errors[attr] = {}
 
@@ -489,8 +494,17 @@ class Sirius.BaseModel
 
   # Check, if model instance is valid
   # @return [Boolean] true, when is valid, otherwise false
-  is_valid: () ->
-    Object.keys(@_is_valid_attr).filter((key) => !@_is_valid_attr[key]).length == 0
+  is_valid: (attr = null) ->
+    if attr?
+      if @_is_valid_attr[attr]?
+        @_is_valid_attr[attr]
+      else
+        true
+    else
+      Object.keys(@_is_valid_attr).filter((key) =>
+        !@_is_valid_attr[key]
+      ).length == 0
+
 
   # Call when you want validate model
   # @nodoc
@@ -664,7 +678,7 @@ class Sirius.BaseModel
     @logger.debug("Register new listener for #{@constructor.name}")
     @_listeners.push(transformer)
 
-    # sync state
+    # sync state ????
     _attrs = @get_attributes()
     for attr in _attrs
       if @["_#{attr}"] isnt null
