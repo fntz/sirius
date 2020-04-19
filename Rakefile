@@ -107,8 +107,7 @@ task :build do
     comment_header version adapter vanilla_js_adapter
     logger internal promise utils
     sirius validators observer
-    view base_model transformer collection
-    materialization
+    view base_model collection materialization
   ))
 
   core_files = coffee(src, %w(

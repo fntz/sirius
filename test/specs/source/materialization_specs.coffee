@@ -5,40 +5,40 @@ describe "Materialization",  ->
       id:
         presence: true
 
-  describe "Materializer", ->
+  describe "Sirius.Materializer", ->
     it "illegal arguments", ->
       expect(() ->
-        Materializer.build(1, 2)
+        Sirius.Materializer.build(1, 2)
       ).toThrowError(/Illegal arguments/)
       expect(() ->
-        Materializer.build(new Test1(), 1)
+        Sirius.Materializer.build(new Test1(), 1)
       ).toThrowError(/Illegal arguments/)
       expect(() ->
-        Materializer.build(new Sirius.View("asd"), "asd")
+        Sirius.Materializer.build(new Sirius.View("asd"), "asd")
       ).toThrowError(/Illegal arguments/)
 
     it "check model attributes", ->
       m = new Test1()
       expect(() ->
-        Materializer._check_model_compliance(m, "id")
+        Sirius.Materializer._check_model_compliance(m, "id")
       ).not.toThrowError()
       expect(() ->
-        Materializer._check_model_compliance(m, "foo")
+        Sirius.Materializer._check_model_compliance(m, "foo")
       ).toThrowError(/Attribute 'foo' not found in model/)
       expect(() ->
-        Materializer._check_model_compliance(m, "errors.id.presence")
+        Sirius.Materializer._check_model_compliance(m, "errors.id.presence")
       ).not.toThrowError()
       expect(() ->
-        Materializer._check_model_compliance(m, "errors.id.numericality")
+        Sirius.Materializer._check_model_compliance(m, "errors.id.numericality")
       ).toThrowError(/Unexpected 'errors.id.numericality' errors attribute/)
       expect(() ->
-        Materializer._check_model_compliance(m, "foo.bar")
+        Sirius.Materializer._check_model_compliance(m, "foo.bar")
       ).toThrowError(/Try to bind 'foo.bar' from errors properties/)
 
   describe "BaseModel to View", ->
     materializer = null
     beforeEach () ->
-      materializer = Materializer.build(new Test1(), new Sirius.View("#test"))
+      materializer = Sirius.Materializer.build(new Test1(), new Sirius.View("#test"))
 
     describe "field", ->
       it "unwrap function", ->
@@ -140,7 +140,7 @@ describe "Materialization",  ->
 
     materializer = null
     beforeEach () ->
-      materializer = Materializer.build(new Sirius.View("#test"), new Test1())
+      materializer = Sirius.Materializer.build(new Sirius.View("#test"), new Test1())
 
     describe "field", ->
       it "unwrap function", ->
@@ -221,7 +221,7 @@ describe "Materialization",  ->
       materializer = null
 
       beforeEach () ->
-        materializer = Materializer.build(new Sirius.View("#test"), new Sirius.View("#test1"))
+        materializer = Sirius.Materializer.build(new Sirius.View("#test"), new Sirius.View("#test1"))
 
       it "unwrap function", ->
         expect(() ->
@@ -242,7 +242,7 @@ describe "Materialization",  ->
       materializer = null
 
       beforeEach () ->
-        materializer = Materializer.build(new Sirius.View("#test"), new Sirius.View("#test1"))
+        materializer = Sirius.Materializer.build(new Sirius.View("#test"), new Sirius.View("#test1"))
 
       it "without field", ->
         expect(() ->
@@ -274,7 +274,7 @@ describe "Materialization",  ->
 
     describe "to", ->
       it "function is required", ->
-        materializer = Materializer.build(new Sirius.View("test"))
+        materializer = Sirius.Materializer.build(new Sirius.View("test"))
         expect(() ->
           materializer.field("test").to(1)
         ).toThrowError("Function is required")
@@ -288,7 +288,7 @@ describe "Materialization",  ->
       materializer = null
 
       beforeEach () ->
-        materializer = Materializer.build(new Test1())
+        materializer = Sirius.Materializer.build(new Test1())
 
       it "unwrap function", ->
         materializer.field((b) -> b.id)

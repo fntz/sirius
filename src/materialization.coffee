@@ -48,7 +48,7 @@
 
 
 # ok, it's for BaseModelToView
-class FieldMaker
+class Sirius.FieldMaker
   constructor: (@_from, @_to, @_attribute, @_transform, @_handle) ->
 
   has_to: () ->
@@ -103,10 +103,10 @@ class FieldMaker
     "#{@_from} ~> #{@_transform} ~> #{@_to}##{@_attribute}"
 
   @build: (from) ->
-    new FieldMaker(from)
+    new Sirius.FieldMaker(from)
 
 
-class AbstractMaterializer
+class Sirius.AbstractMaterializer
   constructor: (@_from, @_to) ->
     @fields = []
     @current = null
@@ -115,7 +115,7 @@ class AbstractMaterializer
     if @current?
       @current.normalize()
 
-    @current = FieldMaker.build(from_name)
+    @current = Sirius.FieldMaker.build(from_name)
     @fields.push(@current)
 
   _zoom_with: (view, maybeView) ->
@@ -154,7 +154,7 @@ class AbstractMaterializer
 
 
 # interface-like
-class MaterializerTransformImpl extends AbstractMaterializer
+class Sirius.MaterializerTransformImpl extends Sirius.AbstractMaterializer
 
   transform: (f) ->
     unless Sirius.Utils.is_function(f)
@@ -174,13 +174,13 @@ class MaterializerTransformImpl extends AbstractMaterializer
 
 
 
-class ModelToViewMaterializer extends MaterializerTransformImpl
+class Sirius.ModelToViewMaterializer extends Sirius.MaterializerTransformImpl
   field: (from_name) ->
     result = from_name
     if Sirius.Utils.is_function(from_name)
       result = from_name(@_from.get_binding())
 
-    Materializer._check_model_compliance(@_from, result)
+    Sirius.Materializer._check_model_compliance(@_from, result)
 
     super.field(result)
 
@@ -253,7 +253,7 @@ class ModelToViewMaterializer extends MaterializerTransformImpl
     @_from._register_state_listener(clb)
 
 
-class ViewToModelMaterializer extends MaterializerTransformImpl
+class Sirius.ViewToModelMaterializer extends Sirius.MaterializerTransformImpl
   field: (element) ->
     el = null
     if Sirius.Utils.is_string(element)
@@ -293,7 +293,7 @@ class ViewToModelMaterializer extends MaterializerTransformImpl
       result = attribute(@_to.get_binding())
 
     if @_to? && @_to instanceof Sirius.BaseModel
-      Materializer._check_model_compliance(@_to, result)
+      Sirius.Materializer._check_model_compliance(@_to, result)
 
     @current.to(result)
     @
@@ -319,7 +319,7 @@ class ViewToModelMaterializer extends MaterializerTransformImpl
       field.field()._register_state_listener(observer)
 
 
-class ViewToViewMaterializer extends ViewToModelMaterializer
+class Sirius.ViewToViewMaterializer extends Sirius.ViewToModelMaterializer
   to: (element) ->
     el = null
     if Sirius.Utils.is_string(element)
@@ -371,7 +371,7 @@ class ViewToViewMaterializer extends ViewToModelMaterializer
       field.field()._register_state_listener(observer)
 
 
-class ViewToFunctionMaterializer extends ViewToModelMaterializer
+class Sirius.ViewToFunctionMaterializer extends Sirius.ViewToModelMaterializer
   to: (f) ->
     unless Sirius.Utils.is_function(f)
       throw new Error("Function is required")
@@ -393,13 +393,13 @@ class ViewToFunctionMaterializer extends ViewToModelMaterializer
       field.field()._register_state_listener(observer)
 
 
-class ModelToFunctionMaterializer extends AbstractMaterializer
+class Sirius.ModelToFunctionMaterializer extends Sirius.AbstractMaterializer
   field: (attr) ->
     result = attr
     if Sirius.Utils.is_function(attr)
       result = attr(@_from.get_binding())
 
-    Materializer._check_model_compliance(@_from, result)
+    Sirius.Materializer._check_model_compliance(@_from, result)
 
     super.field(result)
 
@@ -427,21 +427,21 @@ class ModelToFunctionMaterializer extends AbstractMaterializer
     @_from._register_state_listener(clb)
 
 
-class Materializer
+class Sirius.Materializer
 
   # from must be View or BaseModel
   # to is View, BaseModel, or Function
   constructor: (from, to) ->
     if from instanceof Sirius.BaseModel && to instanceof Sirius.View
-      return new ModelToViewMaterializer(from, to)
+      return new Sirius.ModelToViewMaterializer(from, to)
     if from instanceof Sirius.View && to instanceof Sirius.BaseModel
-      return new ViewToModelMaterializer(from, to)
+      return new Sirius.ViewToModelMaterializer(from, to)
     if from instanceof Sirius.View && to instanceof Sirius.View
-      return new ViewToViewMaterializer(from, to)
+      return new Sirius.ViewToViewMaterializer(from, to)
     if from instanceof Sirius.View && !to?
-      return new ViewToFunctionMaterializer(from)
+      return new Sirius.ViewToFunctionMaterializer(from)
     if from instanceof Sirius.BaseModel && !to?
-      return new ModelToFunctionMaterializer(from)
+      return new Sirius.ModelToFunctionMaterializer(from)
     else
       throw new Error("Illegal arguments: 'from'/'to' must be instance of Sirius.View/or Sirius.BaseModel")
 
@@ -469,7 +469,7 @@ class Materializer
 
 
   @build: (from, to) ->
-    new Materializer(from, to)
+    new Sirius.Materializer(from, to)
 
 
 

@@ -684,19 +684,6 @@ class Sirius.BaseModel
       if @["_#{attr}"] isnt null
         transformer.apply(null, [attr, @["_#{attr}"]])
 
-  #  @alias `bind`
-  pipe: (output, materializer = {}) ->
-    # TODO default attributes
-    t = new Sirius.Transformer(@, output)
-    t.run(materializer)
-
-    return
-
-  # @param [Function] - binding function
-  # @param [Object]   - pet-attribute transformation description
-  bind: (output, materializer = {}) ->
-    @pipe(output, materializer)
-  
   # Register pair - name and class for validate
   # @param [String] - validator name
   # @param [T <: Sirius.Validator] - class which extends Sirius.Validator

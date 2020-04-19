@@ -9,7 +9,7 @@ describe "Binding", ->
     it "produce changes", ->
       model = new Test1()
       results = []
-      materializer = Materializer.build(model)
+      materializer = Sirius.Materializer.build(model)
       materializer
         .field((x) -> x.id)
           .to((id) -> results.push(id))
@@ -40,7 +40,7 @@ describe "Binding", ->
       expected = "baz"
       given = null
 
-      materializer = Materializer.build(view)
+      materializer = Sirius.Materializer.build(view)
       materializer
       .field(inputElement)
         .to((result) ->
@@ -61,7 +61,7 @@ describe "Binding", ->
       func = (result, view, logger) ->
         given = result['state']
 
-      materializer = Materializer.build(view)
+      materializer = Sirius.Materializer.build(view)
       materializer
         .field(inputCheckbox)
         .to((result) -> given = result.state)
@@ -79,7 +79,7 @@ describe "Binding", ->
       expected = "new-bind-class"
       given = []
 
-      materializer = Materializer.build(view)
+      materializer = Sirius.Materializer.build(view)
       materializer
         .field(inputElement)
         .from('class')
@@ -104,7 +104,7 @@ describe "Binding", ->
       sourceElement = "input[name='source']"
       source = view.zoom(sourceElement)
       mirror = view.zoom(".mirror")
-      materializer = Materializer.build(view, view)
+      materializer = Sirius.Materializer.build(view, view)
       materializer
         .field(source)
         .to(mirror)
@@ -131,7 +131,7 @@ describe "Binding", ->
     it "from text to model (+validation)", ->
       model = new Test1({foo: "abcd"})
 
-      materializer = Materializer.build(view, model)
+      materializer = Sirius.Materializer.build(view, model)
       materializer
         .field("input[name='source']")
         .to((b) -> b.foo)
@@ -145,7 +145,7 @@ describe "Binding", ->
 
     it "from checkbox to bool attribute", ->
       model = new Test1()
-      materializer = Materializer.build(view, model)
+      materializer = Sirius.Materializer.build(view, model)
       materializer
         .field("input[name='bool-source']")
         .to((b) -> b.is_checked)
@@ -170,7 +170,7 @@ describe "Binding", ->
     it "pass from property to input", () ->
       model = new Test1()
       output = "input[name='output-foo']"
-      Materializer.build(model, view)
+      Sirius.Materializer.build(model, view)
         .field((x) -> x.foo)
         .to(output)
         .run()
@@ -182,7 +182,7 @@ describe "Binding", ->
     it "pass from property to data-attribute", () ->
       model = new Test1()
       output = "input[name='output-foo']"
-      Materializer.build(model, view)
+      Sirius.Materializer.build(model, view)
         .field((x) -> x.foo)
         .to(output)
         .attribute('data-output')
@@ -196,7 +196,7 @@ describe "Binding", ->
       more = "+test"
       model = new Test1()
       output = "span.output-foo"
-      Materializer.build(model, view)
+      Sirius.Materializer.build(model, view)
         .field((x) -> x.foo)
         .to(output)
         .transform((r) -> "#{r}#{more}")
@@ -211,7 +211,7 @@ describe "Binding", ->
     it "pass from validation to span", ->
       model = new Test1()
       output = "span.output-validation-foo"
-      Materializer.build(model, view)
+      Sirius.Materializer.build(model, view)
         .field((x) -> x.errors.foo.length)
         .to(output)
         .run()
