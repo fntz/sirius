@@ -367,9 +367,21 @@ class Sirius.BaseModel
         @get(attribute)
 
   _gen_binding_names: () ->
+    # attributes + validators
+    # @_applicable_validators # {id: presence : P, numbericalluy: N ...}
     obj = {}
     for attribute in @get_attributes()
       obj[attribute] = attribute
+    # TODO check model should not contains 'error' attribute
+    if Object.keys(@_applicable_validators).length != 0
+      errors = {}
+      # id: presence, num, custom
+      for key, value of @_applicable_validators
+        tmp = {}
+        for v in Object.keys(value)
+          tmp[v] = "errors.#{key}.#{v}"
+        errors[key] = tmp
+      obj['errors'] = errors
 
     @binding = obj
 

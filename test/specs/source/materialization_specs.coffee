@@ -1,6 +1,39 @@
 describe "Materialization",  ->
   class Test1 extends Sirius.BaseModel
     @attrs: ['id']
+    @validate :
+      id:
+        presence: true
+
+  describe "Materializer", ->
+    it "illegal arguments", ->
+      expect(() ->
+        Materializer.build(1, 2)
+      ).toThrowError(/Illegal arguments/)
+      expect(() ->
+        Materializer.build(new Test1(), 1)
+      ).toThrowError(/Illegal arguments/)
+      expect(() ->
+        Materializer.build(new Sirius.View("asd"), "asd")
+      ).toThrowError(/Illegal arguments/)
+
+    it "check model attributes", ->
+      m = new Test1()
+      expect(() ->
+        Materializer._check_model_compliance(m, "id")
+      ).not.toThrowError()
+      expect(() ->
+        Materializer._check_model_compliance(m, "foo")
+      ).toThrowError(/Attribute 'foo' not found in model/)
+      expect(() ->
+        Materializer._check_model_compliance(m, "errors.id.presence")
+      ).not.toThrowError()
+      expect(() ->
+        Materializer._check_model_compliance(m, "errors.id.numericality")
+      ).toThrowError(/Unexpected 'errors.id.numericality' errors attribute/)
+      expect(() ->
+        Materializer._check_model_compliance(m, "foo.bar")
+      ).toThrowError(/Try to bind 'foo.bar' from errors properties/)
 
   describe "BaseModel to View", ->
     materializer = null
@@ -11,7 +44,13 @@ describe "Materialization",  ->
       it "unwrap function", ->
         materializer.field((b) -> b.id).to("test")
         expect(materializer.current.field()).toEqual("id")
+        materializer.field((b) -> b.errors.id.presence).to("test")
+        expect(materializer.current.field()).toEqual("errors.id.presence")
 
+      it "when attribute are not exist", ->
+        expect(() ->
+          materializer.field("foo")
+        ).toThrowError("Attribute 'foo' not found in model attributes: 'Test1', available: '[id]'")
 
     describe "to", ->
       it "unwrap function", ->
@@ -132,8 +171,8 @@ describe "Materialization",  ->
     describe "with", ->
       it "'with' are not function", ->
         expect(() ->
-          materializer.field("id")
-            .to("test").with(1)
+          materializer.field("input")
+            .to("id").with(1)
         ).toThrowError("With attribute must be function, #{typeof 1} given")
 
       it "'with' without field", ->
@@ -143,13 +182,13 @@ describe "Materialization",  ->
 
       it "without 'to'", ->
         expect( () ->
-          materializer.field("id").with(() ->)
+          materializer.field("input").with(() ->)
         ).toThrowError("Incorrect call. Call 'to' before 'with'")
 
       it "double-with", ->
         expect(() ->
-          materializer.field("id")
-            .to("test").with(() ->).with(() ->)
+          materializer.field("input")
+            .to("id").with(() ->).with(() ->)
         ).toThrowError("Incorrect call. The field already has 'with' function")
 
   describe "View To View", ->

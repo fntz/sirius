@@ -41,8 +41,6 @@
   .field('attr').to(changes) -> )
 
  # first iteration:
-  - make fieldMapper
-  - second add to proto
   - third integration with current
 
 
@@ -111,6 +109,25 @@ class AbstractMaterializer
     else
       maybeView
 
+  dump: () ->
+    xs = @fields.map (x) -> x.to_string()
+    xs.join("\n")
+
+  to_string: () ->
+    @dump()
+
+  get_from: () ->
+    @_from
+
+  get_to: () ->
+    @_to()
+
+  has_to: () ->
+    @_to?
+
+  materialize: () ->
+    @fields
+
 
 # interface-like
 class MaterializerWithImpl extends AbstractMaterializer
@@ -138,8 +155,10 @@ class ModelToViewMaterializer extends MaterializerWithImpl
     if Sirius.Utils.is_function(from_name)
       result = from_name(@_from.get_binding())
 
+    Materializer._check_model_compliance(@_from, result)
+
     super.field(result)
-    # check model attributes
+
     @
 
   to: (arg) ->
@@ -204,7 +223,6 @@ class ViewToModelMaterializer extends MaterializerWithImpl
     @
 
   to: (attribute) ->
-    # todo check model attributes
     unless @current?
       throw new Error("Incorrect call. Define 'field' firstly, and then call 'from'")
 
@@ -214,6 +232,9 @@ class ViewToModelMaterializer extends MaterializerWithImpl
     result = attribute
     if @_to? && Sirius.Utils.is_function(attribute)
       result = attribute(@_to.get_binding())
+
+    if @_to? && @_to instanceof Sirius.BaseModel
+      Materializer._check_model_compliance(@_to, result)
 
     @current.to(result)
     @
@@ -247,8 +268,10 @@ class ModelToFunctionMaterializer extends AbstractMaterializer
     if Sirius.Utils.is_function(attr)
       result = attr(@_from.get_binding())
 
+    Materializer._check_model_compliance(@_from, result)
+
     super.field(result)
-    # check model attributes
+
     @
 
   to: (f) ->
@@ -281,15 +304,29 @@ class Materializer
     if from instanceof Sirius.BaseModel && !to?
       return new ModelToFunctionMaterializer(from)
     else
-      throw new Error("Not implemented")
+      throw new Error("Illegal arguments: 'from'/'to' must be instance of Sirius.View/or Sirius.BaseModel")
 
-  dump: () ->
-    xs = @fields.map (x) -> x.to_string()
-    xs.join("\n")
+  @_check_model_compliance: (model, maybe_model_attribute) ->
+    name = model._klass_name()
+    attrs = model.get_attributes()
 
-  to_string: () ->
-    @dump()
+    if attrs.indexOf(maybe_model_attribute) != -1
+      return true
+    else
+      if maybe_model_attribute.indexOf(".") == -1
+        throw new Error("Attribute '#{maybe_model_attribute}' not found in model attributes: '#{name}', available: '[#{attrs}]'")
 
+      # check for validators
+      splitted = maybe_model_attribute.split(".")
+      if splitted.length != 3
+        throw new Error("Try to bind '#{maybe_model_attribute}' from errors properties, but validator is not found, correct definition should be as 'errors.id.numericality'")
+
+      [_, attr, validator_key] = splitted
+
+      unless model._is_valid_validator("#{attr}.#{validator_key}")
+        throw new Error("Unexpected '#{maybe_model_attribute}' errors attribute for '#{name}' (check validators)")
+      else
+        return true
 
 
   @build: (from, to) ->
