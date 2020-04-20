@@ -41,6 +41,8 @@ class Sirius.Logger
     log_function: null
     enable_logging: null
 
+    _is_initialized: false
+
     # should be called in the initialization time
     # options.enable_logging
     # options.minimum_log_level
@@ -68,6 +70,8 @@ class Sirius.Logger
         throw new Error("'log_to' argument must be a function") unless Sirius.Utils.is_function(options['log_to'])
         options['log_to']
 
+      @_is_initialized = true
+
     ###
       Check if given string is valid log level
     ###
@@ -87,6 +91,18 @@ class Sirius.Logger
         maybe[0]
 
   constructor: (@log_source) ->
+    @_log_queue = []
+
+    unless Sirius.Logger.Configuration._is_initialized
+      _timer = setInterval(
+        () -> _flush_logs()
+        100)
+
+      _flush_logs = () =>
+        if Sirius.Logger.Configuration._is_initialized
+          for obj in @_log_queue
+            @_write(obj.level, obj.message)
+          clearInterval(_timer)
 
   @build: (log_source) ->
     new Sirius.Logger(log_source)
@@ -110,9 +126,14 @@ class Sirius.Logger
   # @private
   # @nodoc
   _write: (log_level, message) ->
-    if log_level.gte(Sirius.Logger.Configuration.minimum_log_level)
-      Sirius.Logger.Configuration
-        .log_function(log_level.get_value().toUpperCase(), @log_source, message)
+    if Sirius.Logger.Configuration._is_initialized
+      if log_level.gte(Sirius.Logger.Configuration.minimum_log_level)
+        Sirius.Logger.Configuration
+          .log_function(log_level.get_value().toUpperCase(), @log_source, message)
+    else
+      @_log_queue.push[{level: log_level, message: message}]
+
+
 
 
 
