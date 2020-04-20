@@ -223,14 +223,40 @@ person.find("name", "Joe").to_json() # => {"id" : "g-u-i-d", "name" : "Joe", "ag
 
 [more about collections](https://github.com/fntz/sirius/wiki/Collections)
 
-### 8. Binding
+### 8. Binding (Materialization)
 
-Support binding: view to model, view to view, model to view, or model|view to function. 
-And ot them support all strategies (how to change a content or an attribute) or transform (how to transform a value) methods.
+Supported binding: 
+    1. view to model
+    2. view to view 
+    3. model to view
+    4. or model|view to function. 
+
+#### View To Model
 
 ```coffee
-# view to view
-# html
+# view 
+<div id="my-input">
+  <input type="text" />
+</div>
+
+# model
+class MyModel extends Sirius.BaseModel
+  @attrs: ["id", "name"]
+ 
+model = new MyModel()
+view = new Sirius.View("#my-input")
+
+# and now materialize!
+Materializer.build(view, model) # from view to model
+  .field((v) -> v.zoom("input"))
+  .to((m) -> m.name)          # or just .to('name')
+  .transform((result) -> "#{result.text}!")
+  .run()   
+    
+```
+
+#### View To View
+```coffee
 
 # view1 
 <div id="element">
@@ -245,76 +271,44 @@ And ot them support all strategies (how to change a content or an attribute) or 
 view1 = new Sirius.View("#element")
 view2 = new Sirius.View("#my-input")
 
-materializer = {
-  to: [{
-    from: 'input'
-    selector: 'p'
-    with: (new_value, selector, view, attribute) ->
-      view.zoom(selector).render(new_value).swap(attribute) 
-  }]
-}
+Sirius.Materializer.build(view2, view1) # from view2 to view1 
+  .field("input") # or field((view) -> view.zoom("input"))
+  .to('p')        # the same ^
+  .handle((result, view) ->             # you can define own handler
+    view.render(result.text).swap()     # default  
+  ) 
+  .run()
 
-view2.bind(vew1, materializer)
 ```
+
+#### Model to View 
 
 ```coffee
-# view to model
-# html
-<div id="my-input">
-  <input type="text" />
+# model
+class MyModel extends Sirius.BaseModel
+  @attrs: ["name"]
+  @validate:
+    name:
+      length: min: 3, max: 10
+
+# view
+<div id="view">
+  <div class="model-name"></div>
+  <span class="model-errors"></span>
 </div>
 
-model = new MyModel() 
-view = new Sirius.View("#my-input")
-materializer = {
-  "input": {
-    to: 'title'
-    from: 'text'
-    with: (new_value, view, selector, from, event_target) ->
-      new_value
-  }
-}
-view.bind(model, materializer)
+model = new MyModel()
+view = new Sirius.View("#view")
 
-
-# and then fill input, and check
-
-model.title() # => your input
+Sirius.Materializer.build(model, view)
+  .field((m) -> m.name)
+  .to('.model-name')
+  .field((m) -> m.errors.name.length) # path to validator
+  .to('.model-errors')
+  .run()
 
 ```
 
-```coffee
-# model to view
-
-<div id="element">
-   <p></p>
-</div>
- 
- model = new MyModel() # [id, title]
- view = new Sirius.View("#element")
- 
- materializer = {
-   "title": {
-     to: 'p'
-     attr: 'text'
-     via: (new_value, selector, view, attribute) -> 
-       view.zoom(selector).render(new_value).swap(attribute)
-   }
- }
- 
- model.bind(view, materializer) 
- 
- # and then in application:
- 
- model.title("new title") 
- 
- # and new html
- 
- <div id="element">
-   <p>new title</p>
- </div>
-
-```
 
 [more about binding](https://github.com/fntz/sirius/wiki/Binding)
 
