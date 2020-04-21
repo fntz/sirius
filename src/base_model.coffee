@@ -724,7 +724,7 @@ class Sirius.BaseModel
     Sirius.BaseModel.register_validator("numericality", Sirius.NumericalityValidator)
     Sirius.BaseModel.register_validator("presence", Sirius.PresenceValidator)
 
-
+Sirius.BaseModel._run_base_model_validator_registration()
 
 
 

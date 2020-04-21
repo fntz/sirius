@@ -638,15 +638,7 @@ Sirius.Application =
   _initialize: (options) ->
     # configure logging
     Sirius.Logger.Configuration.configure(options)
-
     logger = new Sirius.Logger("Sirius.Application")
-
-    # especial for sirius-core where these modules are not available
-    if Sirius.BaseModel
-      Sirius.BaseModel._run_base_model_validator_registration()
-
-    if Sirius.View
-      Sirius.View._run_view_strategy_registration()
 
     _get_key_or_default = (k, _default) ->
       if options[k]?

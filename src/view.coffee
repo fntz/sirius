@@ -324,4 +324,4 @@ class Sirius.View
     )
 
 
-
+Sirius.View._run_view_strategy_registration()
