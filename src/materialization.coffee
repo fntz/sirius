@@ -46,44 +46,55 @@
 
 ###
 
-
-# ok, it's for BaseModelToView
+# @private
+# @nodoc
+# I use this class for save infromation about Field Mapping like: names, attributes...
 class Sirius.FieldMaker
   constructor: (@_from, @_to, @_attribute, @_transform, @_handle) ->
 
+  # @return[Boolean]
   has_to: () ->
     @_to?
 
+  # @return[Boolean]
   has_attribute: () ->
     @_attribute?
 
+  # @return[Boolean]
   has_transform: () ->
     @_transform?
 
+  # @return[Boolean]
   has_handle: () ->
     @_handle?
 
+  # @return[String|Sirius.View] - current start mapping property
   field: () ->
     @_from
 
+  # @param[String|Sirius.View]
+  # @return[String|Sirius.View|Void] - current end mapping property
   to: (x) ->
     if x?
       @_to = x
     else
       @_to
 
+  # @param x [Function]
   handle: (x) ->
     if x?
       @_handle = x
     else
       @_handle
 
+  # @param x [String]
   attribute: (x) ->
     if x?
       @_attribute = x
     else
       @_attribute
 
+  # @param x [Function] - a function for middle transform input changes
   transform: (x) ->
     if x?
       @_transform = x
@@ -91,6 +102,7 @@ class Sirius.FieldMaker
       @_transform
 
   # fill with default parameters
+  # @return[Void]
   normalize: () ->
     if !@has_transform()
       @_transform = (x) -> x
@@ -98,26 +110,34 @@ class Sirius.FieldMaker
     if !@has_attribute()
       @_attribute = "text" # make constant
 
-
   to_string: () ->
     "#{@_from} ~> #{@_transform} ~> #{@_to}##{@_attribute}"
 
+  # Static constructor
   @build: (from) ->
     new Sirius.FieldMaker(from)
 
-
+# @private
+# @nodoc
+# Base class for describe different types of Materializers
 class Sirius.AbstractMaterializer
+  # @param _from [BaseModel, Sirius.View]
+  # @param _to [BaseModel, View, Function]
   constructor: (@_from, @_to) ->
     @fields = []
     @current = null
 
+  # @param from_name [String, Sirius.View]
   field: (from_name) ->
     if @current?
       @current.normalize()
 
     @current = Sirius.FieldMaker.build(from_name)
     @fields.push(@current)
+    @
 
+  # @nodoc
+  # @private
   _zoom_with: (view, maybeView) ->
     if Sirius.Utils.is_string(maybeView)
       view.zoom(maybeView)
@@ -146,14 +166,14 @@ class Sirius.AbstractMaterializer
       obj[f.field()] = f
     obj
 
-  materialize: () ->
-    @fields
-
+  # run Materializer for given fields
   run: () ->
     throw new Error("Not Implemented")
 
 
 # interface-like
+# @nodoc
+# @private
 class Sirius.MaterializerTransformImpl extends Sirius.AbstractMaterializer
 
   transform: (f) ->
@@ -173,8 +193,36 @@ class Sirius.MaterializerTransformImpl extends Sirius.AbstractMaterializer
     @
 
 
-
+# @private
+# Provide binding between Sirius.BaseModel and Sirius.View
 class Sirius.ModelToViewMaterializer extends Sirius.MaterializerTransformImpl
+  # @param: [String|Function]
+  # if string - field should be attribute of Sirius.BaseModel instance
+  # if function - a function should returns attribute.
+  # function take binding object
+  # @example
+  #   class MyMode extends Sirius.BaseModel
+  #     @attrs: ["id", "name"]
+  #       @validate:
+  #        id:
+  #          numericality: only_integers: true
+  #          presence: true
+  #
+  #   # then function will take the next object
+  #   {
+  #      id    : "id",
+  #      name  : "name",
+  #      'errors.id.numericality' : "errors.id.numericality",
+  #      'errors.id.presence'     : "errors.id.presence",
+  #      'errors.id'              : "errors.id"
+  #      'errors.all'             : "errors.all"
+  #   }
+  #  # and you can get these:
+  #
+  #  (x) -> x.id
+  #  (x) -> x.errors.id.numericality
+  #  (x) -> x.errors.all
+  #
   field: (from_name) ->
     result = from_name
     if Sirius.Utils.is_function(from_name)
@@ -186,6 +234,17 @@ class Sirius.ModelToViewMaterializer extends Sirius.MaterializerTransformImpl
 
     @
 
+  # @param: [String, Function, Sirius.View] - all of therse will be transformer to Sirius.View
+  # if String - argument will be transformed to Sirius.View, with common Sirius.View.zoom function
+  # if Sirius.View - nothing to do here
+  # if Function - function will be called with @to
+  # @note Should be called after 'field' function
+  # @example
+  #  all of below are the same
+  #  to('input')
+  #  to(Sirius.View('input'))
+  #  to((view) -> view.zoom('input')
+  #
   to: (arg) ->
     unless @current?
       throw new Error("Incorrect call. Call 'to' after 'field'")
@@ -206,6 +265,12 @@ class Sirius.ModelToViewMaterializer extends Sirius.MaterializerTransformImpl
     @current.to(result)
     @
 
+  # @param String - attribute of View, whereto changes will be reflected. That's an usual html property, like
+  # class, data-attribute, or checked
+  # @note Should be called after `field` function, and after `to`
+  # @example
+  #  .attribute('data-id')
+  #
   attribute: (attr) ->
     unless @current?
       throw new Error("Incorrect call. Define 'field' firstly, and then call 'attribute' after 'to'")
@@ -219,6 +284,18 @@ class Sirius.ModelToViewMaterializer extends Sirius.MaterializerTransformImpl
     @current.attribute(attr)
     @
 
+  # @alias attribute
+  to_attribute: (attr) ->
+    @attribute(attr)
+
+  # @param - user defined function for handle changes from BaseModel to View
+  # Function will take Sirius.View (from `to`) and changes
+  # @default apply `swap` strategy to `to`-attribute above
+  # @note `field` should be called before, `to` should be called before
+  # @example
+  #
+  #   .handle((view, changes) -> view.render(changes).append())
+  #
   handle: (f) ->
     unless @current?
       throw new Error("Incorrect call. 'field' is not defined")
@@ -235,7 +312,7 @@ class Sirius.ModelToViewMaterializer extends Sirius.MaterializerTransformImpl
     @current.handle(f)
     @
 
-
+  # call materializer
   run: () ->
     @current.normalize()
 
