@@ -1,49 +1,6 @@
 
 ###
-
-  probably like:
-
-  Materializer.build(T <: BaseModel|View, R <: BaseModel|View|Function)
-  .field((x) -> s.attr())               # does it possible in coffee?
-  # or
-  field('attr_name').to("input").attribute("data-attr").with(() ->)
-
-  field('attr_name).to("input")
-  .dump() => log output as string, dump is a terminal operation
-  # or build
-  # does it possible?
-  field('attr_name').to((v) -> v.zoom('input')).attribute('data-attr').with(() -> )
-
-  # TODO spec syntax, add to .prototype.
-  field((model) -> model.from{or something like that}.attr())
-  field( view -> view.zoom("el"))
-
-  # view to view
-  Materializer.build(v1, v2)
-  .field("element").from("attribute").to("element).with((v2, v1_attribute) -> )
-  .field(v -> v.zoom("element")).from("attribute").to(v2 -> v.zoom("el"))
-  .with(() ->)
-  # or
-  .field("element").from("attr").with((v2, attr) -> ) # user decides what should do with v2 (zoom) and attr
-
- # view to model
-  Materilizer.build(v, m)
-  .field("element").from("attr").to('m_attr')
-  .field(v -> v.zoom("el")).from("attr").to(m -> m.attr_name)
-   with ? (m, attr_changes) -> ??? is it need?
-
- # view to function
-  Materializer.build(v) # second param is empty
-  .field('element').attribute('data-class').to((changes) ->)
-
- # model to function
- Materializer.build(m) # second param is empty
-  .field('attr').to(changes) -> )
-
- # first iteration:
-  - third integration with current
-
-
+  Different type of Materializers
 ###
 
 # @private
@@ -176,6 +133,7 @@ class Sirius.AbstractMaterializer
 # @private
 class Sirius.MaterializerTransformImpl extends Sirius.AbstractMaterializer
 
+  # @param f [Function] - function for transforming results from @from to @to
   transform: (f) ->
     unless Sirius.Utils.is_function(f)
       throw new Error("'transform' attribute must be function, #{typeof f} given")
@@ -193,8 +151,16 @@ class Sirius.MaterializerTransformImpl extends Sirius.AbstractMaterializer
     @
 
 
+# @class
 # @private
 # Provide binding between Sirius.BaseModel and Sirius.View
+# @example
+# Sirius.Materializer.build(model, view)
+#   .field((x) -> x.model_attribute)
+#   .to((v) -> v.zoom("input")
+#   .transform((x) -> "#{x}!!!")
+#   run()
+#
 class Sirius.ModelToViewMaterializer extends Sirius.MaterializerTransformImpl
   # @param: [String|Function]
   # if string - field should be attribute of Sirius.BaseModel instance
@@ -320,7 +286,7 @@ class Sirius.ModelToViewMaterializer extends Sirius.MaterializerTransformImpl
     clb = (attribute, value) ->
       f = obj[attribute]
       if f?
-        transformed = f.transform().call(this, value, f.to())
+        transformed = f.transform().call(null, value, f.to())
         if f.has_handle()
           f.handle().call(null, f.to(), transformed) # view and changes
         else
@@ -329,8 +295,27 @@ class Sirius.ModelToViewMaterializer extends Sirius.MaterializerTransformImpl
 
     @_from._register_state_listener(clb)
 
-
+# @class
+# @private
+# Provide binding between Sirius.View and Sirius.BaseModel
+# @example
+# Sirius.Materializer.build(view, model)
+#  .field((v) -> v.zoom("input"))
+#  .to((m) -> m.attribute)
+#  .transform((x) -> x.result)
+#  .run()
 class Sirius.ViewToModelMaterializer extends Sirius.MaterializerTransformImpl
+
+  # @param element [String|Function|Sirius.View] - view where need control changes
+  # if String - argument will be wrapped to Sirius.View
+  # if Sirius.View - nothing to do
+  # if Function - function will be called result should be a string or Sirius.View
+  # @example
+  #
+  #  .field('input')
+  #  .field((v) -> v.zoom('input')
+  #  .field(new Sirius.View('input'))
+  #
   field: (element) ->
     el = null
     if Sirius.Utils.is_string(element)
@@ -345,6 +330,11 @@ class Sirius.ViewToModelMaterializer extends Sirius.MaterializerTransformImpl
     super.field(el)
     @
 
+  # @param attribute [String]
+  # control changes from specific html attribute: class, data-*, checked ...
+  # @example
+  # .from('data-id')
+  #
   from: (attribute) ->
     unless @current?
       throw new Error("Incorrect call. Define 'field' firstly, and then call 'from'")
@@ -358,6 +348,18 @@ class Sirius.ViewToModelMaterializer extends Sirius.MaterializerTransformImpl
     @current.attribute(attribute)
     @
 
+  # @alias from
+  from_attribute: (attribute) ->
+    @from(attribute)
+
+  # @param attribute [String, Function]
+  # if String - nothing to do
+  # if Function - function will be called. an argument will be model.binding object (@see Sirius.ModelToViewMaterializer)
+  # @note attribute should be exist in model
+  # @note `field` should be called before
+  # @example
+  #   .field((x) -> x.attribute)
+  #   .field('attribute')
   to: (attribute) ->
     unless @current?
       throw new Error("Incorrect call. Define 'field' firstly, and then call 'from'")
@@ -375,6 +377,7 @@ class Sirius.ViewToModelMaterializer extends Sirius.MaterializerTransformImpl
     @current.to(result)
     @
 
+  # run Materializer
   run: () ->
     @current.normalize()
     model = @_to
@@ -395,8 +398,28 @@ class Sirius.ViewToModelMaterializer extends Sirius.MaterializerTransformImpl
       )
       field.field()._register_state_listener(observer)
 
-
+# @class
+# @private
+# Describe View to View transformation
+# @example
+#
+# Sirius.Materializer.build(view1, view2)
+# .field((view1) -> view1.zoom('input'))
+# .to((view2) -> view2.zoom('div'))
+# .transform((result) -> result.text)
+# .handle((transformed_result, view_to) -> view_to.render(transformed_result).append())
+# .run()
+#
 class Sirius.ViewToViewMaterializer extends Sirius.ViewToModelMaterializer
+  # @param element [String|Sirius.View|Function]
+  # if String - element will be converted to Sirius.View
+  # if Sirius.View - nothing to do
+  # if Function - will be called with argument @to
+  # @example
+  #  .to('input')
+  #  .to((v) -> v.zoom('input'))
+  #  .to(new Sirius.View('input'))
+  #
   to: (element) ->
     el = null
     if Sirius.Utils.is_string(element)
@@ -411,6 +434,8 @@ class Sirius.ViewToViewMaterializer extends Sirius.ViewToModelMaterializer
     super.to(el)
     @
 
+  # @param f [Function] - transformation handler
+  # Function will take two arguments: changes and view from `to` method
   handle: (f) ->
     unless @current?
       throw new Error("Incorrect call. 'field' is not defined")
@@ -427,6 +452,7 @@ class Sirius.ViewToViewMaterializer extends Sirius.ViewToModelMaterializer
     @current.handle(f)
     @
 
+  # run Materializer
   run: () ->
     @current.normalize()
     for field in @fields
@@ -434,7 +460,7 @@ class Sirius.ViewToViewMaterializer extends Sirius.ViewToModelMaterializer
       clb = (result) ->
         transformed = field.transform(result)
         if field.has_handle()
-          field.handle().call(this, transformed, field.to())
+          field.handle().call(null, transformed, field.to())
         else
           # TODO checkbox !!!!
           field.to().render(transformed).swap()
@@ -447,8 +473,16 @@ class Sirius.ViewToViewMaterializer extends Sirius.ViewToModelMaterializer
       )
       field.field()._register_state_listener(observer)
 
-
+# @class
+# @private
+# Describe how to pass changes from View to Function
+# @example
+# Sirius.Materializer.build(view)
+#  .field((v) -> v.zoom('input'))
+#  .to((changes) -> changes)
+#  .run()
 class Sirius.ViewToFunctionMaterializer extends Sirius.ViewToModelMaterializer
+  # @param f [Function] - function for changes handling
   to: (f) ->
     unless Sirius.Utils.is_function(f)
       throw new Error("Function is required")
@@ -456,6 +490,7 @@ class Sirius.ViewToFunctionMaterializer extends Sirius.ViewToModelMaterializer
     super.to(f)
     @
 
+  # run Materializer
   run: () ->
     @current.normalize()
     # already zoomed
@@ -469,8 +504,21 @@ class Sirius.ViewToFunctionMaterializer extends Sirius.ViewToModelMaterializer
       )
       field.field()._register_state_listener(observer)
 
-
+# @class
+# @private
+# Describe transformation from Sirius.BaseModel to function
+# @example
+# Sirius.Materializer.build(model)
+#  .field((m) -> m.attribute)
+#  .to((changes) -> changes)
+#  .run()
+#
 class Sirius.ModelToFunctionMaterializer extends Sirius.AbstractMaterializer
+  #
+  # @param attr [String, Function]
+  # if String - nothing to do
+  # if Function - function will be called with binding parameters @see Sirius.ModelToViewMaterializer
+  # @note attribute should be present in model
   field: (attr) ->
     result = attr
     if Sirius.Utils.is_function(attr)
@@ -482,6 +530,8 @@ class Sirius.ModelToFunctionMaterializer extends Sirius.AbstractMaterializer
 
     @
 
+  # @param f [Function]
+  # function should have one input parameter - actual changes from model
   to: (f) ->
     unless @current?
       throw new Error("Incorrect call. Define 'field' firstly")
@@ -495,6 +545,7 @@ class Sirius.ModelToFunctionMaterializer extends Sirius.AbstractMaterializer
     @current.to(f)
     @
 
+  # run Materialization process
   run: () ->
     obj = @fields_map()
     clb = (attribute, value) ->
@@ -522,6 +573,8 @@ class Sirius.Materializer
     else
       throw new Error("Illegal arguments: 'from'/'to' must be instance of Sirius.View/or Sirius.BaseModel")
 
+  # @private
+  # @nodoc
   @_check_model_compliance: (model, maybe_model_attribute) ->
     name = model._klass_name()
     attrs = model.get_attributes()
@@ -544,7 +597,7 @@ class Sirius.Materializer
       else
         return true
 
-
+  # static constructor
   @build: (from, to) ->
     new Sirius.Materializer(from, to)
 
