@@ -5,7 +5,7 @@
 
 # @private
 # @nodoc
-# I use this class for save infromation about Field Mapping like: names, attributes...
+# I use this class for save information about Field Mapping like: names, attributes...
 class Sirius.FieldMaker
   constructor: (@_from, @_to, @_attribute, @_transform, @_handle) ->
 
