@@ -185,6 +185,31 @@ describe "BaseModel", ->
       expect(t.id()).toEqual(t.get('id'))
       expect(after_update).toEqual(["id", 1, null, "id", 10, 1])
 
+  describe "get_binding", ->
+    it "returns binding for attributes, and for validators", ->
+      class Test1 extends Sirius.BaseModel
+        @attrs: ["id", "foo"]
+        @validate:
+          id:
+            presence: true
+            inclusion: within: [1..10]
+          foo:
+            format: with: /^[A-Z].+/
+      b = new Test1().get_binding()
+      expect(b.id).toEqual("id")
+      expect(b.foo).toEqual("foo")
+      expect(b.errors.id.presence).toEqual("errors.id.presence")
+      expect(b.errors.id.inclusion).toEqual("errors.id.inclusion")
+      expect(b.errors.foo.format).toEqual("errors.foo.format")
+      expect(b.errors.foo.all).toEqual("errors.foo.all")
+      expect(b.errors.id.all).toEqual("errors.id.all")
+      expect(b.errors.all).toEqual("errors.all")
+      expect(Object.keys(b)).toEqual(["id", "foo", "errors"])
+      expect(Object.keys(b.errors)).toEqual(["id", "foo", "all"])
+      expect(Object.keys(b.errors.foo)).toEqual(["format", "all"])
+      console.log(b)
+
+
   describe "reset", ->
 
     class Test1 extends Sirius.BaseModel

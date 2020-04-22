@@ -5,12 +5,20 @@ describe "Binding", ->
       @validate:
         id:
           numericality: only_integers: true
+        name:
+          exclusion: within: ["test"]
 
     it "produce changes", ->
       model = new Test1()
       results = []
+      all_errors = []
+      id_errors = []
       materializer = Sirius.Materializer.build(model)
       materializer
+        .field((x) -> x.errors.all)
+          .to((err) -> all_errors.push(err))
+        .field((x) -> x.errors.id.all)
+          .to((err) -> id_errors.push(err) )
         .field((x) -> x.id)
           .to((id) -> results.push(id))
         .field((x) -> x.name)
@@ -22,12 +30,18 @@ describe "Binding", ->
       expect(results.length).toEqual(0)
 
       model.name("test")
-      expect(results).toEqual(["test"])
+      expect(results).toEqual([])
+      expect(all_errors).toEqual(["Value test reserved"])
+      expect(id_errors).toEqual([])
       model.id("asd")
-      expect(results).toEqual(["test", "Only allows integer numbers"])
+      expect(all_errors).toEqual(["Value test reserved", "Only allows integer numbers"])
+      expect(id_errors).toEqual(["Only allows integer numbers"])
+      expect(results).toEqual(["Only allows integer numbers"])
       model.id(123)
       # '' - reset validation
-      expect(results).toEqual(["test", "Only allows integer numbers", '', 123])
+      expect(results).toEqual(["Only allows integer numbers", "", 123])
+      expect(id_errors).toEqual(["Only allows integer numbers", ""])
+      expect(all_errors).toEqual(["Value test reserved", "Only allows integer numbers", ""])
 
   describe "View To Function", ->
     rootElement = "#view2function"

@@ -379,12 +379,34 @@ class Sirius.BaseModel
       for key, value of @_applicable_validators
         tmp = {}
         for v in Object.keys(value)
-          tmp[v] = "errors.#{key}.#{v}"
+          tmp[v] = "#{Sirius.Internal.Errors}.#{key}.#{v}"
+
+        tmp["all"] = "errors.#{key}.all" # TODO protect & make methods are reserved
         errors[key] = tmp
-      obj['errors'] = errors
+
+      errors["all"] = "#{Sirius.Internal.Errors}.all"
+      obj[Sirius.Internal.Errors] = errors
 
     @binding = obj
 
+  # Function return generated objects for convenient work with materialization (avoid `"` or `'`)
+  # @example
+  # class MyModel extends Sirius.BaseModel
+  #   @attrs: ["id", "foo"]
+  #   @validate:
+  #     id:
+  #       presence: true
+  #       inclusion: within: [1..10]
+  #     foo:
+  #       format: with: /^[A-Z].+/
+  #
+  # model = new MyModel()
+  # b = model.get_binding()
+  # b.id                     # => "id"
+  # b.foo                    # => "foo"
+  # b.errors.id.all          # => "errors.id.all" represents all validations of the `id`
+  # b.errors.id.presence     # => "errors.id.presence"
+  # b.errors.all             # => "erros.all" all validations of all attributes
   get_binding: () ->
     @binding
 
@@ -418,7 +440,7 @@ class Sirius.BaseModel
 
   # @_call_callbacks_for_errors(key, validator_key, "")
   _call_callbacks_for_errors: (key, validator_key, message) ->
-    key = "errors.#{key}.#{validator_key}"
+    key = "#{Sirius.Internal.Errors}.#{key}.#{validator_key}"
     for clb in @_listeners
       clb.apply(null, [key, message])
   #

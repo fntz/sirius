@@ -284,14 +284,15 @@ class Sirius.ModelToViewMaterializer extends Sirius.MaterializerTransformImpl
 
     obj = @fields_map()
     clb = (attribute, value) ->
-      f = obj[attribute]
-      if f?
+      callers = Sirius.Materializer.get_necessary_functions(obj, attribute)
+      for f in callers
         transformed = f.transform().call(null, value, f.to())
         if f.has_handle()
           f.handle().call(null, f.to(), transformed) # view and changes
         else
           # default, just a swap
           f.to().render(transformed).swap(f.attribute())
+
 
     @_from._register_state_listener(clb)
 
@@ -547,15 +548,19 @@ class Sirius.ModelToFunctionMaterializer extends Sirius.AbstractMaterializer
 
   # run Materialization process
   run: () ->
+    errors_all = "#{Sirius.Internal.Errors}.all"
     obj = @fields_map()
     clb = (attribute, value) ->
-      if obj[attribute]?
-        obj[attribute].to().call(null, value)
+      callers = Sirius.Materializer.get_necessary_functions(obj, attribute)
+      for f in callers
+        f.to().call(null, value)
 
     @_from._register_state_listener(clb)
 
 
 class Sirius.Materializer
+
+  @errors_all: "#{Sirius.Internal.Errors}.all"
 
   # from must be View or BaseModel
   # to is View, BaseModel, or Function
@@ -582,20 +587,49 @@ class Sirius.Materializer
     if attrs.indexOf(maybe_model_attribute) != -1
       return true
     else
+      if maybe_model_attribute == "#{Sirius.Internal.Errors}.all"   # pass all errors
+        return true
+
       if maybe_model_attribute.indexOf(".") == -1
         throw new Error("Attribute '#{maybe_model_attribute}' not found in model attributes: '#{name}', available: '[#{attrs}]'")
 
       # check for validators
       splitted = maybe_model_attribute.split(".")
+
       if splitted.length != 3
         throw new Error("Try to bind '#{maybe_model_attribute}' from errors properties, but validator is not found, correct definition should be as 'errors.id.numericality'")
 
       [_, attr, validator_key] = splitted
 
+      if validator_key == "all"
+        return true
+
       unless model._is_valid_validator("#{attr}.#{validator_key}")
         throw new Error("Unexpected '#{maybe_model_attribute}' errors attribute for '#{name}' (check validators)")
       else
         return true
+
+  # @private
+  # @nodoc
+  # @returns [Function]
+  @get_necessary_functions: (obj, attribute) ->
+    results = []
+    if attribute.startsWith(Sirius.Internal.Errors)
+
+    # check errors.all
+      if obj[Sirius.Materializer.errors_all]?
+        results.push(obj[Sirius.Materializer.errors_all])
+
+      # check errors.`attr`.all
+      [_, attr, validator_key] = attribute.split(".") # errors.id.presence
+      error_attribute_all = "#{Sirius.Internal.Errors}.#{attr}.all"
+      if obj[error_attribute_all]?
+        results.push(obj[error_attribute_all])
+
+    # any key
+    if obj[attribute]?
+      results.push(obj[attribute])
+    results
 
   # static constructor
   @build: (from, to) ->

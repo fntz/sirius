@@ -1,7 +1,7 @@
 describe "Materialization",  ->
   class Test1 extends Sirius.BaseModel
     @attrs: ['id']
-    @validate :
+    @validate:
       id:
         presence: true
 
@@ -21,6 +21,12 @@ describe "Materialization",  ->
       m = new Test1()
       expect(() ->
         Sirius.Materializer._check_model_compliance(m, "id")
+      ).not.toThrowError()
+      expect(() ->
+        Sirius.Materializer._check_model_compliance(m, "errors.id.all")
+      ).not.toThrowError()
+      expect(() ->
+        Sirius.Materializer._check_model_compliance(m, "errors.all")
       ).not.toThrowError()
       expect(() ->
         Sirius.Materializer._check_model_compliance(m, "foo")
