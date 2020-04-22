@@ -371,17 +371,23 @@ class Sirius.BaseModel
     # @_applicable_validators # {id: presence : P, numbericalluy: N ...}
     obj = {}
     for attribute in @get_attributes()
+      # will be throw before that code will be reachable
+      if attribute is Sirius.Internal.Errors
+        throw new Error("'errors' name is reserved")
+
       obj[attribute] = attribute
-    # TODO check model should not contains 'error' attribute
+
     if Object.keys(@_applicable_validators).length != 0
       errors = {}
       # id: presence, num, custom
       for key, value of @_applicable_validators
         tmp = {}
         for v in Object.keys(value)
+          if v is "all"
+            throw new Error("Name 'all' for validators is reserved")
           tmp[v] = "#{Sirius.Internal.Errors}.#{key}.#{v}"
 
-        tmp["all"] = "errors.#{key}.all" # TODO protect & make methods are reserved
+        tmp["all"] = "#{Sirius.Internal.Errors}.#{key}.all"
         errors[key] = tmp
 
       errors["all"] = "#{Sirius.Internal.Errors}.all"

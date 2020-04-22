@@ -207,7 +207,18 @@ describe "BaseModel", ->
       expect(Object.keys(b)).toEqual(["id", "foo", "errors"])
       expect(Object.keys(b.errors)).toEqual(["id", "foo", "all"])
       expect(Object.keys(b.errors.foo)).toEqual(["format", "all"])
-      console.log(b)
+
+    it "generate exceptions on reserved names", ->
+      Sirius.BaseModel.register_validator("all", MyCustomValidator)
+
+      expect(() ->
+        class Test2 extends Sirius.BaseModel
+          @attrs: ["id"]
+          @validate:
+            id:
+              all: true
+        new Test2()
+      ).toThrowError("Name 'all' for validators is reserved")
 
 
   describe "reset", ->
