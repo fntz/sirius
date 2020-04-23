@@ -361,7 +361,7 @@ Sirius.Internal.RouteSystem =
         event_name = z[1]
         selector   = z[3] || document #when it a custom event: 'custom:event' for example
         adapter.bind(document, selector, event_name, handler)
-        logger.debug("RouteSystem: define event route: '#{event_name}' for '#{selector}'", logger.routing)
+        logger.debug("RouteSystem: define event route: '#{event_name}' for '#{adapter.as_string(selector)}'", logger.routing)
 
   _get_hash_routes: (routes, wrapper, adapter, logger) ->
     for url, action of routes when @_is_hash_route(url)
@@ -663,7 +663,7 @@ Sirius.Application =
 
     logger.info("Logger enabled? #{Sirius.Logger.Configuration.enable_logging}")
     logger.info("Minimum log level: #{Sirius.Logger.Configuration.minimum_log_level.get_value()}")
-    logger.info("Adapter: #{@adapter.name}")
+    logger.info("Adapter: #{@adapter.constructor.name}")
     logger.info("Use hash routing for old browsers: #{@use_hash_routing_for_old_browsers}")
     logger.info("Current browser: #{navigator.userAgent}")
     logger.info("Ignore not matched urls: #{@ignore_not_matched_urls}")

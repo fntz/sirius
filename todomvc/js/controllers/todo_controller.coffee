@@ -20,7 +20,6 @@ TodoController =
 
     $(HtmlElements.toggle_all).toggleClass('completed')
 
-
   destroy: (e, id) ->
     todo = TodoList.filter((t) -> t.id() == id)[0]
     TodoList.remove(todo)

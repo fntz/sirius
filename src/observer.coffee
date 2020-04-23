@@ -27,7 +27,40 @@ Sirius.Internal.CacheObserverHandlers =
 
 # hacks for observer when property or text changed into DOM
 
+# @class
+# describe changes from events
+class Sirius.AbstractChangesResult
+  constructor: () ->
+
+  # @private
+  @build: (object) ->
+    from = object.from
+    target = object.element
+    if object['state']?
+      return new Sirius.StateChanges(object.state, from, target)
+    if object['attribute']?
+      return new Sirius.AttributeChanges(object.text, object.attribute, from, target)
+    return new Sirius.TextChanges(object.text, from, target)
+
+
+# @class
+# changes from input/textarea
+class Sirius.TextChanges extends Sirius.AbstractChangesResult
+  constructor: (@text, @from, @target) ->
+    super()
+
+class Sirius.AttributeChanges extends Sirius.AbstractChangesResult
+  constructor: (@text, @attribute, @from, @target) ->
+    super()
+# @class
+# changes from selector or input checkbox/radio elements
+class Sirius.StateChanges extends Sirius.AbstractChangesResult
+  constructor: (@state, @from, @target) ->
+    super()
+
+# @class
 # @private
+# events observer, it produces changes for materializing
 class Sirius.Internal.Observer
 
   MO = window.MutationObserver ||
@@ -69,7 +102,7 @@ class Sirius.Internal.Observer
   #   new Sirius.Internal.Observer("#id input[name='email']", "input[name='email']", "text")
   #
   #
-  constructor: (@from_element, @original, @watch_for, @clb = ->) ->
+  constructor: (@from_element, @watch_for, @clb = ->) ->
     adapter = Sirius.Application.get_adapter()
     adapter.and_then(@_create)
 
@@ -79,7 +112,6 @@ class Sirius.Internal.Observer
     logger  = Sirius.Application.get_logger(@constructor.name)
     clb  = @clb
     from = @from_element
-    original = @original
     current_value = null
     watch_for = @watch_for
 
@@ -93,37 +125,38 @@ class Sirius.Internal.Observer
     # base callback
     handler = (e) ->
       logger.debug("Handler Function: given #{e.type} event")
-      result = {text: null, attribute: null, from: from, original: original, element: e.target}
+      result = {text: null, attribute: null, from: from, element: e.target}
       return if O.is_focus_event(e)
       txt = adapter.text(from)
 
-      return if [O.Ev.input, O.Ev.selectionchange].indexOf(e.type) != -1 && txt == current_value
+      if [O.Ev.input, O.Ev.selectionchange].indexOf(e.type) != -1 && txt == current_value
+        return # no changes here
 
       if O.is_text_event(e)
-        result['text'] = txt
+        result.text = txt
         current_value = txt
 
       if e.type == O.Ev.change # get a state for input enable or disable
-        result['state'] = adapter.get_attr(from, 'checked')
+        result.state = adapter.get_attr(from, 'checked')
 
       if e.type == "attributes"
         attr_name = e.attributeName
         old_attr = e.oldValue || [] # FIXME remove this, because not used
         new_attr  = adapter.get_attr(from, attr_name)
 
-        result['text'] = new_attr
-        result['attribute'] = attr_name
-        result['previous'] = old_attr
+        result.text = new_attr
+        result.attribute = attr_name
+        result.previous = old_attr
 
       if e.type == O.Ev.DOMAttrModified # for ie 9...
         attr_name = e.originalEvent.attrName
         old_attr  = e.originalEvent.prevValue
         new_attr  = adapter.get_attr(from, attr_name)
-        result['text'] = new_attr
-        result['attribute'] = attr_name
-        result['previous'] = old_attr
+        result.text = new_attr
+        result.attribute = attr_name
+        result.previous = old_attr
 
-      clb(result)
+      clb(Sirius.AbstractChangesResult.build(result))
 
     # how to handle
 

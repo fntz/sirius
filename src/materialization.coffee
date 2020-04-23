@@ -68,7 +68,19 @@ class Sirius.FieldMaker
       @_attribute = "text" # make constant
 
   to_string: () ->
-    "#{@_from} ~> #{@_transform} ~> #{@_to}##{@_attribute}"
+    from = if @_from instanceof Sirius.View
+      @_from.get_element()
+    else
+      @_from._klass_name()
+
+    to = if @_to instanceof Sirius.View
+      @_to.get_element()
+    else if @_to instanceof Sirius.BaseModel
+      @_to._klass_name()
+    else
+      @_to
+
+    "#{from} ~> #{@_transform} ~> #{to}##{@_attribute}"
 
   # Static constructor
   @build: (from) ->
@@ -133,7 +145,8 @@ class Sirius.AbstractMaterializer
 # @private
 class Sirius.MaterializerTransformImpl extends Sirius.AbstractMaterializer
 
-  # @param f [Function] - function for transforming results from @from to @to
+  # @param f [Function] - a function for transforming results from @from to @to
+  # the function should take parameter as Sirius.View and Sirius.AbstractChangesResult
   transform: (f) ->
     unless Sirius.Utils.is_function(f)
       throw new Error("'transform' attribute must be function, #{typeof f} given")
@@ -255,7 +268,8 @@ class Sirius.ModelToViewMaterializer extends Sirius.MaterializerTransformImpl
     @attribute(attr)
 
   # @param - user defined function for handle changes from BaseModel to View
-  # Function will take Sirius.View (from `to`) and changes
+  # the function will take Sirius.View (from `to`) and changes
+  # changes are T <: Sirius.AbstractChangesResult
   # @default apply `swap` strategy to `to`-attribute above
   # @note `field` should be called before, `to` should be called before
   # @example
@@ -382,18 +396,21 @@ class Sirius.ViewToModelMaterializer extends Sirius.MaterializerTransformImpl
   run: () ->
     @current.normalize()
     model = @_to
-    for field in @fields
-      element = field.field().get_element()
-      clb = (result) ->
-        transformed = field.transform().call(null, result)
+
+    generator = (field) ->
+      clb = (changes) ->
+        transformed = field.transform().call(null, changes)
         if field.to().indexOf(".") != -1 # validator
           model.set_error(field.to(), transformed)
         else
           model.set(field.to(), transformed)
+      return clb
+
+    for field in @fields
+      clb = generator(field)
 
       observer = new Sirius.Internal.Observer(
-        element,
-        element,
+        field.field().get_element(),
         field.attribute(),
         clb
       )
@@ -436,7 +453,7 @@ class Sirius.ViewToViewMaterializer extends Sirius.ViewToModelMaterializer
     @
 
   # @param f [Function] - transformation handler
-  # Function will take two arguments: changes and view from `to` method
+  # Function will take two arguments: View (from `to`) and changes as Sirius.AbstractChangesResult
   handle: (f) ->
     unless @current?
       throw new Error("Incorrect call. 'field' is not defined")
@@ -456,21 +473,21 @@ class Sirius.ViewToViewMaterializer extends Sirius.ViewToModelMaterializer
   # run Materializer
   run: () ->
     @current.normalize()
-    for field in @fields
-      element = field.field().get_element()
+
+    generator = (field) ->
       clb = (result) ->
         transformed = field.transform(result)
         if field.has_handle()
           field.handle().call(null, transformed, field.to())
         else
-          # TODO checkbox !!!!
           field.to().render(transformed).swap()
+      clb
 
+    for field in @fields
       observer = new Sirius.Internal.Observer(
-        element,
-        element,
+        field.field().get_element(),
         field.attribute(),
-        clb
+        generator(field)
       )
       field.field()._register_state_listener(observer)
 
@@ -483,7 +500,8 @@ class Sirius.ViewToViewMaterializer extends Sirius.ViewToModelMaterializer
 #  .to((changes) -> changes)
 #  .run()
 class Sirius.ViewToFunctionMaterializer extends Sirius.ViewToModelMaterializer
-  # @param f [Function] - function for changes handling
+  # @param f [Function] - a function for changes handling
+  # the function should take T <: @Sirius.AbstractChangesResult
   to: (f) ->
     unless Sirius.Utils.is_function(f)
       throw new Error("Function is required")
@@ -496,10 +514,8 @@ class Sirius.ViewToFunctionMaterializer extends Sirius.ViewToModelMaterializer
     @current.normalize()
     # already zoomed
     for field in @fields
-      element = field.field().get_element()
       observer = new Sirius.Internal.Observer(
-        element,
-        element,
+        field.field().get_element(),
         field.attribute(),
         field.to()
       )

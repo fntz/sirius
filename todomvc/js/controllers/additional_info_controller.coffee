@@ -1,5 +1,5 @@
 
-BottomController =
+AdditionalInfoController =
   length_view: new Sirius.View(HtmlElements.todo_count)
   footer: new Sirius.View(HtmlElements.footer)
 

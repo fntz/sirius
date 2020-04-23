@@ -33,10 +33,9 @@ Renderer =
       .field((v) -> v.zoom("input[type='checkbox']"))
         .to((m) -> m.completed)
         .transform((r) -> r.state)
-      .field((v) -> v.zoom("input.edit"))
+     .field((v) -> v.zoom("input.edit"))
         .to((m) -> m.title)
-      .run()
-
+        .transform((r) -> r.text).run()
 
     todo_view.on('div', 'dblclick', (x) ->
       todo_view.render('editing').swap('class')

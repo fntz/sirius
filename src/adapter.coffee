@@ -77,3 +77,18 @@ class Adapter
   # first from selector
   get: (selector) ->
     document.querySelector(selector)
+
+  as_string: (doc) ->
+    if doc is document
+      return "document"
+    else if Object.prototype.toString.call(doc) is '[object String]'
+      return doc
+    else
+      try
+        if Array.isArray(doc) && doc.size > 1
+          klasses = doc.map (x) -> "#{x.tagName}.#{x.className}"
+          klasses.slice(0, 3).join(", ")
+        else
+          "#{doc.tagName}.#{id}"
+      catch
+        doc

@@ -164,7 +164,7 @@ namespace :todo do
       "js/utils/renderer",
       "js/controllers/main_controller",
       "js/controllers/todo_controller",
-      "js/controllers/bottom_controller",
+      "js/controllers/additional_info_controller",
       "js/controllers/link_controller",
       "js/app"
     ])

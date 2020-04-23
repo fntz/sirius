@@ -17,9 +17,9 @@ routes =
   'todo:create' :     {controller: TodoController, action: 'create', guard: 'is_enter', after: 'clear_input'}
   'application:urlchange': {controller: LinkController, action: 'url'}
   'click #toggle-all'     : {controller: TodoController, action: 'mark_all', data: 'class'}
-  'collection:change' : {controller: BottomController, action: 'change'}
+  'collection:change' : {controller: AdditionalInfoController, action: 'change'}
   'click button.destroy'  : {controller: TodoController, action: 'destroy', data: 'data-id'}
-  'click #clear-completed': {controller: BottomController, action: 'clear'}
+  'click #clear-completed': {controller: AdditionalInfoController, action: 'clear'}
 
 # ----------------------- Start -------------------- #
 
