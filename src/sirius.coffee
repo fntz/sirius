@@ -386,8 +386,8 @@ Sirius.Internal.RouteSystem =
   # @param routes [Object] object with routes
   # @param fn [Function] callback, which will be called, after routes will be defined
   # @event application:urlchange - generate, when url change
-  # @event application:404 - generate, if given url not matched defined routes
-  # @event application:run - generate, after application running
+  # @event application:404 - generate, if given url does not match in the defined routes
+  # @event application:run - generate, after application run
   # setting : old, top, support
   create: (routes, setting, fn = ->) ->
     logger = Sirius.Application.get_logger(@constructor.name)
@@ -574,10 +574,7 @@ Sirius.Application =
     application adapter for javascript frameworks @see Adapter documentation
   ###
   adapter: null
-  ###
-    true, when application already running
-  ###
-  running: false
+
   ###
     user routes
   ###
@@ -646,7 +643,6 @@ Sirius.Application =
       else
         _default
 
-    @running = true
     @adapter = options["adapter"] || new VanillaJsAdapter()
     @route   = options["route"]   || @route
     @ignore_not_matched_urls = _get_key_or_default('ignore_not_matched_urls', @ignore_not_matched_urls)
