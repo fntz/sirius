@@ -39,7 +39,7 @@ class VanillaJsAdapter extends Adapter
     document.dispatchEvent(ev)
     return
 
-  get_property: (event, properties) ->
+  get_properties: (event, properties) ->
     e = event.target
     for p in properties
       @get_attr(e, p)

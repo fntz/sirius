@@ -37,7 +37,7 @@ class Adapter
   #    @param [Array<String>] properties - names of attributes
   #    @return [Array<String>]
   #
-  get_property: (event, properties...) ->
+  get_properties: (event, properties...) ->
 
   get_attr: (element, attr) ->
 

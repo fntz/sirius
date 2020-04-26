@@ -200,7 +200,7 @@ class Sirius.Internal.ControlFlow
     @logger.debug("ControlFlow: Start event processing", @logger.routing)
     if e
       data   = if Sirius.Utils.is_array(@data) then @data else if @data then [@data] else []
-      result   = Sirius.Application.adapter.get_property(e, data) #FIXME use Promise
+      result   = Sirius.Application.adapter.get_properties(e, data) #FIXME use Promise
 
       merge  = [].concat([], [e], result)
       # fix bug#4 when event is a custom event we should get an args for this event
