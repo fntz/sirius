@@ -476,9 +476,9 @@ class Sirius.ViewToViewMaterializer extends Sirius.ViewToModelMaterializer
 
     generator = (field) ->
       clb = (result) ->
-        transformed = field.transform(result)
+        transformed = field.transform().call(null, result)
         if field.has_handle()
-          field.handle().call(null, transformed, field.to())
+          field.handle().call(null, field.to(), transformed)
         else
           field.to().render(transformed).swap()
       clb

@@ -122,7 +122,7 @@ describe "Binding", ->
       materializer
         .field(source)
         .to(mirror)
-        .handle((result, v) ->
+        .handle((v, result) ->
            v.zoom(".mirror1").render(result.text).swap()
            v.zoom(".mirror-attr1").render(result.text).swap('data-mirror')
         ).run()

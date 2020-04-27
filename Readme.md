@@ -274,7 +274,7 @@ view2 = new Sirius.View("#my-input")
 Sirius.Materializer.build(view2, view1) # from view2 to view1 
   .field("input") # or field((view) -> view.zoom("input"))
   .to('p')        # the same ^
-  .handle((result, view) ->             # you can define own handler
+  .handle((view, result) ->             # you can define own handler
     view.render(result.text).swap()     # default  
   ) 
   .run()
