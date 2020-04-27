@@ -107,7 +107,7 @@ task :build do
     comment_header version adapter vanilla_js_adapter
     logger internal promise utils
     sirius validators observer
-    view base_model transformer collection
+    view base_model collection materialization
   ))
 
   core_files = coffee(src, %w(
@@ -153,7 +153,7 @@ namespace :todo do
   end
 
   desc "TODOApp compile"
-  task :compile => [:build] do
+  task :compile do #=> [:build] do
     app = 'todomvc'
     app_files = coffee(app, [
       "js/utils/template",
@@ -164,7 +164,7 @@ namespace :todo do
       "js/utils/renderer",
       "js/controllers/main_controller",
       "js/controllers/todo_controller",
-      "js/controllers/bottom_controller",
+      "js/controllers/additional_info_controller",
       "js/controllers/link_controller",
       "js/app"
     ])

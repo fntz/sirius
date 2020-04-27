@@ -285,6 +285,8 @@ class Sirius.BaseModel
     @_is_valid_attr = {}     # save pair attribute and validation state
     attrs0 = @attrs()        # from class body
 
+    @binding = {}
+
     for attr in attrs0
       # @attrs: [{key: value}]
       @logger.info("define '#{JSON.stringify(attr)}' attribute for '#{name}'")
@@ -348,6 +350,8 @@ class Sirius.BaseModel
         tmp[name] = klass
         @_applicable_validators[key] = tmp
 
+    @_gen_binding_names()
+
     @after_create()
 
   # @private
@@ -361,6 +365,56 @@ class Sirius.BaseModel
         @set(attribute, value)
       else
         @get(attribute)
+
+  _gen_binding_names: () ->
+    # attributes + validators
+    # @_applicable_validators # {id: presence : P, numbericalluy: N ...}
+    obj = {}
+    for attribute in @get_attributes()
+      # will be throw before that code will be reachable
+      if attribute is Sirius.Internal.Errors
+        throw new Error("'errors' name is reserved")
+
+      obj[attribute] = attribute
+
+    if Object.keys(@_applicable_validators).length != 0
+      errors = {}
+      # id: presence, num, custom
+      for key, value of @_applicable_validators
+        tmp = {}
+        for v in Object.keys(value)
+          if v is "all"
+            throw new Error("Name 'all' for validators is reserved")
+          tmp[v] = "#{Sirius.Internal.Errors}.#{key}.#{v}"
+
+        tmp["all"] = "#{Sirius.Internal.Errors}.#{key}.all"
+        errors[key] = tmp
+
+      errors["all"] = "#{Sirius.Internal.Errors}.all"
+      obj[Sirius.Internal.Errors] = errors
+
+    @binding = obj
+
+  # Function return generated objects for convenient work with materialization (avoid `"` or `'`)
+  # @example
+  # class MyModel extends Sirius.BaseModel
+  #   @attrs: ["id", "foo"]
+  #   @validate:
+  #     id:
+  #       presence: true
+  #       inclusion: within: [1..10]
+  #     foo:
+  #       format: with: /^[A-Z].+/
+  #
+  # model = new MyModel()
+  # b = model.get_binding()
+  # b.id                     # => "id"
+  # b.foo                    # => "foo"
+  # b.errors.id.all          # => "errors.id.all" represents all validations of the `id`
+  # b.errors.id.presence     # => "errors.id.presence"
+  # b.errors.all             # => "erros.all" all validations of all attributes
+  get_binding: () ->
+    @binding
 
 
   # @private
@@ -392,35 +446,40 @@ class Sirius.BaseModel
 
   # @_call_callbacks_for_errors(key, validator_key, "")
   _call_callbacks_for_errors: (key, validator_key, message) ->
-    key = "errors.#{key}.#{validator_key}"
+    key = "#{Sirius.Internal.Errors}.#{key}.#{validator_key}"
     for clb in @_listeners
       clb.apply(null, [key, message])
   #
   # Base setter
   # @param attr [String] - attribute
   # @param value [Any]   - value
-  # @note if attribute is object, then and value should be object, if value keys and values copy into attribute object
+  # an attribute will be updated only if the attriubute is valid
   # @throw Error, when attributes not defined for current model
   # @return [Void]
   set: (attr, value) ->
     if @_is_computed_attribute(attr)
       throw new Error("Impossible set computed attribute '#{attr}' in '#{@_klass_name()}'")
 
-
     @_set(attr, value)
 
-  _set: (attr, value) ->
+  _set: (attr, value, force = false) ->
     @_attribute_present(attr)
 
     oldvalue = @["_#{attr}"]
 
     @["_#{attr}"] = value
 
-    @logger.debug("[#{@constructor.name}] set: '#{attr}' to '#{value}'")
-
     @validate(attr)
-    @_compute(attr, value)
-    @_call_callbacks(attr, value, oldvalue)
+
+    # is should set any way if force is true
+    flag = force || @is_valid(attr)
+
+    if flag
+      @logger.debug("[#{@constructor.name}] set: '#{value}' to '#{attr}'")
+      @_compute(attr, value)
+      @_call_callbacks(attr, value, oldvalue)
+    else
+      @["_#{attr}"] = oldvalue
 
   #
   # Base getter
@@ -444,7 +503,7 @@ class Sirius.BaseModel
       @attrs()
     @logger.debug("Reset attributes: '#{tmp.join(",")}' for #{@_klass_name()}")
     for attr in tmp
-      @set(attr, null)
+      @_set(attr, null, true)
       if @errors[attr]?
         @errors[attr] = {}
 
@@ -463,8 +522,17 @@ class Sirius.BaseModel
 
   # Check, if model instance is valid
   # @return [Boolean] true, when is valid, otherwise false
-  is_valid: () ->
-    Object.keys(@_is_valid_attr).filter((key) => !@_is_valid_attr[key]).length == 0
+  is_valid: (attr = null) ->
+    if attr?
+      if @_is_valid_attr[attr]?
+        @_is_valid_attr[attr]
+      else
+        true
+    else
+      Object.keys(@_is_valid_attr).filter((key) =>
+        !@_is_valid_attr[key]
+      ).length == 0
+
 
   # Call when you want validate model
   # @nodoc
@@ -638,25 +706,12 @@ class Sirius.BaseModel
     @logger.debug("Register new listener for #{@constructor.name}")
     @_listeners.push(transformer)
 
-    # sync state
+    # sync state ????
     _attrs = @get_attributes()
     for attr in _attrs
       if @["_#{attr}"] isnt null
         transformer.apply(null, [attr, @["_#{attr}"]])
 
-  #  @alias `bind`
-  pipe: (output, materializer = {}) ->
-    # TODO default attributes
-    t = new Sirius.Transformer(@, output)
-    t.run(materializer)
-
-    return
-
-  # @param [Function] - binding function
-  # @param [Object]   - pet-attribute transformation description
-  bind: (output, materializer = {}) ->
-    @pipe(output, materializer)
-  
   # Register pair - name and class for validate
   # @param [String] - validator name
   # @param [T <: Sirius.Validator] - class which extends Sirius.Validator
@@ -697,7 +752,7 @@ class Sirius.BaseModel
     Sirius.BaseModel.register_validator("numericality", Sirius.NumericalityValidator)
     Sirius.BaseModel.register_validator("presence", Sirius.PresenceValidator)
 
-
+Sirius.BaseModel._run_base_model_validator_registration()
 
 
 

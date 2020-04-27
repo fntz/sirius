@@ -23,14 +23,10 @@
     "prototypejs_adapter.min.js"
   ],
   "devDependencies": {
-    "codo": "2.0.9",
     "coffeescript": "2.2.1"
   },
-  "scripts": {
-    "doc": "cake doc"
-  },
   "main": "sirius.min.js",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "license": "MIT",
   "repository": {
     "type": "git",

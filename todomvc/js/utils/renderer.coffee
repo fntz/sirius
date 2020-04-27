@@ -3,6 +3,7 @@ Renderer =
   todo_template: () -> ejs.compile(Template.todo_template)
 
   view: new Sirius.View(HtmlElements.todo_list)
+
   clear_view: new Sirius.View(HtmlElements.clear_completed, (size) -> "Clear completed (#{size})")
 
   render: (todo_list) ->
@@ -11,37 +12,30 @@ Renderer =
       @append(todo)
 
   append: (todo) ->
-
     template = @todo_template()({todo: todo})
 
     @view.render(template).append()
     id = "\##{todo.id()}"
 
     todo_view = new Sirius.View(id)
-    to_view_transformer = {
-      'completed': {
-        to: "input[type='checkbox']",
-        via: (value, selector, view, attribute) ->
-          view.zoom(selector).render(value).swap('checked')
-      },
-      'title': {
-        to: 'label'
-      }
-    }
-    todo.bind(todo_view, to_view_transformer)
 
-    to_model_transformer = {
-      "input[type='checkbox']": {
-        to: 'completed',
-        from: 'checked',
-        via: (value, view, selector, attribute) ->
-          view.zoom(selector).get_attr(attribute)
-      },
-      "input.edit": {
-        to: 'title'
-      }
-    }
-    todo_view.bind(todo, to_model_transformer)
+    Sirius.Materializer.build(todo, todo_view)
+      .field((m) -> m.completed)
+        .to("input[type='checkbox']")
+        .handle((view, result) ->
+          view.render(result).swap('checked')
+        )
+      .field((m) -> m.title)
+        .to("label")
+      .run()
+
+    Sirius.Materializer.build(todo_view, todo)
+      .field((v) -> v.zoom("input[type='checkbox']"))
+        .to((m) -> m.completed)
+        .transform((r) -> r.state)
+     .field((v) -> v.zoom("input.edit"))
+        .to((m) -> m.title)
+        .transform((r) -> r.text).run()
 
     todo_view.on('div', 'dblclick', (x) ->
       todo_view.render('editing').swap('class')

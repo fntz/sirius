@@ -55,7 +55,7 @@ describe "BaseModel", ->
       @attrs: ["id"]
       @guid_for: ["id"]
 
-    expect(new Test1().id()).not.toBeNull()
+    expect(new Test2().id()).not.toBeNull()
 
     class Test3 extends Sirius.BaseModel
       @attrs: ["id"]
@@ -185,6 +185,42 @@ describe "BaseModel", ->
       expect(t.id()).toEqual(t.get('id'))
       expect(after_update).toEqual(["id", 1, null, "id", 10, 1])
 
+  describe "get_binding", ->
+    it "returns binding for attributes, and for validators", ->
+      class Test1 extends Sirius.BaseModel
+        @attrs: ["id", "foo"]
+        @validate:
+          id:
+            presence: true
+            inclusion: within: [1..10]
+          foo:
+            format: with: /^[A-Z].+/
+      b = new Test1().get_binding()
+      expect(b.id).toEqual("id")
+      expect(b.foo).toEqual("foo")
+      expect(b.errors.id.presence).toEqual("errors.id.presence")
+      expect(b.errors.id.inclusion).toEqual("errors.id.inclusion")
+      expect(b.errors.foo.format).toEqual("errors.foo.format")
+      expect(b.errors.foo.all).toEqual("errors.foo.all")
+      expect(b.errors.id.all).toEqual("errors.id.all")
+      expect(b.errors.all).toEqual("errors.all")
+      expect(Object.keys(b)).toEqual(["id", "foo", "errors"])
+      expect(Object.keys(b.errors)).toEqual(["id", "foo", "all"])
+      expect(Object.keys(b.errors.foo)).toEqual(["format", "all"])
+
+    it "generate exceptions on reserved names", ->
+      Sirius.BaseModel.register_validator("all", MyCustomValidator)
+
+      expect(() ->
+        class Test2 extends Sirius.BaseModel
+          @attrs: ["id"]
+          @validate:
+            id:
+              all: true
+        new Test2()
+      ).toThrowError("Name 'all' for validators is reserved")
+
+
   describe "reset", ->
 
     class Test1 extends Sirius.BaseModel
@@ -304,16 +340,19 @@ describe "BaseModel", ->
         expect(m.get_errors('title')).toEqual([])
         expect(m.get_errors('description')).toEqual([])
         expect(m.is_valid()).toBeFalse()
+        expect(m.is_valid('context')).toBeTrue()
 
       it "failed only integers and range", ->
         m.id("123.1")
         expect(m.get_errors('id').length).toEqual(2)
         expect(m.is_valid()).toBeFalse()
+        expect(m.is_valid('context')).toBeTrue()
 
       it "failed in range", ->
         m.id(12)
         expect(m.get_errors('id').length).toEqual(1)
         expect(m.is_valid()).toBeFalse()
+        expect(m.is_valid('context')).toBeTrue()
 
     describe "validate title", ->
       it "failed format", ->
@@ -403,7 +442,7 @@ describe "BaseModel", ->
         @comp("full", "full_name", "full_name1")
         @validate :
           full_name:
-            length: min: 3, max: 7
+            length: min: 3, max: 8
 
       model = new Test1()
       expect(model.full_name()).toBeNull()
@@ -413,7 +452,9 @@ describe "BaseModel", ->
       expect(model.full_name()).toEqual("John Doe")
       expect(model.full_name1()).toEqual("John-Doe")
       expect(model.full()).toEqual("John Doe John-Doe")
+      model.first_name("1")
       expect(model.get_errors('full_name').length).toEqual(1)
+      expect(model.full_name()).toEqual("John Doe")
 
     it "checks computed attributes", ->
       class Test1 extends Sirius.BaseModel

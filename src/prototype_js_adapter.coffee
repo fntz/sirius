@@ -42,7 +42,7 @@ class PrototypeAdapter extends Adapter
     $(element).fire(event, params)
     return
 
-  get_property: (event, properties...) ->
+  get_properties: (event, properties...) ->
     element = Event.element(event)
     self = @
     properties.flatten().inject([], (acc, p) ->

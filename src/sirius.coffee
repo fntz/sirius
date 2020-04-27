@@ -200,7 +200,7 @@ class Sirius.Internal.ControlFlow
     @logger.debug("ControlFlow: Start event processing", @logger.routing)
     if e
       data   = if Sirius.Utils.is_array(@data) then @data else if @data then [@data] else []
-      result   = Sirius.Application.adapter.get_property(e, data) #FIXME use Promise
+      result   = Sirius.Application.adapter.get_properties(e, data) #FIXME use Promise
 
       merge  = [].concat([], [e], result)
       # fix bug#4 when event is a custom event we should get an args for this event
@@ -361,7 +361,7 @@ Sirius.Internal.RouteSystem =
         event_name = z[1]
         selector   = z[3] || document #when it a custom event: 'custom:event' for example
         adapter.bind(document, selector, event_name, handler)
-        logger.debug("RouteSystem: define event route: '#{event_name}' for '#{selector}'", logger.routing)
+        logger.debug("RouteSystem: define event route: '#{event_name}' for '#{adapter.as_string(selector)}'", logger.routing)
 
   _get_hash_routes: (routes, wrapper, adapter, logger) ->
     for url, action of routes when @_is_hash_route(url)
@@ -386,8 +386,8 @@ Sirius.Internal.RouteSystem =
   # @param routes [Object] object with routes
   # @param fn [Function] callback, which will be called, after routes will be defined
   # @event application:urlchange - generate, when url change
-  # @event application:404 - generate, if given url not matched defined routes
-  # @event application:run - generate, after application running
+  # @event application:404 - generate, if given url does not match in the defined routes
+  # @event application:run - generate, after application run
   # setting : old, top, support
   create: (routes, setting, fn = ->) ->
     logger = Sirius.Application.get_logger(@constructor.name)
@@ -574,10 +574,7 @@ Sirius.Application =
     application adapter for javascript frameworks @see Adapter documentation
   ###
   adapter: null
-  ###
-    true, when application already running
-  ###
-  running: false
+
   ###
     user routes
   ###
@@ -638,15 +635,7 @@ Sirius.Application =
   _initialize: (options) ->
     # configure logging
     Sirius.Logger.Configuration.configure(options)
-
     logger = new Sirius.Logger("Sirius.Application")
-
-    # especial for sirius-core where these modules are not available
-    if Sirius.BaseModel
-      Sirius.BaseModel._run_base_model_validator_registration()
-
-    if Sirius.View
-      Sirius.View._run_view_strategy_registration()
 
     _get_key_or_default = (k, _default) ->
       if options[k]?
@@ -654,7 +643,6 @@ Sirius.Application =
       else
         _default
 
-    @running = true
     @adapter = options["adapter"] || new VanillaJsAdapter()
     @route   = options["route"]   || @route
     @ignore_not_matched_urls = _get_key_or_default('ignore_not_matched_urls', @ignore_not_matched_urls)
@@ -671,7 +659,7 @@ Sirius.Application =
 
     logger.info("Logger enabled? #{Sirius.Logger.Configuration.enable_logging}")
     logger.info("Minimum log level: #{Sirius.Logger.Configuration.minimum_log_level.get_value()}")
-    logger.info("Adapter: #{@adapter.name}")
+    logger.info("Adapter: #{@adapter.constructor.name}")
     logger.info("Use hash routing for old browsers: #{@use_hash_routing_for_old_browsers}")
     logger.info("Current browser: #{navigator.userAgent}")
     logger.info("Ignore not matched urls: #{@ignore_not_matched_urls}")
