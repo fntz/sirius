@@ -1,3 +1,24 @@
+=== 1.3.0
+
+1. update binding: Implement new Materialization process
+
+2. change behaviour of `Sirus.BaseModel.reset` methods
+
+3. update todo-mvc example
+
+4. rename Adapter property method to `get_properties`
+
+5. improve internal logging with `Adapter.as_string` method
+
+6. remove `running` property
+
+7. rename `logging` to `enable_logging`
+
+
+=== 1.2.0
+
+1. improve logging
+
 === 1.0.0
 
 1. update docs, todo-app
