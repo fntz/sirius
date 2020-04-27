@@ -475,7 +475,7 @@ class Sirius.BaseModel
     flag = force || @is_valid(attr)
 
     if flag
-      @logger.debug("[#{@constructor.name}] set: '#{attr}' to '#{value}'")
+      @logger.debug("[#{@constructor.name}] set: '#{value}' to '#{attr}'")
       @_compute(attr, value)
       @_call_callbacks(attr, value, oldvalue)
     else

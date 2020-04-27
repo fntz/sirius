@@ -11,3 +11,4 @@ todomvc/node_modules/*
 todomvc/js/app.js
 node_modules/*
 package-lock.json
+test.*
