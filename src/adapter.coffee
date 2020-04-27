@@ -1,83 +1,113 @@
-#
-#  Adapter
-#  It's a base class, which must be redefine for concrete javascript library: prototype.js or jQuery or mootools or etc.
-#  @abstract
-#
+###
+ Adapter
+ It's a base class, which must be redefined for concrete javascript library: prototype.js or jQuery or mootools or etc.
+ @abstract
+###
 class Adapter
-
-  #   Attach event to an element
-  #   @param [String] main the element for bind
-  #   @param [String] selector - selector query string
-  #   @param [String] event - event name
-  #   @param [Function] fn - callback, will be called, when event fired
-  #   @return [Void]
-  #
+  ###
+   Attach event to an element
+   @param {string} main the element for bind
+   @param {string} selector - selector query string
+   @param {string} event - event name
+   @param {function} fn - callback, will be called, when event fired
+   @returns {void}
+  ###
   bind: (element, selector, event, fn) ->
 
-  #   Remove event listener for an element
-  #   @param [String] main the element for bind
-  #   @param [String] selector - selector query string
-  #   @param [String] event - event name
-  #   @param [Function] fn - callback, will be called, when event fired
-  #   @return [Void]
-  #
+  ###
+   Remove event listener for an element
+   @param {string} main the element for bind
+   @param {string} selector - selector query string
+   @param {string} event - event name
+   @param {function} fn - callback, will be called, when event fired
+   @returns {void}
+  ###
   off: (element, selector, event, fn) ->
 
-
-  #   Call an custom event with params
-  #   @param [String] element - selector for the event
-  #   @param [String] event   - event name
-  #   @param [Array]  params  - params which will be passed into event callback
-  #   @return [Void]
-  #
+  ###
+   Call an custom event with params
+   @param {string} element - selector for the event
+   @param {string} event   - event name
+   @param {array<string>}  params  - params which will be passed into event callback
+   @returns {void}
+  ###
   fire: (element, event, params...) ->
 
-  #    Extract attribute from a target element from an event
-  #    @param [EventObject] event - the event object
-  #    @param [Array<String>] properties - names of attributes
-  #    @return [Array<String>]
-  #
+  ###
+   Fetch properties from a target element from an event
+   @param {EventObject} event - the event object
+   @param {array<string>} properties - names of attributes
+   @returns {array<string>}
+  ###
   get_properties: (event, properties...) ->
 
+  ###
+    Fetch an attribute from an element
+    @param {HtmlElement} - document
+    @param {string} - an attribute name
+    @returns {null|boolean|string} - result (depends on attribute meaning)
+  ###
   get_attr: (element, attr) ->
 
-
-  # Change content into element
-  # @param   [String] element - selector
-  # @content [String] content - new content
+  ###
+   Change a content into an element
+   @param {string} element - a selector
+   @param {string} content - a new content
+   @returns {void}
+  ###
   swap: (element, content) ->
 
-  # Add in bottom
-  # @param   [String] element - selector
-  # @content [String] content - new content
+  ###
+   Add into bottom
+   @param   {string} element - a selector
+   @param {string} content - a new content
+   @returns {void}
+  ###
   append: (element, content) ->
 
-  # Add in top
-  # @param   [String] element - selector
-  # @content [String] content - new content
+  ###
+   Add into top
+   @param   {string} element - a selector
+   @param {string} content - a new content
+   @returns {void}
+  ###
   prepend: (element, content) ->
 
-  # Remove content from element
-  # @param [String] element - selector
+  ###
+   Remove a content from an element
+   @param {string} element - a selector
+   @returns {void}
+  ###
   clear: (element) ->
 
-  # set new attribute for element
-  # @param [String] - selector
-  # @param [String] - attribute
-  # @param [String] - new value for attribute
+  ###
+   set new attribute for element
+   @param {string} - a selector
+   @param {string} - an attribute
+   @param {string} - a new value for the attribute
+   @returns {void}
+  ###
   set_attr: (element, attr, value) ->
 
-
-  # return all selectors
+  ###
+   @param {string} - a selector
+   @returns {array<HtmlDocument>}
+  ###
   all: (selector) ->
     return selector if (typeof(selector) == "object" && selector.nodeType == 1 || selector.nodeType == 9)
     document.querySelectorAll(selector)
 
-
-  # first from selector
+  ###
+   find the first document by a selector
+   @returns {HtmlDocument|null}
+  ###
   get: (selector) ->
     document.querySelector(selector)
 
+  ###
+    pretty print HtmlDocument
+    @returns {string}
+  ###
   as_string: (doc) ->
     if doc is document
       return "document"

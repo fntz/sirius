@@ -1,6 +1,7 @@
-
-# @class
-# Base logger class for use in Sirius Application
+###
+@class
+Base logger class for use in Sirius Application
+###
 class Sirius.Logger
 
   # should be passed as parameter
@@ -90,6 +91,10 @@ class Sirius.Logger
       else
         maybe[0]
 
+  ###
+    @constructor
+    @param {string} - a logger source name
+  ###
   constructor: (@log_source) ->
     @_log_queue = []
 

@@ -23,7 +23,6 @@
     "prototypejs_adapter.min.js"
   ],
   "devDependencies": {
-    "codo": "2.0.9",
     "coffeescript": "2.2.1"
   },
   "scripts": {
