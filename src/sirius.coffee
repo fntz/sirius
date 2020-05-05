@@ -30,6 +30,9 @@ Sirius.redirect = (url) ->
     if app.push_state_support
       Sirius.Internal.RouteSystem.dispatch.call(null, {type: 'redirect', target: {href: url}})
 
+class Sirius.Internal.Listener
+  constructor: (@name, @handler) ->
+
 # @private
 # Class for map urls.
 #
@@ -361,11 +364,11 @@ Sirius.Internal.RouteSystem =
         event_name = z[1]
         selector   = z[3] || document #when it a custom event: 'custom:event' for example
         adapter.bind(document, selector, event_name, handler)
-        logger.debug("RouteSystem: define event route: '#{event_name}' for '#{adapter.as_string(selector)}'", logger.routing)
+        logger.debug("define event route: '#{event_name}' for '#{adapter.as_string(selector)}'", logger.routing)
 
   _get_hash_routes: (routes, wrapper, adapter, logger) ->
     for url, action of routes when @_is_hash_route(url)
-      logger.info("RouteSystem: define hash route: '#{url}'", logger.routing)
+      logger.info("define hash route: '#{url}'", logger.routing)
       url    = new Sirius.Internal.RoutePart(url)
       action = if Sirius.Utils.is_function(action)
         wrapper(action)
@@ -375,7 +378,7 @@ Sirius.Internal.RouteSystem =
 
   _get_plain_routes: (routes, wrapper, adapter, logger) ->
     for url, action of routes when @_is_plain_route(url)
-      logger.debug("RouteSystem: define route: '#{url}'", logger.routing)
+      logger.debug("define route: '#{url}'", logger.routing)
       url    = new Sirius.Internal.RoutePart(url)
       action = if Sirius.Utils.is_function(action)
         wrapper(action)
@@ -390,7 +393,7 @@ Sirius.Internal.RouteSystem =
   # @event application:run - generate, after application run
   # setting : old, top, support
   create: (routes, setting, fn = ->) ->
-    logger = Sirius.Application.get_logger(@constructor.name)
+    logger = Sirius.Application.get_logger("Sirius.Internal.RouteSystem")
     current = prev = window.location.hash
     redirect_to_hash   = setting["old"]
     push_state_support = setting["support"]
@@ -398,7 +401,7 @@ Sirius.Internal.RouteSystem =
 
     Sirius.Application.get_adapter().and_then (adapter) =>
       if redirect_to_hash and !push_state_support
-        logger.info("RouteSystem: Convert plain routing into hash routing")
+        logger.info("Convert plain routing into hash routing")
         # convert to new routing
         urls = [] #save urls into array, for check collision
         route = {}
@@ -407,7 +410,7 @@ Sirius.Internal.RouteSystem =
           if @_is_plain_route(url)
             url = "\##{url}"
             if urls.indexOf(url) != -1
-              logger.warn("RouteSystem: Routes already defined '#{url}' url")
+              logger.warn("Routes already defined '#{url}' url")
           route[url] = action
         routes = route
 
@@ -443,7 +446,7 @@ Sirius.Internal.RouteSystem =
         result      = false
         is_hash_based_route = false
 
-        logger.info("RouteSystem: start processing route: '#{current}'")
+        logger.info("start processing route: '#{current}'")
 
         if e.type == "hashchange"
           # hashchange
@@ -490,7 +493,7 @@ Sirius.Internal.RouteSystem =
             return
 
           else
-            logger.warn("RouteSystem: route '#{current}' not found. Generate 404 event")
+            logger.warn("route '#{current}' not found. Generate 404 event")
             adapter.fire(document, "application:404", current, prev)
             r404 = routes['404'] || routes[404]
             if r404
@@ -504,7 +507,7 @@ Sirius.Internal.RouteSystem =
         else
           _prevent_default(e)
 
-        logger.debug("RouteSystem: Url change to: #{current}")
+        logger.debug("Url change to: #{current}")
         adapter.fire(document, "application:urlchange", current, prev)
 
 
@@ -659,7 +662,7 @@ Sirius.Application =
 
     logger.info("Logger enabled? #{Sirius.Logger.Configuration.enable_logging}")
     logger.info("Minimum log level: #{Sirius.Logger.Configuration.minimum_log_level.get_value()}")
-    logger.info("Adapter: #{@adapter.constructor.name}")
+    logger.info("Adapter: #{@adapter._adapter_name}")
     logger.info("Use hash routing for old browsers: #{@use_hash_routing_for_old_browsers}")
     logger.info("Current browser: #{navigator.userAgent}")
     logger.info("Ignore not matched urls: #{@ignore_not_matched_urls}")

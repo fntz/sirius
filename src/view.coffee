@@ -22,6 +22,9 @@ class Sirius.View
   # contain all strategies for view
   @_Strategies = []
 
+  # do not call every time
+  @_Strategies_Is_Logged = false
+
   @_Cache = [] # cache for all views
 
   # @private
@@ -51,7 +54,7 @@ class Sirius.View
     @_listeners = []
 
     @_cache_event_handlers = []
-    @logger = Sirius.Application.get_logger(@constructor.name)
+    @logger = Sirius.Application.get_logger("Sirius.View[{#{@get_element()}]")
     @_result_fn = (args...) ->
       clb.apply(null, args...)
     @logger.debug("Create a new View for #{@element}")
@@ -60,7 +63,9 @@ class Sirius.View
     for strategy in @constructor._Strategies
       do(strategy) =>
         [name, transform, render] = strategy
-        @logger.debug("Define '#{name}' strategy")
+        unless @constructor._Strategies_Is_Logged
+          @logger.debug("Define '#{name}' strategy")
+        @constructor._Strategies_Is_Logged = true
         @[name] = (attribute = "text") =>
           # @render already called
           # and we have @_result
@@ -86,9 +91,18 @@ class Sirius.View
   # internal method for binding only
   # @private
   # @nodoc
-  _register_state_listener: (clb) ->
-    @logger.debug("Register new listener for element: #{@get_element()}")
-    @_listeners.push(clb)
+  _register_state_listener: (listener) ->
+    @logger.debug("Register new listener '#{listener.name}'")
+    @_listeners.push(listener)
+
+  # @private
+  # @nodoc
+  _unregister_state_listener: (name) ->
+    @logger.debug("Unregister listener '#{name}'")
+    xs = @_listeners.filter ((x) -> x.name == name)
+    @_listeners = @_listeners.filter ((x) -> x.name != name)
+    xs
+
 
   # compile function
   # @param [Array] of arguments, which will be passed into `transform` function
@@ -192,7 +206,7 @@ class Sirius.View
       @_cache_event_handlers.push(current)
 
       Sirius.Application.get_adapter().and_then (adapter) ->
-        adapter.off(document, selector, event_name, f.custom_event_name)
+        adapter.off(selector, event_name, f.custom_event_name)
         f = null
         adapter.bind(document, selector, event_name, custom_event_name)
 

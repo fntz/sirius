@@ -95,6 +95,8 @@ class Sirius.AbstractMaterializer
   constructor: (@_from, @_to) ->
     @fields = []
     @current = null
+    @guid = "Materializer##{Sirius.Utils.guid()}"
+    @logger = Sirius.Application.get_logger(@constructor.name)
 
   # @param from_name [String, Sirius.View]
   field: (from_name) ->
@@ -308,8 +310,14 @@ class Sirius.ModelToViewMaterializer extends Sirius.MaterializerTransformImpl
           f.to().render(transformed).swap(f.attribute())
 
 
-    @_from._register_state_listener(clb)
-
+    @_from._register_state_listener(new Sirius.Internal.Listener(@guid, clb))
+    return
+  ###
+    Remove listeners and clear materializer
+  ###
+  stop: () ->
+    @_from._unregister_state_listener(@guid)
+    return
 # @class
 # @private
 # Provide binding between Sirius.View and Sirius.BaseModel
@@ -414,7 +422,20 @@ class Sirius.ViewToModelMaterializer extends Sirius.MaterializerTransformImpl
         field.attribute(),
         clb
       )
-      field.field()._register_state_listener(observer)
+      field.field()._register_state_listener(new Sirius.Internal.Listener(@guid, observer))
+    return
+  ###
+    Stop observers and remove listeners for View
+  ###
+  stop: () ->
+    guid = @guid
+    for field in @fields
+      observers = field.field()._unregister_state_listener(guid)
+      @logger.debug("Stop observers #{observers.length} for #{field.field()}")
+      for observer in observers
+        observer.handler.stop()
+    return
+
 
 # @class
 # @private
@@ -489,8 +510,8 @@ class Sirius.ViewToViewMaterializer extends Sirius.ViewToModelMaterializer
         field.attribute(),
         generator(field)
       )
-      field.field()._register_state_listener(observer)
-
+      field.field()._register_state_listener(new Sirius.Internal.Listener(@guid, observer))
+    return
 # @class
 # @private
 # Describe how to pass changes from View to Function
@@ -519,8 +540,8 @@ class Sirius.ViewToFunctionMaterializer extends Sirius.ViewToModelMaterializer
         field.attribute(),
         field.to()
       )
-      field.field()._register_state_listener(observer)
-
+      field.field()._register_state_listener(new Sirius.Internal.Listener(@guid, observer))
+    return
 # @class
 # @private
 # Describe transformation from Sirius.BaseModel to function
@@ -564,14 +585,19 @@ class Sirius.ModelToFunctionMaterializer extends Sirius.AbstractMaterializer
 
   # run Materialization process
   run: () ->
-    errors_all = "#{Sirius.Internal.Errors}.all"
     obj = @fields_map()
     clb = (attribute, value) ->
       callers = Sirius.Materializer.get_necessary_functions(obj, attribute)
       for f in callers
         f.to().call(null, value)
 
-    @_from._register_state_listener(clb)
+    @_from._register_state_listener(new Sirius.Internal.Listener(@guid, clb))
+    return
+  ###
+    Remove listeners and clear materializer
+  ###
+  stop: () ->
+    @_from._unregister_state_listener(@guid)
 
 
 class Sirius.Materializer

@@ -456,6 +456,14 @@ describe "BaseModel", ->
       expect(model.get_errors('full_name').length).toEqual(1)
       expect(model.full_name()).toEqual("John Doe")
 
+    it "ok for attributes with default value", ->
+      expect(() ->
+        class Test1 extends Sirius.BaseModel
+          @attrs: ["id", {title: "test"}]
+          @comp("test", "id", "title")
+        new Test1()
+      ).not.toThrowError()
+
     it "checks computed attributes", ->
       class Test1 extends Sirius.BaseModel
         @attrs: ["first_name", "last_name"]

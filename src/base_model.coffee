@@ -42,7 +42,6 @@ class ComputedField
     @_values.length == @_count
 
 
-
 #
 # A top level class for all models in application.
 # Supported features:
@@ -74,7 +73,6 @@ class ComputedField
 #     to_string: () ->
 #       "name: #{name}; id: #{id}}"
 #
-# @todo Callback support
 class Sirius.BaseModel
   # @private
   # Contain all validator pairs.
@@ -183,7 +181,15 @@ class Sirius.BaseModel
       throw new Error("Seems your calculated fields are not unique: [#{full}]")
 
     # check that field is exist
-    _tmp = @attrs.concat(@::_cmp_fields)
+    normalized_attrs = []
+    for a in @attrs
+      r = if Sirius.Utils.is_object(a)
+        Object.keys(a)[0]
+      else
+        a
+      normalized_attrs.push(r)
+
+    _tmp = normalized_attrs.concat(@::_cmp_fields)
     deps.forEach (f) ->
       if _tmp.indexOf(f) == -1
         throw new Error("Field '#{f}' was not found, for '#{field}'")
@@ -258,6 +264,8 @@ class Sirius.BaseModel
         else
           a
 
+  @_attributes_are_logged: false
+
   #
   # @param obj [Object] - object with keys (define with `@attrs`) and values for it.
   #
@@ -289,7 +297,9 @@ class Sirius.BaseModel
 
     for attr in attrs0
       # @attrs: [{key: value}]
-      @logger.info("define '#{JSON.stringify(attr)}' attribute for '#{name}'")
+      unless @constructor._attributes_are_logged
+        @logger.info("define '#{JSON.stringify(attr)}' attribute for '#{name}'")
+      @constructor._attributes_are_logged = true
       if Sirius.Utils.is_object(attr)    # {k: v}
         tmp = Object.keys(attr)
         key = tmp[0]
@@ -421,9 +431,7 @@ class Sirius.BaseModel
   # @nodoc
   # generate guid from: http://stackoverflow.com/a/105074/1581531
   _generate_guid: () ->
-    s4 = () -> Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1)
-    "#{s4()}#{s4()}-#{s4()}-#{s4()}-#{s4()}-#{s4()}#{s4()}#{s4()}"
-
+    Sirius.Utils.guid()
   # @return [Array] - return all attributes for the model
   get_attributes: () ->
     @attributes
@@ -440,7 +448,7 @@ class Sirius.BaseModel
 
   _call_callbacks: (attr, value, oldvalue) ->
     for clb in @_listeners
-      clb.apply(null, [attr, value])
+      clb.handler.apply(null, [attr, value])
 
     @after_update(attr, value, oldvalue)
 
@@ -448,7 +456,7 @@ class Sirius.BaseModel
   _call_callbacks_for_errors: (key, validator_key, message) ->
     key = "#{Sirius.Internal.Errors}.#{key}.#{validator_key}"
     for clb in @_listeners
-      clb.apply(null, [key, message])
+      clb.handler.apply(null, [key, message])
   #
   # Base setter
   # @param attr [String] - attribute
@@ -475,7 +483,7 @@ class Sirius.BaseModel
     flag = force || @is_valid(attr)
 
     if flag
-      @logger.debug("[#{@constructor.name}] set: '#{value}' to '#{attr}'")
+      @logger.debug("set: '#{value}' to '#{attr}'")
       @_compute(attr, value)
       @_call_callbacks(attr, value, oldvalue)
     else
@@ -702,15 +710,20 @@ class Sirius.BaseModel
   # @private
   # @nodoc
   # Sirius.ToViewTransformer
-  _register_state_listener: (transformer) ->
-    @logger.debug("Register new listener for #{@constructor.name}")
-    @_listeners.push(transformer)
+  _register_state_listener: (listener) ->
+    @logger.debug("Register new listener '#{listener.name}'")
+    @_listeners.push(listener)
 
     # sync state ????
     _attrs = @get_attributes()
     for attr in _attrs
       if @["_#{attr}"] isnt null
-        transformer.apply(null, [attr, @["_#{attr}"]])
+        listener.handler.apply(null, [attr, @["_#{attr}"]])
+
+  _unregister_state_listener: (name) ->
+    @logger.debug("Unregister listener '#{name}'")
+    @_listeners = @_listeners.filter((x) -> x.name != name)
+    return
 
   # Register pair - name and class for validate
   # @param [String] - validator name
