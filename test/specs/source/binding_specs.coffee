@@ -42,6 +42,12 @@ describe "Binding", ->
       expect(results).toEqual(["Only allows integer numbers", "", 123])
       expect(id_errors).toEqual(["Only allows integer numbers", ""])
       expect(all_errors).toEqual(["Value test reserved", "Only allows integer numbers", ""])
+      results = []
+      materializer.stop()
+      model.id(1234)
+      expect(results).toEqual([])
+      expect(model.id()).toEqual(1234)
+
 
   describe "View To Function", ->
     rootElement = "#view2function"
@@ -132,6 +138,12 @@ describe "Binding", ->
       expect(get_text("#{rootElement} .mirror1")).toEqual(text)
       expect(adapter.get_attr("#{rootElement} .mirror-attr1", 'data-mirror')).toEqual(text)
 
+      materializer.stop()
+      new_text = "bar"
+      input_text("#{rootElement} #{sourceElement}", new_text)
+      expect(adapter.get_attr("#{rootElement} .mirror-attr1", 'data-mirror')).toEqual(text)
+
+
   describe "View To Model", ->
     class Test1 extends Sirius.BaseModel
       @attrs: ["foo", "is_checked"]
@@ -142,20 +154,28 @@ describe "Binding", ->
     rootElement = "#view2model"
     view = new Sirius.View(rootElement)
 
-    it "from text to model (+validation)", ->
+    it "from text to model (+validation)", () ->
       model = new Test1({foo: "abcd"})
 
       materializer = Sirius.Materializer.build(view, model)
-      materializer
         .field("input[name='source']")
         .to((b) -> b.foo)
         .transform((x) -> "#{x.text}!")
-        .run()
+
+      materializer.run()
 
       input = "q4444"
       input_text("#{rootElement} input[name='source']", input)
       expect(model.foo()).toEqual("#{input}!")
       expect(model.is_valid()).toBeTrue()
+
+      materializer.stop()
+
+      new_input = "asdasdsad"
+      expect(1).toEqual(1)
+      input_text("#{rootElement} input[name='source']", new_input)
+      expect(model.foo()).toEqual("#{input}!")
+
 
     it "from checkbox to bool attribute", ->
       model = new Test1()

@@ -4,6 +4,8 @@
 #  @note use selectors
 class PrototypeAdapter extends Adapter
 
+  _adapter_name: "PrototypeJs"
+
   constructor: () ->
     super()
     @__handlers = [] # {selector:'', event_name:'', fun: '', handler: ''}
@@ -29,7 +31,7 @@ class PrototypeAdapter extends Adapter
     return
 
 
-  off: (element, selector, event, fn) ->
+  off: (selector, event, fn) ->
     for o in @__handlers
       if o["selector"] == selector && o["event_name"] == event &&
       o["fun"].toString == fn.toString

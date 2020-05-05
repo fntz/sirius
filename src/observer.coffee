@@ -1,29 +1,32 @@
 
-class Sirius.Internal.CacheHandlerProperty
-  constructor: (@from_element, @watch_for, @event, @handler, @observer, @config) ->
+class Sirius.Internal.AbstractHandler
 
-  is_observer: () -> @observer != null
-  is_listener: () -> !@is_observer
+class Sirius.Internal.ObserverHandler extends Sirius.Internal.AbstractHandler
+  constructor: (@guid, @observer) ->
+    super()
+
+class Sirius.Internal.EventHandler extends Sirius.Internal.AbstractHandler
+  constructor: (@guid, @from, @event, @fun) ->
+    super()
+
+  with_event: (event) ->
+    @event = event
+    @
+
+  @build: (@guid, @from, @event, @fun) ->
+    new Sirius.Internal.EventHandler(@guid, @from, @event, @fun)
+
 
 Sirius.Internal.CacheObserverHandlers =
   _handlers: []
-  add_new_observer: (from_element, watch_for, handler, observer, config) ->
-    p = new Sirius.Internal.CacheHandlerProperty(from_element, watch_for, null,
-      handler, observer, config)
-    @_handlers.push(p)
+  add: (handler) ->
+    @_handlers.push(handler)
 
-  add_new_bind_event: (from_element, watch_for, event, handler) ->
-    p = new Sirius.Internal.CacheHandlerProperty(from_element, watch_for, event, handler, null)
-    @_handlers.push(p)
+  remove_where: (guid) ->
+    xs = @_handlers.filter (x) -> x.guid == guid
+    @_handlers = @_handlers.filter (x) -> x.guid != guid
+    xs
 
-  find_by_element: (e) ->
-    @_handlers.filter (h) -> h.from_element == e
-
-  find_by_element_and_watch_for: (e, w) ->
-    @_handlers.filter (h) -> h.from_element == e && h.watch_for == w
-
-  find_by_element_watch_for_and_event: (e, w, ev) ->
-    @_handlers.filter (h) -> h.from_element == e && h.watch_for == w && h.event == ev
 
 # hacks for observer when property or text changed into DOM
 
@@ -99,21 +102,24 @@ class Sirius.Internal.Observer
   #
   # @example
   #
-  #   new Sirius.Internal.Observer("#id input[name='email']", "input[name='email']", "text")
+  #   new Sirius.Internal.Observer("#id input[name='email']", "checked", () -> )
   #
   #
   constructor: (@from_element, @watch_for, @clb = ->) ->
+    @guid = "Observer##{Sirius.Utils.guid()}"
+    @logger  = Sirius.Application.get_logger(@constructor.name)
     adapter = Sirius.Application.get_adapter()
     adapter.and_then(@_create)
 
   # @nodoc
   # @private
   _create: (adapter) =>
-    logger  = Sirius.Application.get_logger(@constructor.name)
+    logger = @logger
     clb  = @clb
     from = @from_element
     current_value = null
     watch_for = @watch_for
+    guid = @guid
 
     tag  = adapter.get_attr(from, 'tagName')
     type = adapter.get_attr(from, 'type')
@@ -160,28 +166,30 @@ class Sirius.Internal.Observer
 
     # how to handle
 
+    info = Sirius.Internal
+      .EventHandler.build(guid, from, null, handler)
+
     if watch_for == Sirius.Internal.DefaultProperty
       # text + input
 
       if INPUT_LIKE_TAGS.indexOf(tag) != -1
-        logger.debug("It is not a #{INPUT_LIKE_TAGS}")
+        logger.debug("It is not #{INPUT_LIKE_TAGS}")
         if BOOL_TYPES.indexOf(type) != -1 || tag == OPTION
-          logger.debug("Get a #{type} & #{tag} element for bool elements")
+          logger.debug("Get #{type} & #{tag} element for bool elements")
+
           adapter.bind(document, from, O.Ev.change, handler)
-          Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for,
-            O.Ev.change, handler)
+
+          Sirius.Internal.CacheObserverHandlers.add(info.with_event(O.Ev.change))
         else
           current_value = adapter.text(from)
           adapter.bind(document, from, O.Ev.input, handler)
-          Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for,
-            O.Ev.input, handler)
+          Sirius.Internal.CacheObserverHandlers.add(info.with_event(O.Ev.input))
           #instead of using input event, which not work correctly in ie9
           #use own implementation of input event for form
           if Sirius.Utils.is_ie9()
             logger.warn("Hook for work with IE9 browser")
             adapter.bind(document, from, O.Ev.selectionchange, handler)
-            Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for,
-              O.Ev.selectionchange, handler)
+            Sirius.Internal.CacheObserverHandlers.add(info.with_event(O.Ev.selectionchange))
 
         # return, because for input element seems this events enough
 
@@ -205,8 +213,7 @@ class Sirius.Internal.Observer
 
       element = adapter.get(from) # fixme : all
       observer.observe(element, cnf)
-      Sirius.Internal.CacheObserverHandlers.add_new_observer(from, watch_for, handler,
-        observer, cnf)
+      Sirius.Internal.CacheObserverHandlers.add(new Sirius.Internal.ObserverHandler(guid, observer))
 
     else # when null, need register event with routes
       # FIXME stackoverflow
@@ -214,10 +221,20 @@ class Sirius.Internal.Observer
       logger.warn("Use Deprecated events for observe")
       adapter.bind(document, from, O.Ev.DOMNodeInserted, handler)
       adapter.bind(document, from, O.Ev.DOMAttrModified, handler)
-      Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for,
-        O.Ev.DOMNodeInserted, handler)
-      Sirius.Internal.CacheObserverHandlers.add_new_bind_event(from, watch_for,
-        O.Ev.DOMAttrModified, handler)
+      Sirius.Internal.CacheObserverHandlers.add(info.with_event(O.Ev.DOMNodeInserted))
+      Sirius.Internal.CacheObserverHandlers.add(info.with_event(O.Ev.DOMAttrModified))
+
+  stop: () ->
+    xs = Sirius.Internal.CacheObserverHandlers.remove_where(@guid)
+    logger = @logger
+    Sirius.Application.get_adapter().and_then (adapter) ->
+      for x in xs
+        if x instanceof Sirius.Internal.ObserverHandler
+          logger.debug("Stop observer: #{x.guid}")
+          x.observer.disconnect()
+        else
+          logger.debug("Stop event observer: #{x.guid}")
+          adapter.off(x.from, x.event, x.fun)
 
 
 

@@ -4,6 +4,9 @@
  @abstract
 ###
 class Adapter
+
+  _adapter_name: "Adapter"
+
   ###
    Attach event to an element
    @param {string} main the element for bind
@@ -16,13 +19,14 @@ class Adapter
 
   ###
    Remove event listener for an element
-   @param {string} main the element for bind
    @param {string} selector - selector query string
    @param {string} event - event name
    @param {function} fn - callback, will be called, when event fired
    @returns {void}
   ###
-  off: (element, selector, event, fn) ->
+  off: (selector, event, fn) ->
+
+
 
   ###
    Call an custom event with params

@@ -1,6 +1,8 @@
 
 class VanillaJsAdapter extends Adapter
 
+  _adapter_name: "VanillaJs"
+
   _get_element_from_selector: (selector) ->
     if (typeof(selector) == "object" && selector.nodeType == 1)
       return selector
@@ -23,13 +25,10 @@ class VanillaJsAdapter extends Adapter
           all.item(e).addEventListener(event, fn)
     return
 
-  off: (element, selector, event, fn) ->
-    if selector == null || selector == element
-      element.removeEventListener(event, fn)
-    else
-      all = @all(selector)
-      for e in [0...all.length]
-        all.item(e).removeEventListener(event, fn)
+  off: (selector, event, fn) ->
+    all = @all(selector)
+    for e in [0...all.length]
+      all.item(e).removeEventListener(event, fn)
     return
 
   fire: (element, event, params...) ->

@@ -1,3 +1,12 @@
+=== 1.3.1
+1. fix an issue with `@comp` for predefined attributes
+
+2. don't log information about attributes/strategies
+
+3. add class name to adapters
+
+4. provided `Materializer#stop` method for remove listeners/callback 
+
 === 1.3.0
 
 1. update binding: Implement new Materialization process

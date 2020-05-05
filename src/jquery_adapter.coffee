@@ -4,6 +4,8 @@
 #
 class JQueryAdapter extends Adapter
 
+  _adapter_name: "jQuery"
+
   bind: (element, selector, event, fn) ->
     if selector == null
       jQuery(element).on(event, fn)
@@ -11,8 +13,8 @@ class JQueryAdapter extends Adapter
       jQuery(element).on(event, selector, fn)
     return
 
-  off: (element, selector, event, fn) ->
-    jQuery(element).off(event, selector, fn)
+  off: (selector, event, fn) ->
+    jQuery(document).off(event, selector, fn)
     return
 
   fire: (element, event, params...) ->
@@ -20,7 +22,14 @@ class JQueryAdapter extends Adapter
     return
 
   get_properties: (event, properties) ->
-    for p in properties then jQuery(event.target).attr(p)
+    target = jQuery(event.target)
+    current_target = jQuery(event.currentTarget || event.target)
+    result = []
+    for p in properties
+      t = target.attr(p)
+      ct = current_target.attr(p)
+      result.push(t || ct)
+    result
 
   get_attr: (element, attr) ->
     if attr.indexOf('data') == 0
