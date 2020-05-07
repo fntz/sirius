@@ -1,3 +1,8 @@
+=== 1.3.2
+
+1. fix redirect function
+
+
 === 1.3.1
 1. fix an issue with `@comp` for predefined attributes
 

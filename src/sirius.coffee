@@ -11,7 +11,7 @@
 #
 Sirius.redirect = (url) ->
   app = Sirius.Application
-  app.logger.info("Redirect to #{url}", app.logger.redirect)
+  app.get_logger("Redirect").info("Redirect to #{url}")
 
   if app.use_hash_routing_for_old_browsers && !app.push_state_support
     url = if url.indexOf("#") == 0
