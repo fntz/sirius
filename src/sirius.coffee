@@ -137,13 +137,13 @@ Sirius.Application =
     if !@push_state_support && @use_hash_routing_for_old_browsers
       logger.warn("You browser does not support pushState, and you disabled hash routing for old browser")
 
-    setting =
+    routing_setup = Sirius.Internal.RoutingSetup.build
       old: @use_hash_routing_for_old_browsers
       support: @push_state_support
       ignore: @ignore_not_matched_urls
 
     # start
-    Sirius.Internal.RouteSystem.create @route, setting, () =>
+    Sirius.Internal.RouteSystem.create @route, routing_setup, () =>
       for p in @_wait
         p.set_value(@adapter)
       @adapter.fire(document, "application:run", new Date())

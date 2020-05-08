@@ -1,7 +1,6 @@
 
 class Sirius.Internal.HistoryJournal
   constructor: (@setup) ->
-    @_state = []
 
   hash: () ->
     window.location.hash
@@ -22,5 +21,4 @@ class Sirius.Internal.HistoryJournal
       history.pushState(data, title, url)
     else
       history.replaceState(data, title, url)
-    @_state.push([data, title, url])
 

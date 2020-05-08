@@ -192,12 +192,11 @@ describe "Routing", ->
         "click #my-div": {controller: Controller, action: "action", data: ["id", "class"]}
 
       ps = history.pushState ? true : false
-      setting =
+      routing_setup = Sirius.Internal.RoutingSetup.build
         old: true
-        top: true
         support: ps
 
-      Sirius.Internal.RouteSystem.create(r, setting)
+      Sirius.Internal.RouteSystem.create(r, routing_setup)
 
       setTimeout(
         () ->  window.location.hash = "#/"

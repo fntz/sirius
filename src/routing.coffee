@@ -446,19 +446,48 @@ Sirius.Internal.RouteSystem =
       routes = route
     routes
 
+  ###
+    @return {boolean} - flag, defined that the route is matched or not
+  ###
+  _try_to_call: (array_of_route_definition, current) ->
+    result = false
+    for [route, control_flow] in array_of_route_definition # route : CF|Function
+      unless result
+        match_result = route.match(current)
+        if match_result.is_success()
+          result = true
+          # TODO generate control flow for functions too
+          if control_flow.handle_event
+            control_flow.handle_event(null, match_result.get_args())
+          else
+            control_flow.apply(null, match_result.get_args())
+    result
 
   ###
-    @param routes {Object} object with routing definition
+   @private
+   try to handle 404 event in the application
+  ###
+  _handle_404_event: (routes, current, prev, wrapper, adapter, logger) ->
+    logger.warn("route '#{current}' not found. Generate 404 event")
+    adapter.fire(document, "application:404", current, prev)
+    r404 = routes['404'] || routes[404]
+    if r404
+      if Sirius.Utils.is_function(r404)
+        wrapper(r404)(current)
+      else
+        (new Sirius.Internal.ControlFlow(r404, wrapper)).handle_event(null, current)
+
+
+  ###
+    @param routes {Sirius.Internal.RoutingSetup} Setup definition
     @param fn {Function} a callback, which will be called, after the routing initialization
     @event application:urlchange - will be generated, if an url change
     @event application:404 - will be generated, if an url does not match in the defined routing
     @event application:run - will be generated, on the application start
     an setting : old, top, support
   ###
-  create: (routes, setting, fn = ->) ->
+  create: (routes, setup, fn = ->) ->
     logger = Sirius.Application.get_logger("Sirius.Internal.RouteSystem")
-    # TODO pass from the top
-    setup = Sirius.Internal.RoutingSetup.build(setting)
     journal = new Sirius.Internal.HistoryJournal(setup)
 
     current = prev = journal.hash()
@@ -510,7 +539,7 @@ Sirius.Internal.RouteSystem =
         else # e.type : click or popstate
           # plain
           route_array = plain_routes
-          href = e.target.href # TODO the same for hashchange
+          href = e.target.href
           # need save history only for 'click' event
           if e.type != "popstate" && setup.has_push_state_support
             journal.write({href: href}, "#{href}", href)
@@ -519,32 +548,15 @@ Sirius.Internal.RouteSystem =
 
           current = pathname
 
-        for part in route_array
-          unless result
-            match_result = part[0].match(current)
-            if match_result.is_success()
-              result = true
-              flow = part[1]
+        result = Sirius.Internal.RouteSystem._try_to_call(route_array, current)
 
-              if flow.handle_event
-                flow.handle_event(null, match_result.get_args())
-              else
-                flow.apply(null, match_result.get_args())
-
-        if !result
+        unless result
           if setup.is_ignore_not_matched_urls
             logger.debug("the URL was not matched: '#{current}'")
             return
 
           else
-            logger.warn("route '#{current}' not found. Generate 404 event")
-            adapter.fire(document, "application:404", current, prev)
-            r404 = routes['404'] || routes[404]
-            if r404
-              if Sirius.Utils.is_function(r404)
-                wrapper(r404)(current)
-              else
-                (new Sirius.Internal.ControlFlow(r404, wrapper)).handle_event(null, current)
+            Sirius.Internal.RouteSystem._handle_404_event(routes, current, prev, wrapper, adapter, logger)
 
             _prevent_default(e)
             return
