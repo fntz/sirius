@@ -1,7 +1,5 @@
 # usual setup
 Sirius.Logger.Configuration.configure({})
-Sirius.BaseModel._run_base_model_validator_registration()
-Sirius.View._run_view_strategy_registration()
 
 adapter = if JQueryAdapter?
     new JQueryAdapter()
@@ -133,25 +131,6 @@ class TodoList extends Sirius.BaseModel
 
   is_completed: () ->
     @completed()
-
-#### controllers #######
-
-Controller0 =
-  before_action: () ->
-    "before"
-  after_action: () ->
-    "after"
-  action: () ->
-    "action"
-
-  action0: () ->
-    "action0"
-
-  before_action1: () ->
-    "before1"
-
-  action1 : () ->
-    "action1"
 
 class SkipFieldsModel extends Sirius.BaseModel
   @attrs: ["id"]

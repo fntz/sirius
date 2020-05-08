@@ -106,14 +106,15 @@ task :build do
   lib_files = coffee(src, %w(
     comment_header version adapter vanilla_js_adapter
     logger internal promise utils
-    sirius validators observer
+    history_journal
+    routing sirius validators observer
     view base_model collection materialization
   ))
 
   core_files = coffee(src, %w(
     comment_header version adapter vanilla_js_adapter
     logger internal promise utils
-    sirius
+    history_journal routing sirius
   ))
 
   system("cat #{lib_files} | coffee -c -b --stdio > #{path}/sirius.js")

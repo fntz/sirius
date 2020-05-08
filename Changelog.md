@@ -1,3 +1,9 @@
+=== 1.3.3
+
+1. fix an issue with `Collection#each` method
+
+2. refactor route system, and add more tests
+
 === 1.3.2
 
 1. fix redirect function
