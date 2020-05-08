@@ -3,6 +3,13 @@
   Different type of Materializers
 ###
 
+###
+ @private
+###
+class Sirius.Internal.Listener
+  constructor: (@name, @handler) ->
+
+
 # @private
 # @nodoc
 # I use this class for save information about Field Mapping like: names, attributes...

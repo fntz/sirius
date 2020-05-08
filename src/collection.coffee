@@ -192,7 +192,7 @@ class Sirius.Collection
   # Iterate over collection with function
   # @param fn [Function]
   each: (fn = ->) ->
-    for model in @_array then fn.call(model)
+    for model in @_array then fn.call(null, model)
 
   # return the first element in the collection
   # @return [Model]

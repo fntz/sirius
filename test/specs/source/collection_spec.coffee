@@ -80,6 +80,11 @@ describe "Collections", ->
     expect(mc.filter((m) -> m.get("id") > 10 ).length).toEqual(1)
     expect(mc.last().get("id")).toEqual(100)
 
+    each_result = []
+    mc.each ((x) -> each_result.push(x.id()))
+    expect(each_result.length).not.toEqual(0)
+
+
     mc.remove(model)
 
     z = [{"id":100,"title":"default title","description":null}][0]

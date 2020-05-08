@@ -2,18 +2,90 @@ describe "ControlFlow", ->
 
   R = Sirius.Internal.RouteSystem
 
+  TestController =
+    before_action: () ->
+      "before"
+    after_action: () ->
+      "after"
+
+    action: () ->
+      "action"
+
+    action0: () ->
+      "action0"
+
+    before_action1: () ->
+      "before1"
+
+    action1 : () ->
+      "action1"
+
+    not_a_fun: "test"
+
+  it "check required arguments", ->
+    expect(() ->
+      new Sirius.Internal.ControlFlow({})
+    ).toThrowError("Params must contain a Controller definition")
+
+    expect(() ->
+      new Sirius.Internal.ControlFlow({
+        controller: TestController,
+        action: 1
+      })
+    ).toThrowError("Action must be a string or a function")
+
+    expect(() ->
+      new Sirius.Internal.ControlFlow({
+        controller: TestController,
+        action: "foo_bar_baz"
+      })
+    ).toThrowError(/The action 'foo_bar_baz' was not found in the controller/)
+
+    expect(() ->
+      TestController1 =
+        test: () -> "asd"
+        before_test: 1
+
+      new Sirius.Internal.ControlFlow({
+        controller: TestController1,
+        action: "test"
+      })
+    ).toThrowError("The Before method must be a string or a function")
+
+    expect(() ->
+      TestController1 =
+        test: () -> "asd"
+
+      new Sirius.Internal.ControlFlow({
+        controller: TestController1,
+        action: "test"
+        before: "before"
+      })
+    ).toThrowError("The Before method must be a string or a function")
+
+    expect(() -> new Sirius.Internal.ControlFlow()).toThrow()
+
+    expect(() ->
+      new Sirius.Internal.ControlFlow({
+        controller: TestController,
+        action: "action"
+        guard: "not_a_fun"
+      })
+    ).toThrowError("The Guard method must be a string or a function")
+
   it "Params Guards", ->
     params =
-      controller: Controller0
+      controller: TestController
       action    : "action"
 
     cf = new Sirius.Internal.ControlFlow(params)
 
-    expect(cf.action).toEqual(Controller0.action)
+    expect(cf.action).toEqual(TestController.action)
     expect(cf.before()).toEqual("before")
+    expect(cf.after()).toEqual("after")
 
     params =
-      controller: Controller0
+      controller: TestController
       action    : "action1"
       before    : () -> 1
 
@@ -21,42 +93,35 @@ describe "ControlFlow", ->
 
     expect(cf.before()).toEqual(1)
 
-    params =
-      controller: Controller0
-      action    : "action1"
-      before    : 1
-
-    expect(() ->
-      new Sirius.Internal.ControlFlow(params)
-    ).toThrow()
-
     global = 1
     given  = null
 
     params =
-      controller: Controller0
+      controller: TestController
       action    : "action1"
-      before    : () -> global = 10
+      before    : () ->
+        global = 10
       guard     : (g) ->
         given = g
         false
 
     cf = new Sirius.Internal.ControlFlow(params)
 
-    expect(cf.guard()).toBeFalsy()
+    expect(cf.guard()).toBeFalse()
 
     cf.handle_event(null, "abc")
 
     expect(global).toEqual(1)
     expect(given).toEqual("abc")
 
-    expect(() -> new Sirius.Internal.ControlFlow()).toThrow()
+  describe "helpers", ->
+    it "is a hash route", ->
+      expect(R._is_hash_route("#test")).toBeTrue()
+      expect(R._is_hash_route("/test")).toBeFalse()
 
-    params =
-      controller: Controller0,
-      action    : "some-action"
-
-    expect(() -> new Sirius.Internal.ControlFlow(params)).toThrow()
+    it "is a plain route", ->
+      expect(R._is_plain_route("/test")).toBeTrue()
+      expect(R._is_plain_route("#test")).toBeFalse()
 
   describe "scheduler", ->
     it "is scheduler route", ->
