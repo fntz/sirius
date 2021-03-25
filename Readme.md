@@ -1,5 +1,5 @@
 
-`Sirius` is a modern coffeescript MVC/MVVM framework for client side.
+`Sirius` is a modern coffeescript MVC/MVVM framework for client-side.
 
 [wiki](https://github.com/fntz/sirius/wiki)
 
@@ -12,10 +12,10 @@
 + Template free — you may use any template engine or don't use any at all
 + MVC style
 + MVVM binding (view to view, model to view, view to model, etc)
-+ Build-in Collections 
-+ Build-in Validators
++ Built-in Collections 
++ Built-in Validators
 + Simple for customization
-+ Works for jQuery, Prototype.js and for Vanillajs
++ Works with jQuery, Prototype.js, and Vanillajs
 + Support html5 routing
 + Time events in routing
 + Log all actions in an application [read about](https://github.com/fntz/sirius/wiki/Logger)
@@ -170,7 +170,7 @@ Sirius.BaseModel.register_validator("my_validator", MyValidator)
 
 ### 6. Views
 
-In Sirius, views is an any element on page. You might bind view and other view, or model.
+In Sirius, views are an element on the page. You might bind view and other views, or model.
 
 ```coffee
   view = new Sirius.View("#id", (x) -> "#{x}!!!")
@@ -178,7 +178,7 @@ In Sirius, views is an any element on page. You might bind view and other view, 
   # then in html <element id='id'>new content!!!</element>
 ```
 
-`swap` - this strategy, how work with content. Support: `swap`, `append`, `prepend` stretegies.
+`swap` - this strategy, how to work with content. Support: `swap`, `append`, `prepend` stretegies.
 
 Define own strategy:
 
@@ -358,7 +358,7 @@ Use `rake` for run task. Before work run `rake install` for installing dependenc
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
-5. Create new Pull Request
+5. Create a new Pull Request
 
 
 
